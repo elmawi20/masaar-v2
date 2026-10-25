@@ -13,6 +13,7 @@
 > 10. **§9.2 & §9.4 (Note Edit Window & InBody Height):** 24-hour note edit countdown starts from `completedAt`. InBody height pre-fills from profile/previous test, remains editable.
 > 11. **§11 (Owner Commission Default):** Owner account default commission is `none` (0%), configurable if desired.
 > 12. **§14 (Late Arrival Notification):** Alert triggers if clock passes `startTime + 10 min` unarrived; when checked in, `lateMinutes` stored and notification sent to clinician.
+> 13. **§0 (Responsive Viewports & Mobile Adaptations — DEC-027):** All screens responsive from 360px to desktop without horizontal scroll. Front desk desktop-first (tablet supported); clinician and manager views fully usable on phone/tablet; 44px touch targets; tables collapse to cards; calendar to clinician day list.
 
 > **Single source of truth for the project.** Where this file conflicts with any older document, THIS FILE wins.  
 > Scope: **one clinic, one branch.** Old spec kept as `docs/OLD-FEATURES.md` for reference only (WhatsApp template wording, demo names).
@@ -29,6 +30,11 @@
 6. **R-0-6** Values that can be calculated are **never stored twice** (balances, remaining sessions, totals are calculated).
 7. **R-0-7** Bilingual: Arabic (RTL, default) and English (LTR). Light / dark theme.
 8. **R-0-8** No demo data in production. Seed script only for development/staging.
+9. **R-0-9** **Responsive viewports:** All screens must be responsive from **360px width** (mobile) to desktop with **zero horizontal scrolling**.
+10. **R-0-10** **Receptionist screens:** Optimized **desktop-first** for high-volume front desk operations, with full tablet support.
+11. **R-0-11** **Clinician screens:** Treating clinician workspaces (today queue, patient clinical file, session completion form, nutrition consultation & InBody) fully responsive on **tablet and phone**.
+12. **R-0-12** **Owner / Manager screens:** Operational and executive views (today summary, reports, cash closing reviews, price/void approvals) fully usable on **phone**.
+13. **R-0-13** **Mobile UI adaptations:** Minimum touch target size **44px × 44px** for buttons/inputs; data tables collapse into stacked cards on phone; multi-bed calendar converts to single-clinician day list on phone; side menu converts to role-filtered hamburger or bottom navigation bar.
 
 ---
 

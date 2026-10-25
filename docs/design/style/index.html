@@ -41,6 +41,48 @@
       justify-content: space-between;
       border-right: 4px solid var(--primary-600);
     }
+    .phone-preview-grid {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 18px;
+    }
+    .phone-frame-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 100%;
+    }
+    .phone-frame {
+      width: 390px;
+      max-width: 100%;
+      height: 720px;
+      background: var(--bg-surface);
+      border: 3px solid var(--border-strong);
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      display: flex;
+      flex-direction: column;
+    }
+    .phone-frame-bar {
+      background: var(--bg-app);
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-secondary);
+    }
+    .phone-frame iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: var(--bg-app);
+    }
   </style>
 </head>
 <body>
@@ -257,6 +299,74 @@
           <a href="session-complete.html" class="btn-clinical btn-clinical-primary" style="width: 100%; text-align: center;">
             فتح نموذج استكمال الجلسة الملون
           </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Phone-Sized Previews (390px wide) -->
+    <div class="ui-card" style="border-right: 5px solid var(--primary-600); margin-top: 24px;">
+      <div class="ui-card-header">
+        <div>
+          <div class="ui-card-title" style="font-size: 16px;">5. معاينة الشاشات على الهاتف المحمول (عرض 390 بكسل)</div>
+          <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+            تطبيق القواعد التجاوبية الصارمة (R-0-9 حتى R-0-13): قائمة جانبية منسدلة بزر القائمة، تحول الجداول إلى بطاقات مدمجة، أهداف لمس 44 بكسل كحد أدنى، وانعدام التمرير الأفقي العام.
+          </p>
+        </div>
+      </div>
+
+      <div class="phone-preview-grid">
+        <!-- Phone 1: Today Screen -->
+        <div class="phone-frame-wrapper">
+          <div style="font-size: 13px; font-weight: 700; margin-bottom: 8px; color: var(--text-main);">
+            لوحة الاستقبال واليوم (390 بكسل)
+          </div>
+          <div class="phone-frame">
+            <div class="phone-frame-bar">
+              <span>9:30 ص</span>
+              <span>لوحة الاستقبال</span>
+              <a href="today.html" target="_blank" style="color: var(--primary-600); text-decoration: none;">نافذة مستقلة</a>
+            </div>
+            <iframe src="today.html" title="معاينة لوحة الاستقبال على الهاتف"></iframe>
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px; text-align: center; max-width: 360px;">
+            تحول جدول المواعيد إلى بطاقات، ظهور زر القائمة الجانبية، وبطاقات إحصائيات عمودية سهلة التصفح.
+          </div>
+        </div>
+
+        <!-- Phone 2: Patient Profile -->
+        <div class="phone-frame-wrapper">
+          <div style="font-size: 13px; font-weight: 700; margin-bottom: 8px; color: var(--text-main);">
+            ملف المريض الإداري (390 بكسل)
+          </div>
+          <div class="phone-frame">
+            <div class="phone-frame-bar">
+              <span>9:30 ص</span>
+              <span>ملف المريض</span>
+              <a href="patient-profile.html" target="_blank" style="color: var(--primary-600); text-decoration: none;">نافذة مستقلة</a>
+            </div>
+            <iframe src="patient-profile.html" title="معاينة ملف المريض على الهاتف"></iframe>
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px; text-align: center; max-width: 360px;">
+            شريط التبويبات يدعم التمرير الأفقي اللمسي، سجل الزيارات يتحول لبطاقات، ورأس الملف يلتف تلقائياً.
+          </div>
+        </div>
+
+        <!-- Phone 3: Session Completion -->
+        <div class="phone-frame-wrapper">
+          <div style="font-size: 13px; font-weight: 700; margin-bottom: 8px; color: var(--text-main);">
+            توثيق الجلسة الطبية (390 بكسل)
+          </div>
+          <div class="phone-frame">
+            <div class="phone-frame-bar">
+              <span>9:30 ص</span>
+              <span>توثيق الجلسة</span>
+              <a href="session-complete.html" target="_blank" style="color: var(--primary-600); text-decoration: none;">نافذة مستقلة</a>
+            </div>
+            <iframe src="session-complete.html" title="معاينة توثيق الجلسة على الهاتف"></iframe>
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px; text-align: center; max-width: 360px;">
+            مقياس الألم المزدوج قبل وبعد الجلسة قابل للتمرير الأفقي، مساحات لمس للأزرار 44 بكسل، وحقول تقرير مريحة.
+          </div>
         </div>
       </div>
     </div>

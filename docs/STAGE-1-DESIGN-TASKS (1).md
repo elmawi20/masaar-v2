@@ -151,7 +151,7 @@ updated_at everywhere. Add a Mermaid diagram for this slice.
 - **You check:** Arabic sounds natural to your patients and staff.
 
 ### 1.20 Test plan & traceability
-- **Prompt:** "Create test-plan.md: (1) for every rule ID: test level (unit / integration / e2e), test name, and which calculations.md example or state-machine row it uses; (2) generated test groups: permissions (every action × role) and transitions (every from→to pair); (3) e2e journeys: full clinic day, OTP login, payment+void+refund, package expiry, cash closing; (4) map every row of the old Excel test checklist to a test or mark 'removed in v2' with reason. End with coverage counts: rules with ≥1 test / total."
+- **Prompt:** "Create test-plan.md: (1) for every rule ID: test level (unit / integration / e2e), test name, and which calculations.md example or state-machine row it uses; (2) generated test groups: permissions (every action × role) and transitions (every from→to pair); (3) e2e journeys: full clinic day, OTP login, payment+void+refund, package expiry, cash closing; (4) map every row of the old Excel test checklist to a test or mark 'removed in v2' with reason; (5) visual regression testing: Playwright screenshot assertions at phone (390px), tablet (820px), and desktop (1440px) viewports for all responsive screens (R-0-9 to R-0-13). End with coverage counts: rules with ≥1 test / total."
 - **Done when:** coverage = 100% of rule IDs.
 
 ---

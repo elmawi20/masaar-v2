@@ -133,6 +133,16 @@ Neutral slates ensure high legibility and zero visual fatigue over long 8-hour c
   - Gap between clinical sections: `16px - 24px`
   - Generous touch targets for dual pain scale buttons (`44px` height).
 
+### 5.4 Responsive Breakpoints & Mobile Form Factors (`R-0-9` – `R-0-13`, `DEC-027`)
+
+To guarantee smooth usability across phones, tablets, and desktop workstations without degrading the desktop experience:
+
+| Viewport | Screen Width | Target Devices & Roles | Responsive Adaptation Rules |
+|---|:---:|---|---|
+| **Phone** | **`<= 640px`** | Smartphones (360px–640px)<br>• Clinicians moving between beds<br>• Owner/Manager mobile monitoring | • **Zero horizontal scrolling** (`overflow-x: hidden`).<br>• **Touch targets:** Minimum **44px × 44px** for all buttons, inputs, tabs, and pain scale boxes.<br>• **Tables to Cards:** Multi-column tables collapse into stacked cards with clear labels.<br>• **Calendar:** Multi-bed grid transforms into a single-clinician daily appointment list.<br>• **Navigation:** Sidebar converts to a role-filtered mobile hamburger / drawer menu.<br>• **Forms:** All form rows collapse into 1-column layout with 12px padding. |
+| **Tablet** | **`641px – 1024px`** | iPads & Tablets (portrait/landscape)<br>• Clinician bed-side charting<br>• Front-desk auxiliary check-in | • Touch targets maintain min 44px height.<br>• Form grids adapt to 2 columns.<br>• Tables retain structured row display with scroll containers where appropriate.<br>• Calendar displays day view per selected clinician. |
+| **Desktop** | **`> 1024px`** | Workstations & Laptops (`1025px+`)<br>• Receptionist front-desk PC<br>• Practice management & reports | • **Max Content Width:** `~1400px`, centered (`margin: 0 auto`).<br>• Persistent sidebar navigation (`240px`).<br>• Full multi-bed 15-minute grid calendar.<br>• High-density compact front desk tables (15px font) and spacious clinical SOAP layouts. |
+
 ---
 
 ## 6. Access Control & Privacy UI Rules

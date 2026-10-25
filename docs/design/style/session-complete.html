@@ -65,11 +65,20 @@
 <body>
   <!-- Header -->
   <header class="style-header">
-    <div class="brand-badge">
-      <div class="brand-logo-mark">مسار</div>
-      <div>
-        <div style="font-weight: 700; font-size: 14px; color: var(--text-main);">عيادة مسار — الملف الطبي</div>
-        <div style="font-size: 11px; color: var(--text-muted);">توثيق استكمال الجلسة السريرية</div>
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <button class="mobile-menu-btn" onclick="toggleSidebar()" aria-label="القائمة">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+      <div class="brand-badge">
+        <div class="brand-logo-mark">مسار</div>
+        <div>
+          <div style="font-weight: 700; font-size: 14px; color: var(--text-main);">عيادة مسار — الملف الطبي</div>
+          <div style="font-size: 11px; color: var(--text-muted);">توثيق استكمال الجلسة السريرية</div>
+        </div>
       </div>
     </div>
 
@@ -85,6 +94,7 @@
   </header>
 
   <div class="app-container">
+    <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="toggleSidebar()"></div>
     <!-- Sidebar: Clinician role-restricted menu per permissions.md -->
     <aside class="app-sidebar">
       <!-- Role Label & Current User Badge (Item 4) -->
@@ -354,6 +364,13 @@
       html.setAttribute('data-theme', next);
       document.getElementById('theme-icon').outerHTML = next === 'dark' ? sunSvg : moonSvg;
       document.getElementById('theme-text').textContent = next === 'dark' ? 'الوضع النهاري' : 'الوضع الداكن';
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.querySelector('.app-sidebar');
+      const backdrop = document.getElementById('sidebar-backdrop');
+      if (sidebar) sidebar.classList.toggle('sidebar-open');
+      if (backdrop) backdrop.classList.toggle('active');
     }
   </script>
 </body>

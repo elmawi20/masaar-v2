@@ -457,3 +457,214 @@ body {
   margin-bottom: 14px;
   font-size: 12px;
 }
+
+/* ============================================================
+   Responsive & Mobile Design Rules (R-0-9 to R-0-13, DEC-027)
+   Breakpoints: Phone <= 640px, Tablet 641-1024px, Desktop > 1024px
+   Desktop layouts (> 1024px) remain 100% UNCHANGED.
+   ============================================================ */
+
+/* Mobile Menu Hamburger Button (Hidden on Desktop) */
+.mobile-menu-btn {
+  display: none;
+  background: var(--bg-app);
+  border: 1px solid var(--border-strong);
+  color: var(--text-main);
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.sidebar-backdrop {
+  display: none;
+}
+
+/* Tablet Breakpoint (641px – 1024px) */
+@media (max-width: 1024px) {
+  .mobile-menu-btn {
+    display: inline-flex;
+  }
+
+  .app-sidebar {
+    position: fixed;
+    top: 55px;
+    right: -290px;
+    width: 280px;
+    height: calc(100vh - 55px);
+    z-index: 1000;
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.2);
+    transition: right 0.25s ease-in-out;
+    overflow-y: auto;
+  }
+
+  .app-sidebar.sidebar-open {
+    right: 0;
+  }
+
+  .sidebar-backdrop {
+    position: fixed;
+    top: 55px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 999;
+  }
+
+  .sidebar-backdrop.active {
+    display: block;
+  }
+
+  .app-main {
+    padding: 18px 14px;
+  }
+}
+
+/* Phone Breakpoint (<= 640px) */
+@media (max-width: 640px) {
+  html, body {
+    overflow-x: hidden;
+  }
+
+  .style-header {
+    padding: 8px 12px;
+  }
+
+  .brand-badge {
+    gap: 8px;
+  }
+
+  .brand-logo-mark {
+    width: 32px;
+    height: 32px;
+    font-size: 13px;
+  }
+
+  .theme-toggle-btn {
+    min-height: 44px;
+    padding: 0 10px;
+  }
+
+  .mobile-menu-btn {
+    display: inline-flex;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .app-main {
+    padding: 12px 8px;
+  }
+
+  /* Minimum 44px Touch Targets for Mobile Controls (R-0-13) */
+  .btn-clinical {
+    min-height: 44px;
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+
+  .btn-clinical-sm {
+    min-height: 44px;
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .form-input {
+    min-height: 44px;
+    font-size: 14px;
+  }
+
+  /* KPI Grid on Phone: 2 columns */
+  .kpi-row {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .kpi-box {
+    padding: 10px 8px;
+  }
+
+  .kpi-num {
+    font-size: 18px;
+  }
+
+  /* Tables Collapse to Stacked Cards on Phone (R-0-13) */
+  .clinical-table thead {
+    display: none;
+  }
+
+  .clinical-table, 
+  .clinical-table tbody, 
+  .clinical-table tr, 
+  .clinical-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .clinical-table tr {
+    margin-bottom: 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    background: var(--bg-surface);
+    padding: 12px;
+  }
+
+  .clinical-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: none;
+    border-bottom: 1px dashed var(--border-subtle);
+    padding: 8px 0;
+    font-size: 14px;
+  }
+
+  .clinical-table td:last-child {
+    border-bottom: none;
+    padding-top: 10px;
+    justify-content: flex-end;
+  }
+
+  .clinical-table td[data-label]::before {
+    content: attr(data-label);
+    font-weight: 700;
+    color: var(--text-secondary);
+    font-size: 12px;
+    padding-left: 10px;
+  }
+
+  /* Tab bar on phone: horizontally scrollable with 44px touch targets */
+  .tab-bar {
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+    gap: 8px;
+  }
+
+  .tab-link {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 14px;
+  }
+
+  /* Pain row on phone: horizontally scrollable with 44px targets */
+  .pain-row {
+    overflow-x: auto;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+    gap: 4px;
+  }
+
+  .pain-box {
+    flex: 0 0 42px;
+    min-width: 42px;
+    min-height: 46px;
+  }
+}
+

@@ -9,11 +9,20 @@
 <body>
   <!-- Header -->
   <header class="style-header">
-    <div class="brand-badge">
-      <div class="brand-logo-mark">مسار</div>
-      <div>
-        <div style="font-weight: 700; font-size: 14px; color: var(--text-main);">عيادة مسار — فرع المعادي</div>
-        <div style="font-size: 11px; color: var(--text-muted);">نظام الإدارة والملف الطبي الموحد</div>
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <button class="mobile-menu-btn" onclick="toggleSidebar()" aria-label="القائمة">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+      <div class="brand-badge">
+        <div class="brand-logo-mark">مسار</div>
+        <div>
+          <div style="font-weight: 700; font-size: 14px; color: var(--text-main);">عيادة مسار — فرع المعادي</div>
+          <div style="font-size: 11px; color: var(--text-muted);">نظام الإدارة والملف الطبي الموحد</div>
+        </div>
       </div>
     </div>
 
@@ -33,6 +42,7 @@
 
   <!-- App Shell -->
   <div class="app-container">
+    <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="toggleSidebar()"></div>
     <aside class="app-sidebar">
       <!-- Role Label & Current User Badge (Item 4) -->
       <div class="sidebar-user-badge">
@@ -149,100 +159,100 @@
           </thead>
           <tbody>
             <tr>
-              <td><strong>9:30 ص</strong></td>
-              <td><code>MAS-00104</code></td>
-              <td><strong>أحمد مصطفى كامل</strong></td>
-              <td style="direction: ltr; text-align: right;">010 1234 5678</td>
-              <td>علاج طبيعي تأهيلي</td>
-              <td>د. كريم حسني</td>
-              <td>غرفة 1 - سرير 2</td>
-              <td><span class="status-badge badge-arrived">حضر منذ 15 دقيقة</span></td>
-              <td><span style="font-weight: 700; color: var(--status-completed-text);">خالص - باقة 12 جلسة</span></td>
-              <td>
+              <td data-label="الوقت"><strong>9:30 ص</strong></td>
+              <td data-label="كود المريض"><code>MAS-00104</code></td>
+              <td data-label="اسم المريض"><strong>أحمد مصطفى كامل</strong></td>
+              <td data-label="رقم الهاتف" style="direction: ltr; text-align: right;">010 1234 5678</td>
+              <td data-label="نوع الجلسة">علاج طبيعي تأهيلي</td>
+              <td data-label="المعالج المتابع">د. كريم حسني</td>
+              <td data-label="المكان والسرير">غرفة 1 - سرير 2</td>
+              <td data-label="حالة الموعد"><span class="status-badge badge-arrived">حضر منذ 15 دقيقة</span></td>
+              <td data-label="الحساب المالي"><span style="font-weight: 700; color: var(--status-completed-text);">خالص - باقة 12 جلسة</span></td>
+              <td data-label="إجراء سريع">
                 <a href="../wireframes/appointment-action-panel.html" class="btn-clinical btn-clinical-sm">إدارة الموعد</a>
               </td>
             </tr>
             <tr>
-              <td><strong>10:15 ص</strong></td>
-              <td><code>MAS-00109</code></td>
-              <td><strong>منى محمود إبراهيم</strong></td>
-              <td style="direction: ltr; text-align: right;">011 9876 5432</td>
-              <td>علاج طبيعي</td>
-              <td>د. سارة عادل</td>
-              <td>غرفة 1 - سرير 1</td>
-              <td><span class="status-badge badge-completed">مكتمل</span></td>
-              <td><span style="color: var(--text-secondary);">450.00 ج.م مسدد</span></td>
-              <td>
+              <td data-label="الوقت"><strong>10:15 ص</strong></td>
+              <td data-label="كود المريض"><code>MAS-00109</code></td>
+              <td data-label="اسم المريض"><strong>منى محمود إبراهيم</strong></td>
+              <td data-label="رقم الهاتف" style="direction: ltr; text-align: right;">011 9876 5432</td>
+              <td data-label="نوع الجلسة">علاج طبيعي</td>
+              <td data-label="المعالج المتابع">د. سارة عادل</td>
+              <td data-label="المكان والسرير">غرفة 1 - سرير 1</td>
+              <td data-label="حالة الموعد"><span class="status-badge badge-completed">مكتمل</span></td>
+              <td data-label="الحساب المالي"><span style="color: var(--text-secondary);">450.00 ج.م مسدد</span></td>
+              <td data-label="إجراء سريع">
                 <a href="../wireframes/printable-receipt-a5.html" class="btn-clinical btn-clinical-sm">عرض الإيصال</a>
               </td>
             </tr>
             <tr>
-              <td><strong>5:30 م</strong></td>
-              <td><code>MAS-00142</code></td>
-              <td><strong>عمر فاروق حسن</strong></td>
-              <td style="direction: ltr; text-align: right;">010 1928 3741</td>
-              <td>تغذية علاجية</td>
-              <td>د. نورهان سعيد</td>
-              <td>غرفة 2 - كشف</td>
-              <td><span class="status-badge badge-arrived" style="border-width: 2px;">متأخر 18 دقيقة</span></td>
-              <td><span style="color: var(--status-noshow-text); font-weight: 700;">متبقي 450.00 ج.م</span></td>
-              <td>
+              <td data-label="الوقت"><strong>5:30 م</strong></td>
+              <td data-label="كود المريض"><code>MAS-00142</code></td>
+              <td data-label="اسم المريض"><strong>عمر فاروق حسن</strong></td>
+              <td data-label="رقم الهاتف" style="direction: ltr; text-align: right;">010 1928 3741</td>
+              <td data-label="نوع الجلسة">تغذية علاجية</td>
+              <td data-label="المعالج المتابع">د. نورهان سعيد</td>
+              <td data-label="المكان والسرير">غرفة 2 - كشف</td>
+              <td data-label="حالة الموعد"><span class="status-badge badge-arrived" style="border-width: 2px;">متأخر 18 دقيقة</span></td>
+              <td data-label="الحساب المالي"><span style="color: var(--status-noshow-text); font-weight: 700;">متبقي 450.00 ج.م</span></td>
+              <td data-label="إجراء سريع">
                 <button class="btn-clinical btn-clinical-primary btn-clinical-sm" onclick="alert('تم تسجيل الحضور 5:48 م');">تسجيل حضور</button>
               </td>
             </tr>
             <tr>
-              <td><strong>6:00 م</strong></td>
-              <td><code>MAS-00155</code></td>
-              <td><strong>يوسف أحمد إبراهيم</strong> <small style="color: var(--text-muted);">(طفل)</small></td>
-              <td style="direction: ltr; text-align: right;">012 2334 4556</td>
-              <td>علاج طبيعي أطفال</td>
-              <td>د. كريم حسني</td>
-              <td>غرفة 1 - سرير 3</td>
-              <td><span class="status-badge badge-scheduled">مجدول</span></td>
-              <td><span style="color: var(--status-noshow-text);">متبقي 450.00 ج.م</span></td>
-              <td>
+              <td data-label="الوقت"><strong>6:00 م</strong></td>
+              <td data-label="كود المريض"><code>MAS-00155</code></td>
+              <td data-label="اسم المريض"><strong>يوسف أحمد إبراهيم</strong> <small style="color: var(--text-muted);">(طفل)</small></td>
+              <td data-label="رقم الهاتف" style="direction: ltr; text-align: right;">012 2334 4556</td>
+              <td data-label="نوع الجلسة">علاج طبيعي أطفال</td>
+              <td data-label="المعالج المتابع">د. كريم حسني</td>
+              <td data-label="المكان والسرير">غرفة 1 - سرير 3</td>
+              <td data-label="حالة الموعد"><span class="status-badge badge-scheduled">مجدول</span></td>
+              <td data-label="الحساب المالي"><span style="color: var(--status-noshow-text);">متبقي 450.00 ج.م</span></td>
+              <td data-label="إجراء سريع">
                 <button class="btn-clinical btn-clinical-sm" onclick="alert('تم نسخ رابط WhatsApp التذكيري');">واتساب</button>
               </td>
             </tr>
             <tr>
-              <td><strong>6:30 م</strong></td>
-              <td><code>MAS-00160</code></td>
-              <td><strong>ريهام عادل توفيق</strong></td>
-              <td style="direction: ltr; text-align: right;">015 5566 7788</td>
-              <td>علاج طبيعي</td>
-              <td>د. سارة عادل</td>
-              <td>غرفة 1 - سرير 2</td>
-              <td><span class="status-badge badge-scheduled">مجدول</span></td>
-              <td><span style="color: var(--primary-600); font-weight: 600;">باقة - متبقي 3 جلسات</span></td>
-              <td>
+              <td data-label="الوقت"><strong>6:30 م</strong></td>
+              <td data-label="كود المريض"><code>MAS-00160</code></td>
+              <td data-label="اسم المريض"><strong>ريهام عادل توفيق</strong></td>
+              <td data-label="رقم الهاتف" style="direction: ltr; text-align: right;">015 5566 7788</td>
+              <td data-label="نوع الجلسة">علاج طبيعي</td>
+              <td data-label="المعالج المتابع">د. سارة عادل</td>
+              <td data-label="المكان والسرير">غرفة 1 - سرير 2</td>
+              <td data-label="حالة الموعد"><span class="status-badge badge-scheduled">مجدول</span></td>
+              <td data-label="الحساب المالي"><span style="color: var(--primary-600); font-weight: 600;">باقة - متبقي 3 جلسات</span></td>
+              <td data-label="إجراء سريع">
                 <a href="../wireframes/appointment-action-panel.html" class="btn-clinical btn-clinical-sm">خيارات</a>
               </td>
             </tr>
             <tr>
-              <td><strong>7:15 م</strong></td>
-              <td><code>MAS-00171</code></td>
-              <td><strong>خالد عبد الفتاح</strong></td>
-              <td style="direction: ltr; text-align: right;">010 3344 5566</td>
-              <td>علاج طبيعي</td>
-              <td>د. كريم حسني</td>
-              <td>غرفة 1 - سرير 1</td>
-              <td><span class="status-badge badge-noshow">لم يحضر</span></td>
-              <td>—</td>
-              <td>
+              <td data-label="الوقت"><strong>7:15 م</strong></td>
+              <td data-label="كود المريض"><code>MAS-00171</code></td>
+              <td data-label="اسم المريض"><strong>خالد عبد الفتاح</strong></td>
+              <td data-label="رقم الهاتف" style="direction: ltr; text-align: right;">010 3344 5566</td>
+              <td data-label="نوع الجلسة">علاج طبيعي</td>
+              <td data-label="المعالج المتابع">د. كريم حسني</td>
+              <td data-label="المكان والسرير">غرفة 1 - سرير 1</td>
+              <td data-label="حالة الموعد"><span class="status-badge badge-noshow">لم يحضر</span></td>
+              <td data-label="الحساب المالي">—</td>
+              <td data-label="إجراء سريع">
                 <a href="../wireframes/appointment-action-panel.html" class="btn-clinical btn-clinical-sm">متابعة</a>
               </td>
             </tr>
             <tr>
-              <td><strong>8:00 م</strong></td>
-              <td><code>MAS-00188</code></td>
-              <td><strong>سمير حسن رضوان</strong></td>
-              <td style="direction: ltr; text-align: right;">011 2233 4455</td>
-              <td>علاج طبيعي</td>
-              <td>د. كريم حسني</td>
-              <td>—</td>
-              <td><span class="status-badge badge-waitlisted">قائمة انتظار</span></td>
-              <td>جلسة باقة محجوزة</td>
-              <td>
+              <td data-label="الوقت"><strong>8:00 م</strong></td>
+              <td data-label="كود المريض"><code>MAS-00188</code></td>
+              <td data-label="اسم المريض"><strong>سمير حسن رضوان</strong></td>
+              <td data-label="رقم الهاتف" style="direction: ltr; text-align: right;">011 2233 4455</td>
+              <td data-label="نوع الجلسة">علاج طبيعي</td>
+              <td data-label="المعالج المتابع">د. كريم حسني</td>
+              <td data-label="المكان والسرير">—</td>
+              <td data-label="حالة الموعد"><span class="status-badge badge-waitlisted">قائمة انتظار</span></td>
+              <td data-label="الحساب المالي">جلسة باقة محجوزة</td>
+              <td data-label="إجراء سريع">
                 <a href="../wireframes/booking-form.html" class="btn-clinical btn-clinical-sm">تسكين بالجدول</a>
               </td>
             </tr>
@@ -264,6 +274,13 @@
       html.setAttribute('data-theme', next);
       document.getElementById('theme-icon').outerHTML = next === 'dark' ? sunSvg : moonSvg;
       document.getElementById('theme-text').textContent = next === 'dark' ? 'الوضع النهاري' : 'الوضع الداكن';
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.querySelector('.app-sidebar');
+      const backdrop = document.getElementById('sidebar-backdrop');
+      if (sidebar) sidebar.classList.toggle('sidebar-open');
+      if (backdrop) backdrop.classList.toggle('active');
     }
   </script>
 </body>

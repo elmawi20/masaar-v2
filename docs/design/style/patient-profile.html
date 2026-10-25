@@ -43,11 +43,20 @@
 <body>
   <!-- Header -->
   <header class="style-header">
-    <div class="brand-badge">
-      <div class="brand-logo-mark">مسار</div>
-      <div>
-        <div style="font-weight: 700; font-size: 14px; color: var(--text-main);">عيادة مسار — فرع المعادي</div>
-        <div style="font-size: 11px; color: var(--text-muted);">ملف المريض الإداري والمالي</div>
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <button class="mobile-menu-btn" onclick="toggleSidebar()" aria-label="القائمة">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+      <div class="brand-badge">
+        <div class="brand-logo-mark">مسار</div>
+        <div>
+          <div style="font-weight: 700; font-size: 14px; color: var(--text-main);">عيادة مسار — فرع المعادي</div>
+          <div style="font-size: 11px; color: var(--text-muted);">ملف المريض الإداري والمالي</div>
+        </div>
       </div>
     </div>
 
@@ -62,6 +71,8 @@
     </div>
   </header>
 
+  <div class="app-container">
+    <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="toggleSidebar()"></div>
     <!-- Sidebar: Receptionist role-restricted menu per permissions.md -->
     <aside class="app-sidebar">
       <!-- Role Label & Current User Badge (Item 4) -->
@@ -206,34 +217,34 @@
           </thead>
           <tbody>
             <tr>
-              <td><code>APT-0982</code></td>
-              <td><strong>اليوم 25 أكتوبر 2026 - 9:30 ص</strong></td>
-              <td>علاج طبيعي تأهيلي</td>
-              <td>د. كريم حسني</td>
-              <td>غرفة 1 - سرير 2</td>
-              <td><span class="status-badge badge-arrived">حضر بالانتظار</span></td>
-              <td>مغطى بالباقة PKG-004</td>
-              <td><a href="../wireframes/appointment-action-panel.html" class="btn-clinical btn-clinical-sm">إدارة الموعد</a></td>
+              <td data-label="رقم الموعد"><code>APT-0982</code></td>
+              <td data-label="التاريخ والوقت"><strong>اليوم 25 أكتوبر 2026 - 9:30 ص</strong></td>
+              <td data-label="نوع الجلسة">علاج طبيعي تأهيلي</td>
+              <td data-label="المعالج">د. كريم حسني</td>
+              <td data-label="السرير">غرفة 1 - سرير 2</td>
+              <td data-label="الحالة"><span class="status-badge badge-arrived">حضر بالانتظار</span></td>
+              <td data-label="السعر والتغطية">مغطى بالباقة PKG-004</td>
+              <td data-label="الإجراءات"><a href="../wireframes/appointment-action-panel.html" class="btn-clinical btn-clinical-sm">إدارة الموعد</a></td>
             </tr>
             <tr>
-              <td><code>APT-0914</code></td>
-              <td>22 أكتوبر 2026 - 9:30 ص</td>
-              <td>علاج طبيعي</td>
-              <td>د. كريم حسني</td>
-              <td>غرفة 1 - سرير 2</td>
-              <td><span class="status-badge badge-completed">مكتمل</span></td>
-              <td>مغطى بالباقة PKG-004</td>
-              <td><a href="../wireframes/appointment-action-panel.html" class="btn-clinical btn-clinical-sm">عرض التفاصيل</a></td>
+              <td data-label="رقم الموعد"><code>APT-0914</code></td>
+              <td data-label="التاريخ والوقت">22 أكتوبر 2026 - 9:30 ص</td>
+              <td data-label="نوع الجلسة">علاج طبيعي</td>
+              <td data-label="المعالج">د. كريم حسني</td>
+              <td data-label="السرير">غرفة 1 - سرير 2</td>
+              <td data-label="الحالة"><span class="status-badge badge-completed">مكتمل</span></td>
+              <td data-label="السعر والتغطية">مغطى بالباقة PKG-004</td>
+              <td data-label="الإجراءات"><a href="../wireframes/appointment-action-panel.html" class="btn-clinical btn-clinical-sm">عرض التفاصيل</a></td>
             </tr>
             <tr>
-              <td><code>APT-0881</code></td>
-              <td>19 أكتوبر 2026 - 9:30 ص</td>
-              <td>علاج طبيعي</td>
-              <td>د. كريم حسني</td>
-              <td>غرفة 1 - سرير 2</td>
-              <td><span class="status-badge badge-completed">مكتمل</span></td>
-              <td>مغطى بالباقة PKG-004</td>
-              <td><a href="../wireframes/appointment-action-panel.html" class="btn-clinical btn-clinical-sm">عرض التفاصيل</a></td>
+              <td data-label="رقم الموعد"><code>APT-0881</code></td>
+              <td data-label="التاريخ والوقت">19 أكتوبر 2026 - 9:30 ص</td>
+              <td data-label="نوع الجلسة">علاج طبيعي</td>
+              <td data-label="المعالج">د. كريم حسني</td>
+              <td data-label="السرير">غرفة 1 - سرير 2</td>
+              <td data-label="الحالة"><span class="status-badge badge-completed">مكتمل</span></td>
+              <td data-label="السعر والتغطية">مغطى بالباقة PKG-004</td>
+              <td data-label="الإجراءات"><a href="../wireframes/appointment-action-panel.html" class="btn-clinical btn-clinical-sm">عرض التفاصيل</a></td>
             </tr>
           </tbody>
         </table>
@@ -253,6 +264,13 @@
       html.setAttribute('data-theme', next);
       document.getElementById('theme-icon').outerHTML = next === 'dark' ? sunSvg : moonSvg;
       document.getElementById('theme-text').textContent = next === 'dark' ? 'الوضع النهاري' : 'الوضع الداكن';
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.querySelector('.app-sidebar');
+      const backdrop = document.getElementById('sidebar-backdrop');
+      if (sidebar) sidebar.classList.toggle('sidebar-open');
+      if (backdrop) backdrop.classList.toggle('active');
     }
   </script>
 </body>

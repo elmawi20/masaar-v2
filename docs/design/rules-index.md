@@ -1,6 +1,6 @@
 # Masaar Clinic System — Rules Index
 
-Total Rules Defined: **194**  
+Total Rules Defined: **199**  
 Spec Reference: [docs/FEATURES-v2.2.md](file:///F:/Claude%20CRM/docs/FEATURES-v2.2.md)  
 Rule Permanence Policy: [DEC-025](file:///F:/Claude%20CRM/docs/design/decisions.md) (IDs are permanent and never renumbered)
 
@@ -10,7 +10,7 @@ Rule Permanence Policy: [DEC-025](file:///F:/Claude%20CRM/docs/design/decisions.
 
 | Module | Rules Count | ID Range |
 |---|:---:|---|
-| Ground Rules | 8 | `R-0-1` – `R-0-8` |
+| Ground Rules | 13 | `R-0-1` – `R-0-13` |
 | Roles & Permissions | 27 | `R-1-1` – `R-1.1-21` |
 | Clinic Settings | 8 | `R-2-1` – `R-2-8` |
 | Staff | 5 | `R-3-1` – `R-3-5` |
@@ -42,6 +42,11 @@ Rule Permanence Policy: [DEC-025](file:///F:/Claude%20CRM/docs/design/decisions.
 | `R-0-6` | Calculated values (balances, remaining sessions, totals) are never stored | Ground Rules |
 | `R-0-7` | Bilingual interface (Arabic RTL default, English LTR) with light/dark themes | Ground Rules |
 | `R-0-8` | No demo data in production; seed script for dev/staging only | Ground Rules |
+| `R-0-9` | All screens responsive from 360px width to desktop with zero horizontal scrolling | Ground Rules |
+| `R-0-10` | Receptionist screens optimized desktop-first with full tablet support | Ground Rules |
+| `R-0-11` | Clinician screens (queue, patient file, session note, nutrition) responsive on tablet and phone | Ground Rules |
+| `R-0-12` | Owner and Manager screens (summary, reports, cash closing, approvals) usable on phone | Ground Rules |
+| `R-0-13` | Mobile UI adaptations: 44px touch targets, stacked cards for tables, clinician day list calendar, hamburger menu | Ground Rules |
 | `R-1-1` | Owner role: full clinic access, staff accounts, settings, security; clinician work | Roles & Permissions |
 | `R-1-2` | Manager role: financial & operational management; cannot manage staff accounts/security | Roles & Permissions |
 | `R-1-3` | Receptionist role: patient admin, scheduling, payments, closing; no clinical data | Roles & Permissions |
