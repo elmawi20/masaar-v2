@@ -29,7 +29,9 @@
 
 ---
 
-## 2. Slice A — Entity-Relationship Diagram (ERD)
+## 2. Entity-Relationship Diagrams (ERDs)
+
+### 2.1 Slice A — Clinic, Staff & Auth ERD
 
 ```mermaid
 erDiagram
@@ -222,9 +224,105 @@ erDiagram
     }
 ```
 
+### 2.2 Slice B — Patients & Documents ERD
+
+```mermaid
+erDiagram
+    Patient ||--o{ PatientDiagnosis : "has_diagnoses"
+    Patient ||--o{ PatientDocument : "owns_documents"
+    Patient ||--o{ CoveringAccessLog : "accessed_via_covering"
+    PatientDocument ||--o{ DocumentViewLog : "viewed_in_logs"
+
+    User ||--o{ Patient : "assigned_physiotherapist"
+    User ||--o{ Patient : "assigned_nutritionist"
+    User ||--o{ Patient : "discharged_by"
+    User ||--o{ Patient : "created_by"
+    User ||--o{ PatientDiagnosis : "diagnosed_by"
+    User ||--o{ PatientDocument : "uploaded_by"
+    User ||--o{ DocumentViewLog : "viewed_by"
+    User ||--o{ CoveringAccessLog : "substitute_clinician"
+    UserSession ||--o{ CoveringAccessLog : "session_scope"
+
+    Patient {
+        uuid id PK
+        int file_number UK "M-0001"
+        string full_name
+        string mobile_phone "Partial UK (Adults)"
+        boolean is_dependent
+        string guardian_name
+        enum guardian_relation
+        string guardian_phone
+        string whatsapp_phone
+        date date_of_birth
+        enum gender
+        enum preferred_language
+        enum referral_source
+        text initial_complaint
+        boolean has_diabetes
+        boolean has_pacemaker
+        boolean has_hypertension
+        boolean has_osteoporosis
+        boolean has_fall_risk
+        boolean is_pregnant
+        enum status
+        boolean data_consent
+        boolean whatsapp_consent
+    }
+
+    PatientDiagnosis {
+        uuid id PK
+        uuid patient_id FK
+        text diagnosis_text
+        uuid diagnosed_by_user_id FK
+        datetime diagnosed_at
+        boolean is_active
+        datetime resolved_at
+        text notes
+    }
+
+    PatientDocument {
+        uuid id PK
+        uuid patient_id FK
+        enum category
+        string title
+        string file_key
+        string file_name
+        int file_size_bytes
+        string mime_type
+        boolean is_medical
+        uuid uploaded_by_user_id FK
+        boolean is_active
+        datetime voided_at
+        text void_reason
+    }
+
+    DocumentViewLog {
+        uuid id PK
+        uuid document_id FK
+        uuid viewed_by_user_id FK
+        datetime viewed_at
+        boolean watermark_applied
+        string ip_address
+        text user_agent
+    }
+
+    CoveringAccessLog {
+        uuid id PK
+        uuid patient_id FK
+        uuid clinician_id FK
+        uuid session_id FK
+        text reason
+        datetime granted_at
+        datetime expires_at
+        string ip_address
+    }
+```
+
 ---
 
-## 3. Slice A Table Dictionaries
+## 3. Database Table Dictionaries
+
+### Slice A — Clinic, Staff & Auth Tables
 
 ### 3.1 `clinic_settings`
 - **Purpose:** Singleton configuration table storing clinic branding, legal identity, working parameters, and lock horizons.
@@ -629,6 +727,190 @@ erDiagram
 
 ---
 
+### Slice B — Patients & Documents Tables
+
+### 3.18 `patients`
+- **Purpose:** Central demographic, administrative, and clinical summary profile for all clinic patients (adults and dependents).
+- **Rule References:** `R-4.1-1` through `R-4.1-21`, `R-4.2-1` through `R-4.2-6`, `DEC-014`
+
+| Column | Type | Nullable | Default | Description (AR / EN) | Rule ID |
+|---|---|:---:|---|---|:---:|
+| `id` | `UUID` | No | `uuid()` | Primary Key (معرف المريض) | `R-4.1-1` |
+| `file_number` | `INTEGER` | No | `autoincrement()` | Sequential permanent medical file number e.g. M-0001 (رقم الملف الطبي الدائم) | `R-4.1-1`, `glossary` |
+| `full_name` | `VARCHAR(120)` | No | — | Patient full name (الاسم بالكامل) | `R-4.1-1` |
+| `mobile_phone` | `VARCHAR(15)` | Yes | `NULL` | Egyptian mobile `01XXXXXXXXX`, unique for adults via partial index (رقم المحمول للبالغين) | `R-4.1-2`, `R-4.2-1`, `R-4.2-2` |
+| `is_dependent` | `BOOLEAN` | No | `false` | True for minor/elderly using guardian contact (مريض تابع - طفل أو مسن) | `R-4.1-3`, `R-4.2-3` |
+| `guardian_name` | `VARCHAR(120)` | Yes | `NULL` | Full name of parent/guardian (اسم ولي الأمر / المرافق) | `R-4.1-4`, `R-4.2-3` |
+| `guardian_relation` | `VARCHAR(30)` | Yes | `NULL` | Relationship enum: `FATHER`, `MOTHER`, `SON`, `DAUGHTER`, `SPOUSE`, `OTHER` (صلة القرابة) | `R-4.1-5`, `R-4.2-3` |
+| `guardian_phone` | `VARCHAR(15)` | Yes | `NULL` | Guardian Egyptian mobile `01XXXXXXXXX`, allows duplicates across dependents (هاتف ولي الأمر) | `R-4.1-6`, `R-4.2-3` |
+| `whatsapp_phone` | `VARCHAR(15)` | Yes | `NULL` | WhatsApp communication number, defaults to mobile or guardian phone (رقم الواتساب) | `R-4.1-7` |
+| `date_of_birth` | `DATE` | No | — | Date of birth; age is dynamically calculated per calculations.md §1.1 (تاريخ الميلاد) | `R-4.1-8`, `R-0-6` |
+| `gender` | `VARCHAR(10)` | No | — | Biological sex: `MALE` or `FEMALE` (النوع) | `R-4.1-9` |
+| `address` | `TEXT` | Yes | `NULL` | Residential address details (العنوان) | `R-4.1-10` |
+| `emergency_contact_name` | `VARCHAR(120)` | Yes | `NULL` | Emergency contact person name (اسم شخص للطوارئ) | `R-4.1-11` |
+| `emergency_contact_phone` | `VARCHAR(30)` | Yes | `NULL` | Emergency contact telephone number (هاتف الطوارئ) | `R-4.1-11` |
+| `preferred_language` | `VARCHAR(2)` | No | `'AR'` | Notification language: `AR` or `EN` (اللغة المفضلة للتواصل) | `R-4.1-12` |
+| `referral_source` | `VARCHAR(50)` | No | — | Channel source: `DOCTOR`, `FACEBOOK`, `INSTAGRAM`, `GOOGLE`, `FRIEND_FAMILY`, `WALK_IN`, `OTHER` (مصدر الإحالة) | `R-4.1-13` |
+| `referral_source_details` | `VARCHAR(255)` | Yes | `NULL` | Additional detail for referral source / campaign (تفاصيل مصدر الإحالة) | `R-4.1-13` |
+| `referring_doctor` | `VARCHAR(120)` | Yes | `NULL` | Name of referring physician if applicable (الطبيب المحول) | `R-4.1-14` |
+| `initial_complaint` | `TEXT` | No | — | Initial visit complaint written by reception; NOT a diagnosis (الشكوى المبدئية عند الاستقبال) | `R-4.1-15` |
+| `has_diabetes` | `BOOLEAN` | No | `false` | Medical alert: Diabetes (تنبيه طبي: مرض السكري) | `R-4.1-16` |
+| `has_pacemaker` | `BOOLEAN` | No | `false` | Medical alert: Pacemaker (تنبيه طبي: منظم ضربات القلب) | `R-4.1-16` |
+| `has_hypertension` | `BOOLEAN` | No | `false` | Medical alert: High blood pressure (تنبيه طبي: ارتفاع ضغط الدم) | `R-4.1-16` |
+| `has_osteoporosis` | `BOOLEAN` | No | `false` | Medical alert: Osteoporosis (تنبيه طبي: هشاشة العظام) | `R-4.1-16` |
+| `has_fall_risk` | `BOOLEAN` | No | `false` | Medical alert: High risk of falls (تنبيه طبي: قابلية السقوط) | `R-4.1-16` |
+| `is_pregnant` | `BOOLEAN` | No | `false` | Medical alert: Pregnancy (تنبيه طبي: حمل) | `R-4.1-16` |
+| `medical_alerts_notes` | `TEXT` | Yes | `NULL` | Clinical notes on alerts (visible to clinicians; reception sees only warning badge) (تفاصيل التنبيهات الطبية) | `R-4.1-16` |
+| `assigned_physiotherapist_id` | `UUID` | Yes | `NULL` | FK to `users.id` for default physiotherapist (أخصائي العلاج الطبيعي المتابع) | `R-4.1-17` |
+| `assigned_nutritionist_id` | `UUID` | Yes | `NULL` | FK to `users.id` for default nutritionist (أخصائي التغذية المتابع) | `R-4.1-18` |
+| `status` | `VARCHAR(20)` | No | `'LEAD'` | State machine: `LEAD`, `ACTIVE`, `DISCHARGED` (حالة ملف المريض) | `R-4.1-19`, `R-4.2-6` |
+| `data_consent` | `BOOLEAN` | No | `false` | Patient signed medical data processing consent (موافقة معالجة البيانات الطبية) | `R-4.1-20` |
+| `data_consent_date` | `TIMESTAMPTZ` | Yes | `NULL` | Timestamp consent was recorded (تاريخ توقيع الموافقة) | `R-4.1-20` |
+| `whatsapp_consent` | `BOOLEAN` | No | `true` | Separate opt-in toggle for WhatsApp messaging (موافقة استلام رسائل الواتساب) | `R-4.1-21` |
+| `reception_notes` | `TEXT` | Yes | `NULL` | Non-clinical notes visible to front desk (ملاحظات الاستقبال الإدارية) | `glossary` |
+| `first_visit_at` | `TIMESTAMPTZ` | Yes | `NULL` | Check-in timestamp of first visit, triggers LEAD -> ACTIVE (تاريخ أول حضور فعلي) | `R-4.2-6` |
+| `discharged_at` | `TIMESTAMPTZ` | Yes | `NULL` | Timestamp patient concluded treatment (تاريخ إنهاء العلاج والتخريج) | `R-4.2-6` |
+| `discharged_by_user_id` | `UUID` | Yes | `NULL` | FK to `users.id` of clinician discharging patient (المعالج الذي قام بالتخريج) | `R-4.2-6` |
+| `discharge_reason` | `TEXT` | Yes | `NULL` | Clinical conclusion summary or reason for discharge (سبب أو ملخص إنهاء العلاج) | `R-4.2-6` |
+| `created_by_user_id` | `UUID` | Yes | `NULL` | FK to `users.id` who registered patient (سجل بواسطة) | `R-0-2` |
+| `updated_by_user_id` | `UUID` | Yes | `NULL` | FK to `users.id` of last editor (آخر تعديل بواسطة) | `R-0-2` |
+| `created_at` | `TIMESTAMPTZ` | No | `now()` | Record creation timestamp (تاريخ التسجيل) | `R-0-5` |
+| `updated_at` | `TIMESTAMPTZ` | No | `now()` | Record modification timestamp (تاريخ آخر تحديث) | `R-0-5` |
+
+- **Unique Constraints:**
+  - `UNIQUE (file_number)`
+  - Partial Unique Index: `CREATE UNIQUE INDEX idx_patients_mobile_phone_unique ON patients (mobile_phone) WHERE mobile_phone IS NOT NULL;` (`R-4.2-2`)
+- **Foreign Keys:**
+  - `assigned_physiotherapist_id REFERENCES users(id) ON DELETE SET NULL`
+  - `assigned_nutritionist_id REFERENCES users(id) ON DELETE SET NULL`
+  - `discharged_by_user_id REFERENCES users(id) ON DELETE SET NULL`
+  - `created_by_user_id REFERENCES users(id) ON DELETE SET NULL`
+  - `updated_by_user_id REFERENCES users(id) ON DELETE SET NULL`
+- **Indexes:**
+  - `CREATE INDEX idx_patients_full_name ON patients (full_name)`
+  - `CREATE INDEX idx_patients_mobile_phone ON patients (mobile_phone)`
+  - `CREATE INDEX idx_patients_guardian_phone ON patients (guardian_phone)` (`R-4.2-4`)
+  - `CREATE INDEX idx_patients_status ON patients (status)`
+  - `CREATE INDEX idx_patients_assigned_physio ON patients (assigned_physiotherapist_id)`
+  - `CREATE INDEX idx_patients_assigned_nutrition ON patients (assigned_nutritionist_id)`
+
+---
+
+### 3.19 `patient_diagnoses`
+- **Purpose:** Audit-compliant clinical diagnosis log recording primary and secondary clinical diagnoses formulated by clinicians.
+- **Rule References:** `R-1.1-2`, `R-4.1-22`, `R-9.3-1`, `R-12-8`
+
+| Column | Type | Nullable | Default | Description (AR / EN) | Rule ID |
+|---|---|:---:|---|---|:---:|
+| `id` | `UUID` | No | `uuid()` | Primary Key (معرف التشخيص) | `R-9.3-1` |
+| `patient_id` | `UUID` | No | — | FK to `patients.id` (معرف المريض) | `R-9.3-1` |
+| `diagnosis_text` | `TEXT` | No | — | Clinical diagnosis description / ICD text (نص التشخيص الطبي) | `R-4.1-22`, `R-9.3-1` |
+| `diagnosed_by_user_id` | `UUID` | No | — | FK to `users.id` (clinician author) (الطبيب المشخص) | `R-1.1-2`, `R-9.3-1` |
+| `diagnosed_at` | `TIMESTAMPTZ` | No | `now()` | Date and time diagnosis was entered (تاريخ ووقت التشخيص) | `R-9.3-1` |
+| `is_active` | `BOOLEAN` | No | `true` | True for current diagnosis, false once resolved/superseded (تشخيص نشط حالي) | `R-9.3-1` |
+| `resolved_at` | `TIMESTAMPTZ` | Yes | `NULL` | Timestamp diagnosis marked resolved (تاريخ انتهاء الحالة) | `R-9.3-1` |
+| `notes` | `TEXT` | Yes | `NULL` | Supplementary clinical observations (ملاحظات سريرية إضافية) | `R-9.3-1` |
+| `created_by_user_id` | `UUID` | Yes | `NULL` | FK to `users.id` | `R-0-2` |
+| `updated_by_user_id` | `UUID` | Yes | `NULL` | FK to `users.id` | `R-0-2` |
+| `created_at` | `TIMESTAMPTZ` | No | `now()` | Record creation timestamp | `R-0-5` |
+| `updated_at` | `TIMESTAMPTZ` | No | `now()` | Record update timestamp | `R-0-5` |
+
+- **Foreign Keys:**
+  - `patient_id REFERENCES patients(id) ON DELETE CASCADE`
+  - `diagnosed_by_user_id REFERENCES users(id) ON DELETE RESTRICT`
+  - `created_by_user_id REFERENCES users(id) ON DELETE SET NULL`
+  - `updated_by_user_id REFERENCES users(id) ON DELETE SET NULL`
+- **Indexes:**
+  - `CREATE INDEX idx_patient_diagnoses_patient_active ON patient_diagnoses (patient_id, is_active)`
+  - `CREATE INDEX idx_patient_diagnoses_clinician ON patient_diagnoses (diagnosed_by_user_id)`
+
+---
+
+### 3.20 `patient_documents`
+- **Purpose:** Metadata and storage references for clinical and administrative file attachments (X-rays, MRIs, prescriptions, lab results, IDs, payments).
+- **Rule References:** `R-1.1-2`, `R-1.1-3`, `R-9.5-1`, `R-0-3`
+
+| Column | Type | Nullable | Default | Description (AR / EN) | Rule ID |
+|---|---|:---:|---|---|:---:|
+| `id` | `UUID` | No | `uuid()` | Primary Key (معرف المستند) | `R-9.5-1` |
+| `patient_id` | `UUID` | No | — | FK to `patients.id` (معرف المريض) | `R-9.5-1` |
+| `category` | `VARCHAR(30)` | No | — | Category enum: `PRESCRIPTION`, `X_RAY`, `MRI`, `LAB_REPORT`, `REFERRAL`, `ID_ADMINISTRATIVE`, `PAYMENT_PROOF`, `OTHER` (تصنيف المستند) | `R-9.5-1` |
+| `title` | `VARCHAR(150)` | No | — | Human-readable document title (عنوان المستند) | `R-9.5-1` |
+| `file_key` | `VARCHAR(500)` | No | — | Private storage path/key outside web root (مسار التخزين الخاص المشفر) | `R-9.5-1` |
+| `file_name` | `VARCHAR(255)` | No | — | Original client upload file name (اسم الملف الأصلي) | `R-9.5-1` |
+| `file_size_bytes` | `INTEGER` | No | — | Size in bytes, constrained to $\le 10,485,760$ (حجم الملف بالبايت) | `R-9.5-1` |
+| `mime_type` | `VARCHAR(100)` | No | — | MIME content type e.g. `application/pdf`, `image/jpeg` (نوع الملف البرمجي) | `R-9.5-1` |
+| `is_medical` | `BOOLEAN` | No | `true` | True if clinical (hidden from receptionist), false for admin/payment proofs (مستند طبي محمي) | `R-1.1-2`, `R-9.5-1` |
+| `uploaded_by_user_id` | `UUID` | No | — | FK to `users.id` who uploaded file (رفع بواسطة) | `R-1.1-3`, `R-9.5-1` |
+| `is_active` | `BOOLEAN` | No | `true` | Soft-delete flag; records are voided, never hard-deleted (حالة الفاعلية) | `R-0-3` |
+| `voided_at` | `TIMESTAMPTZ` | Yes | `NULL` | Timestamp when document was archived/voided (تاريخ الإلغاء) | `R-0-3` |
+| `void_reason` | `TEXT` | Yes | `NULL` | Required reason for voiding document (سبب الإلغاء) | `R-0-3`, `R-13-1` |
+| `created_by_user_id` | `UUID` | Yes | `NULL` | FK to `users.id` | `R-0-2` |
+| `updated_by_user_id` | `UUID` | Yes | `NULL` | FK to `users.id` | `R-0-2` |
+| `created_at` | `TIMESTAMPTZ` | No | `now()` | Record creation timestamp | `R-0-5` |
+| `updated_at` | `TIMESTAMPTZ` | No | `now()` | Record update timestamp | `R-0-5` |
+
+- **Foreign Keys:**
+  - `patient_id REFERENCES patients(id) ON DELETE CASCADE`
+  - `uploaded_by_user_id REFERENCES users(id) ON DELETE RESTRICT`
+  - `created_by_user_id REFERENCES users(id) ON DELETE SET NULL`
+  - `updated_by_user_id REFERENCES users(id) ON DELETE SET NULL`
+- **Indexes:**
+  - `CREATE INDEX idx_patient_documents_patient_cat ON patient_documents (patient_id, category)`
+  - `CREATE INDEX idx_patient_documents_uploader ON patient_documents (uploaded_by_user_id)`
+  - `CREATE INDEX idx_patient_documents_active ON patient_documents (is_active)`
+
+---
+
+### 3.21 `document_view_logs`
+- **Purpose:** Immutable security log recording every single access to a patient document, including watermark tracking.
+- **Rule References:** `R-9.5-1`, `R-13-1`, `R-13-2`
+
+| Column | Type | Nullable | Default | Description (AR / EN) | Rule ID |
+|---|---|:---:|---|---|:---:|
+| `id` | `UUID` | No | `uuid()` | Primary Key (معرف سجل المشاهدة) | `R-9.5-1` |
+| `document_id` | `UUID` | No | — | FK to `patient_documents.id` (معرف المستند) | `R-9.5-1` |
+| `viewed_by_user_id` | `UUID` | No | — | FK to `users.id` (viewer identity) (المستخدم المشاهد) | `R-9.5-1` |
+| `viewed_at` | `TIMESTAMPTZ` | No | `now()` | Access UTC timestamp (وقت وتاريخ المشاهدة) | `R-9.5-1` |
+| `watermark_applied` | `BOOLEAN` | No | `true` | Indicates dynamic watermark (viewer name + timestamp) was rendered (تطبيق العلامة المائية) | `R-9.5-1` |
+| `ip_address` | `VARCHAR(45)` | No | — | Client IP address (عنوان IP) | `R-13-2` |
+| `user_agent` | `TEXT` | Yes | `NULL` | Browser User-Agent header (بيانات المتصفح) | `R-13-2` |
+
+- **Foreign Keys:**
+  - `document_id REFERENCES patient_documents(id) ON DELETE CASCADE`
+  - `viewed_by_user_id REFERENCES users(id) ON DELETE RESTRICT`
+- **Indexes:**
+  - `CREATE INDEX idx_document_view_logs_doc_time ON document_view_logs (document_id, viewed_at)`
+  - `CREATE INDEX idx_document_view_logs_user_time ON document_view_logs (viewed_by_user_id, viewed_at)`
+
+---
+
+### 3.22 `covering_access_logs`
+- **Purpose:** Time-bounded authorization log recording covering access granted to substitute clinicians to inspect non-assigned patient charts.
+- **Rule References:** `R-1.1-21`, `DEC-001`, `DEC-013`, `R-13-1`
+
+| Column | Type | Nullable | Default | Description (AR / EN) | Rule ID |
+|---|---|:---:|---|---|:---:|
+| `id` | `UUID` | No | `uuid()` | Primary Key (معرف صلاحية التغطية) | `R-1.1-21` |
+| `patient_id` | `UUID` | No | — | FK to `patients.id` (المريض الذي تم الوصول لملفه) | `R-1.1-21` |
+| `clinician_id` | `UUID` | No | — | FK to `users.id` of substitute clinician (المعالج البديل) | `R-1.1-21` |
+| `session_id` | `UUID` | Yes | `NULL` | FK to `user_sessions.id` tying grant to current active login session (معرف جلسة تسجيل الدخول) | `R-1.1-21`, `DEC-013` |
+| `reason` | `TEXT` | No | — | Mandatory clinical justification entered by clinician (السبب الطبي المكتوب) | `R-1.1-21` |
+| `granted_at` | `TIMESTAMPTZ` | No | `now()` | Access grant start timestamp (وقت منح الصلاحية) | `R-1.1-21` |
+| `expires_at` | `TIMESTAMPTZ` | No | — | Access expiration timestamp, strictly capped at session expiry or 12h (وقت انتهاء الصلاحية) | `R-1.1-21`, `DEC-013` |
+| `ip_address` | `VARCHAR(45)` | No | — | Client IP address (عنوان IP) | `R-13-2` |
+| `user_agent` | `TEXT` | Yes | `NULL` | Browser User-Agent header (بيانات المتصفح) | `R-13-2` |
+
+- **Foreign Keys:**
+  - `patient_id REFERENCES patients(id) ON DELETE CASCADE`
+  - `clinician_id REFERENCES users(id) ON DELETE RESTRICT`
+  - `session_id REFERENCES user_sessions(id) ON DELETE SET NULL`
+- **Indexes:**
+  - `CREATE INDEX idx_covering_access_clinician_patient ON covering_access_logs (clinician_id, patient_id, granted_at)`
+  - `CREATE INDEX idx_covering_access_session ON covering_access_logs (session_id)`
+
+---
+
 ## 4. PostgreSQL Database Triggers & Check Constraints (Raw SQL)
 
 The following database triggers and constraints are written in raw SQL and will be packaged into Prisma migrations in Stage 2 to guarantee database-level enforcement of business rules:
@@ -689,6 +971,71 @@ CREATE TRIGGER trg_staff_schedules_shift_order
 BEFORE INSERT OR UPDATE ON staff_schedules
 FOR EACH ROW
 EXECUTE FUNCTION trg_check_staff_schedule_shifts();
+
+-- 3. Adult Egyptian Mobile Uniqueness (Partial Unique Index) (R-4.1-2, R-4.2-2)
+-- Enforces that adult patients cannot share an Egyptian mobile phone number.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_patients_mobile_phone_unique 
+ON patients (mobile_phone) 
+WHERE mobile_phone IS NOT NULL;
+
+-- 4. Egyptian Mobile Number Format Check Constraint (R-4.2-1)
+-- Enforces that both mobile_phone and guardian_phone adhere to Egyptian mobile format: 01[0125]XXXXXXXX
+ALTER TABLE patients 
+ADD CONSTRAINT chk_patients_mobile_phone_format 
+CHECK (mobile_phone IS NULL OR mobile_phone ~ '^01[0125][0-9]{8}$');
+
+ALTER TABLE patients 
+ADD CONSTRAINT chk_patients_guardian_phone_format 
+CHECK (guardian_phone IS NULL OR guardian_phone ~ '^01[0125][0-9]{8}$');
+
+-- 5. Dependent Patient Integrity Check Constraint (R-4.1-3, R-4.1-4, R-4.1-6, R-4.2-3)
+-- Enforces: If dependent, guardian name and phone are mandatory. If adult, mobile phone is mandatory.
+ALTER TABLE patients 
+ADD CONSTRAINT chk_patients_dependent_integrity 
+CHECK (
+    (is_dependent = false AND mobile_phone IS NOT NULL) OR 
+    (is_dependent = true AND guardian_name IS NOT NULL AND guardian_phone IS NOT NULL)
+);
+
+-- 6. Document Size and Allowed MIME Types Validation (R-9.5-1)
+-- Enforces that uploaded files do not exceed 10 MB (10,485,760 bytes) and match supported clinical/admin MIME types.
+ALTER TABLE patient_documents 
+ADD CONSTRAINT chk_patient_documents_file_size 
+CHECK (file_size_bytes > 0 AND file_size_bytes <= 10485760);
+
+ALTER TABLE patient_documents 
+ADD CONSTRAINT chk_patient_documents_mime_type 
+CHECK (mime_type IN ('application/pdf', 'image/jpeg', 'image/png', 'image/webp'));
+
+-- 7. Document View Log Immutability Trigger (R-9.5-1, R-13-1)
+-- Completely blocks UPDATE and DELETE operations on document_view_logs.
+CREATE OR REPLACE FUNCTION trg_block_document_view_log_mutation()
+RETURNS TRIGGER AS $$
+BEGIN
+    RAISE EXCEPTION 'Document view logs are immutable audit records. UPDATE and DELETE operations are prohibited.'
+        USING ERRCODE = 'integrity_constraint_violation';
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_document_view_logs_immutability
+BEFORE UPDATE OR DELETE ON document_view_logs
+FOR EACH ROW
+EXECUTE FUNCTION trg_block_document_view_log_mutation();
+
+-- 8. Covering Access Log Immutability Trigger (R-1.1-21, R-13-1)
+-- Completely blocks UPDATE and DELETE operations on covering_access_logs.
+CREATE OR REPLACE FUNCTION trg_block_covering_access_log_mutation()
+RETURNS TRIGGER AS $$
+BEGIN
+    RAISE EXCEPTION 'Covering access logs are immutable compliance records. UPDATE and DELETE operations are prohibited.'
+        USING ERRCODE = 'integrity_constraint_violation';
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_covering_access_logs_immutability
+BEFORE UPDATE OR DELETE ON covering_access_logs
+FOR EACH ROW
+EXECUTE FUNCTION trg_block_covering_access_log_mutation();
 ```
 
 ---
@@ -704,3 +1051,8 @@ In strict accordance with **Rule R-0-6** and **DEC-005**, the following values a
 | **Account Lock Status** | [calculations.md §1.4](file:///F:/Claude%20CRM/docs/design/calculations.md#14-non-stored-derived-values) | Dynamically evaluated from `locked_until > now()` and `failed_login_count >= 5`. |
 | **Active Session Time Remaining** | [calculations.md §1.4](file:///F:/Claude%20CRM/docs/design/calculations.md#14-non-stored-derived-values) | Evaluated dynamically from `expires_at - now()`. |
 | **Idle Lock Window Status** | [calculations.md §1.4](file:///F:/Claude%20CRM/docs/design/calculations.md#14-non-stored-derived-values) | Evaluated dynamically from `last_active_at + 15 minutes < now()`. |
+| **Patient Age** | [calculations.md §1.1](file:///F:/Claude%20CRM/docs/design/calculations.md#11-patient-age-calculation) | Dynamically computed from `date_of_birth` and current date in `Africa/Cairo` timezone (`R-4.1-8`). Storing age leads to stale data on birthdays. |
+| **Has Medical Alerts (Summary Flag)** | [calculations.md §1.4](file:///F:/Claude%20CRM/docs/design/calculations.md#14-non-stored-derived-values) | Dynamically evaluated from alert booleans (`has_diabetes OR has_pacemaker OR ... OR medical_alerts_notes IS NOT NULL`) for receptionist badge (`R-4.1-16`). |
+| **Adult vs Dependent Status** | [calculations.md §1.1](file:///F:/Claude%20CRM/docs/design/calculations.md#11-patient-age-calculation) | Evaluated dynamically: `is_adult = (age >= 18 AND is_dependent = false)` (`R-4.1-3`). |
+| **Patient Outstanding Balance** | [calculations.md §2.3](file:///F:/Claude%20CRM/docs/design/calculations.md#23-charge-balance-calculation) | Dynamically summed from unvoided charges minus non-voided payments plus refunds and write-offs (`R-0-6`, `R-8.1-1`). |
+| **Patient Active Package Remaining Sessions** | [calculations.md §2.1](file:///F:/Claude%20CRM/docs/design/calculations.md#21-package-remaining-sessions) | Dynamically calculated from package total sessions minus completed sessions (`R-7-1`). |

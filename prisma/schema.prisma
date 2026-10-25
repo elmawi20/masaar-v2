@@ -1,6 +1,7 @@
 // Masaar Clinic System — Prisma Schema
 // Specification Reference: docs/FEATURES-v2.2.md
 // Stage 1 Design — Database Slice A: Clinic, Staff & Auth
+// Stage 1 Design — Database Slice B: Patients & Documents
 
 datasource db {
   provider = "postgresql"
@@ -61,26 +62,71 @@ enum LeaveStatus {
 }
 
 // ============================================================================
+// Enums for Slice B (Patients & Documents)
+// ============================================================================
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum PatientStatus {
+  LEAD
+  ACTIVE
+  DISCHARGED
+}
+
+enum GuardianRelation {
+  FATHER
+  MOTHER
+  SON
+  DAUGHTER
+  SPOUSE
+  OTHER
+}
+
+enum ReferralSource {
+  DOCTOR
+  FACEBOOK
+  INSTAGRAM
+  GOOGLE
+  FRIEND_FAMILY
+  WALK_IN
+  OTHER
+}
+
+enum DocumentCategory {
+  PRESCRIPTION
+  X_RAY
+  MRI
+  LAB_REPORT
+  REFERRAL
+  ID_ADMINISTRATIVE
+  PAYMENT_PROOF
+  OTHER
+}
+
+// ============================================================================
 // 1. Clinic Settings & Schedules
 // ============================================================================
 
 model ClinicSetting {
-  id                      String   @id @default(uuid())
-  nameAr                  String   @map("name_ar") @db.VarChar(120)
-  nameEn                  String   @map("name_en") @db.VarChar(120)
-  addressAr               String?  @map("address_ar") @db.Text
-  addressEn               String?  @map("address_en") @db.Text
-  phone                   String   @db.VarChar(30)
-  logoUrl                 String?  @map("logo_url") @db.Text
-  timezone                String   @default("Africa/Cairo") @db.VarChar(50)
-  defaultPackageExpiryDays Int     @default(60) @map("default_package_expiry_days")
-  doctorDailySoftLimit    Int      @default(10) @map("doctor_daily_soft_limit")
-  receiptPrefix           String   @default("INV") @map("receipt_prefix") @db.VarChar(10)
-  noteEditWindowHours     Int      @default(24) @map("note_edit_window_hours")
-  updatedByUserId         String?  @map("updated_by_user_id")
-  updatedByUser           User?    @relation("ClinicSettingUpdatedBy", fields: [updatedByUserId], references: [id], onDelete: SetNull)
-  createdAt               DateTime @default(now()) @map("created_at")
-  updatedAt               DateTime @updatedAt @map("updated_at")
+  id                       String   @id @default(uuid())
+  nameAr                   String   @map("name_ar") @db.VarChar(120)
+  nameEn                   String   @map("name_en") @db.VarChar(120)
+  addressAr                String?  @map("address_ar") @db.Text
+  addressEn                String?  @map("address_en") @db.Text
+  phone                    String   @db.VarChar(30)
+  logoUrl                  String?  @map("logo_url") @db.Text
+  timezone                 String   @default("Africa/Cairo") @db.VarChar(50)
+  defaultPackageExpiryDays Int      @default(60) @map("default_package_expiry_days")
+  doctorDailySoftLimit     Int      @default(10) @map("doctor_daily_soft_limit")
+  receiptPrefix            String   @default("INV") @map("receipt_prefix") @db.VarChar(10)
+  noteEditWindowHours      Int      @default(24) @map("note_edit_window_hours")
+  updatedByUserId          String?  @map("updated_by_user_id")
+  updatedByUser            User?    @relation("ClinicSettingUpdatedBy", fields: [updatedByUserId], references: [id], onDelete: SetNull)
+  createdAt                DateTime @default(now()) @map("created_at")
+  updatedAt                DateTime @updatedAt @map("updated_at")
 
   @@map("clinic_settings")
 }
@@ -129,7 +175,7 @@ model Room {
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
-  beds            Bed[]
+  beds Bed[]
 
   @@map("rooms")
 }
@@ -171,51 +217,66 @@ model SessionType {
 // ============================================================================
 
 model User {
-  id                          String            @id @default(uuid())
-  email                       String            @unique @db.VarChar(255) // Case-insensitive unique via citext / index
-  passwordHash                String            @map("password_hash") @db.VarChar(255)
-  fullName                    String            @map("full_name") @db.VarChar(120)
-  phone                       String            @db.VarChar(30)
-  jobTitle                    String            @map("job_title") @db.VarChar(100)
-  role                        Role
-  preferredLanguage           PreferredLanguage @default(AR) @map("preferred_language")
-  isActive                    Boolean           @default(true) @map("is_active")
-  deactivatedAt               DateTime?         @map("deactivated_at")
-  mustChangePassword          Boolean           @default(false) @map("must_change_password")
-  failedLoginCount            Int               @default(0) @map("failed_login_count")
-  lockedUntil                 DateTime?         @map("locked_until")
-  otpStatus                   OtpStatus         @default(NOT_SET) @map("otp_status")
-  canAssess                   Boolean           @default(false) @map("can_assess")
-  commissionType              CommissionType    @default(NONE) @map("commission_type")
-  commissionPercentBasisPoints Int              @default(0) @map("commission_percent_basis_points") // 2500 = 25.00%
-  commissionFixedPiasters     Int               @default(0) @map("commission_fixed_piasters") // Fixed amount in piasters
-  createdByUserId             String?           @map("created_by_user_id")
-  createdByUser               User?             @relation("UserCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
-  createdAt                   DateTime          @default(now()) @map("created_at")
-  updatedAt                   DateTime          @updatedAt @map("updated_at")
+  id                           String            @id @default(uuid())
+  email                        String            @unique @db.VarChar(255) // Case-insensitive unique via citext / index
+  passwordHash                 String            @map("password_hash") @db.VarChar(255)
+  fullName                     String            @map("full_name") @db.VarChar(120)
+  phone                        String            @db.VarChar(30)
+  jobTitle                     String            @map("job_title") @db.VarChar(100)
+  role                         Role
+  preferredLanguage            PreferredLanguage @default(AR) @map("preferred_language")
+  isActive                     Boolean           @default(true) @map("is_active")
+  deactivatedAt                DateTime?         @map("deactivated_at")
+  mustChangePassword           Boolean           @default(false) @map("must_change_password")
+  failedLoginCount             Int               @default(0) @map("failed_login_count")
+  lockedUntil                  DateTime?         @map("locked_until")
+  otpStatus                    OtpStatus         @default(NOT_SET) @map("otp_status")
+  canAssess                    Boolean           @default(false) @map("can_assess")
+  commissionType               CommissionType    @default(NONE) @map("commission_type")
+  commissionPercentBasisPoints Int               @default(0) @map("commission_percent_basis_points") // 2500 = 25.00%
+  commissionFixedPiasters      Int               @default(0) @map("commission_fixed_piasters") // Fixed amount in piasters
+  createdByUserId              String?           @map("created_by_user_id")
+  createdByUser                User?             @relation("UserCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  createdAt                    DateTime          @default(now()) @map("created_at")
+  updatedAt                    DateTime          @updatedAt @map("updated_at")
 
   // Staff Schedule & Leave Relations
-  schedules                   StaffSchedule[]
-  leaves                      StaffLeave[]
+  schedules StaffSchedule[]
+  leaves    StaffLeave[]
 
   // Auth & Security Relations
-  sessions                    UserSession[]
-  otpSecret                   OtpSecret?
-  backupCodes                 OtpBackupCode[]
-  trustedDevices              TrustedDevice[]
-  passwordResetCodes          PasswordResetCode[]
+  sessions           UserSession[]
+  otpSecret          OtpSecret?
+  backupCodes        OtpBackupCode[]
+  trustedDevices     TrustedDevice[]
+  passwordResetCodes PasswordResetCode[]
 
   // Administrative Audit & Authoring Relations
-  createdUsers                User[]               @relation("UserCreatedBy")
-  updatedClinicSettings       ClinicSetting[]      @relation("ClinicSettingUpdatedBy")
-  updatedOpeningHours         ClinicOpeningHour[]  @relation("OpeningHourUpdatedBy")
-  createdClosures             ClinicClosure[]      @relation("ClinicClosureCreatedBy")
-  createdRooms                Room[]               @relation("RoomCreatedBy")
-  createdBeds                 Bed[]                @relation("BedCreatedBy")
-  createdSessionTypes         SessionType[]        @relation("SessionTypeCreatedBy")
-  updatedMessageTemplates     MessageTemplate[]    @relation("MessageTemplateUpdatedBy")
-  approvedLeaves              StaffLeave[]         @relation("StaffLeaveApprovedBy")
-  auditLogs                   AuditLog[]
+  createdUsers            User[]              @relation("UserCreatedBy")
+  updatedClinicSettings   ClinicSetting[]     @relation("ClinicSettingUpdatedBy")
+  updatedOpeningHours     ClinicOpeningHour[] @relation("OpeningHourUpdatedBy")
+  createdClosures         ClinicClosure[]     @relation("ClinicClosureCreatedBy")
+  createdRooms            Room[]              @relation("RoomCreatedBy")
+  createdBeds             Bed[]               @relation("BedCreatedBy")
+  createdSessionTypes     SessionType[]       @relation("SessionTypeCreatedBy")
+  updatedMessageTemplates MessageTemplate[]   @relation("MessageTemplateUpdatedBy")
+  approvedLeaves          StaffLeave[]        @relation("StaffLeaveApprovedBy")
+  auditLogs               AuditLog[]
+
+  // Patient & Clinical Relations (Slice B)
+  assignedPhysioPatients    Patient[]           @relation("AssignedPhysiotherapist")
+  assignedNutritionPatients Patient[]           @relation("AssignedNutritionist")
+  dischargedPatients        Patient[]           @relation("PatientDischargedBy")
+  createdPatients           Patient[]           @relation("PatientCreatedBy")
+  updatedPatients           Patient[]           @relation("PatientUpdatedBy")
+  diagnosesAuthored         PatientDiagnosis[]  @relation("DiagnosedByUser")
+  createdDiagnoses          PatientDiagnosis[]  @relation("PatientDiagnosisCreatedBy")
+  updatedDiagnoses          PatientDiagnosis[]  @relation("PatientDiagnosisUpdatedBy")
+  documentsUploaded         PatientDocument[]   @relation("DocumentUploadedBy")
+  createdDocuments          PatientDocument[]   @relation("PatientDocumentCreatedBy")
+  updatedDocuments          PatientDocument[]   @relation("PatientDocumentUpdatedBy")
+  documentViews             DocumentViewLog[]   @relation("DocumentViewedBy")
+  coveringAccessGrants      CoveringAccessLog[] @relation("CoveringAccessClinician")
 
   @@map("users")
 }
@@ -284,6 +345,9 @@ model UserSession {
   isRevoked    Boolean   @default(false) @map("is_revoked")
   revokedAt    DateTime? @map("revoked_at")
   createdAt    DateTime  @default(now()) @map("created_at")
+
+  // Session Covering Access (Slice B)
+  coveringAccessLogs CoveringAccessLog[] @relation("SessionCoveringAccess")
 
   @@index([userId, isRevoked])
   @@map("user_sessions")
@@ -371,22 +435,185 @@ model MessageTemplate {
 // ============================================================================
 
 model AuditLog {
-  id         String   @id @default(uuid())
-  timestamp  DateTime @default(now()) @map("created_at")
-  userId     String?  @map("user_id") // Nullable for unauthenticated/system actions
-  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull) // Never cascade delete
-  userRole   String?  @map("user_role") @db.VarChar(50)
-  action     String   @db.VarChar(100) // CREATE, UPDATE, STATUS_CHANGE, LOGIN, etc.
-  entityType String   @map("entity_type") @db.VarChar(100) // USER, APPOINTMENT, SETTING, etc.
-  entityId   String?  @map("entity_id") @db.VarChar(100)
-  beforeState Json?   @map("before_state")
-  afterState  Json?   @map("after_state")
-  reason     String?  @db.Text
-  ipAddress  String?  @map("ip_address") @db.VarChar(45)
-  userAgent  String?  @map("user_agent") @db.Text
+  id          String   @id @default(uuid())
+  timestamp   DateTime @default(now()) @map("created_at")
+  userId      String?  @map("user_id") // Nullable for unauthenticated/system actions
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull) // Never cascade delete
+  userRole    String?  @map("user_role") @db.VarChar(50)
+  action      String   @db.VarChar(100) // CREATE, UPDATE, STATUS_CHANGE, LOGIN, etc.
+  entityType  String   @map("entity_type") @db.VarChar(100) // USER, APPOINTMENT, SETTING, etc.
+  entityId    String?  @map("entity_id") @db.VarChar(100)
+  beforeState Json?    @map("before_state")
+  afterState  Json?    @map("after_state")
+  reason      String?  @db.Text
+  ipAddress   String?  @map("ip_address") @db.VarChar(45)
+  userAgent   String?  @map("user_agent") @db.Text
 
   @@index([userId, timestamp])
   @@index([entityType, entityId])
   @@index([action, timestamp])
   @@map("audit_logs")
+}
+
+// ============================================================================
+// 7. Patients & Clinical Records (Slice B)
+// ============================================================================
+
+model Patient {
+  id                    String            @id @default(uuid())
+  fileNumber            Int               @unique @default(autoincrement()) @map("file_number") // Sequential file number M-0001
+  fullName              String            @map("full_name") @db.VarChar(120) // R-4.1-1
+  mobilePhone           String?           @map("mobile_phone") @db.VarChar(15) // Egyptian 01XXXXXXXXX, unique for adults via partial index (R-4.1-2, R-4.2-2)
+  isDependent           Boolean           @default(false) @map("is_dependent") // Uses guardian phone (R-4.1-3)
+  guardianName          String?           @map("guardian_name") @db.VarChar(120) // R-4.1-4
+  guardianRelation      GuardianRelation? @map("guardian_relation") // R-4.1-5
+  guardianPhone         String?           @map("guardian_phone") @db.VarChar(15) // Normalized 01XXXXXXXXX, can repeat (R-4.1-6)
+  whatsappPhone         String?           @map("whatsapp_phone") @db.VarChar(15) // Defaults to mobilePhone or guardianPhone (R-4.1-7)
+  dateOfBirth           DateTime          @map("date_of_birth") @db.Date // Age dynamically calculated per calculations.md (R-4.1-8)
+  gender                Gender // R-4.1-9
+  address               String?           @db.Text // R-4.1-10
+  emergencyContactName  String?           @map("emergency_contact_name") @db.VarChar(120) // R-4.1-11
+  emergencyContactPhone String?           @map("emergency_contact_phone") @db.VarChar(30) // R-4.1-11
+  preferredLanguage     PreferredLanguage @default(AR) @map("preferred_language") // R-4.1-12
+  referralSource        ReferralSource    @map("referral_source") // R-4.1-13
+  referralSourceDetails String?           @map("referral_source_details") @db.VarChar(255) // R-4.1-13
+  referringDoctor       String?           @map("referring_doctor") @db.VarChar(120) // R-4.1-14
+  initialComplaint      String            @map("initial_complaint") @db.Text // Receptionist notes, NOT a diagnosis (R-4.1-15)
+
+  // Medical Alerts (R-4.1-16)
+  hasDiabetes        Boolean @default(false) @map("has_diabetes")
+  hasPacemaker       Boolean @default(false) @map("has_pacemaker")
+  hasHypertension    Boolean @default(false) @map("has_hypertension")
+  hasOsteoporosis    Boolean @default(false) @map("has_osteoporosis")
+  hasFallRisk        Boolean @default(false) @map("has_fall_risk")
+  isPregnant         Boolean @default(false) @map("is_pregnant")
+  medicalAlertsNotes String? @map("medical_alerts_notes") @db.Text // Clinicians only; receptionist sees "has alerts"
+
+  // Assigned Clinicians (R-4.1-17, R-4.1-18)
+  assignedPhysiotherapistId String? @map("assigned_physiotherapist_id")
+  assignedPhysiotherapist   User?   @relation("AssignedPhysiotherapist", fields: [assignedPhysiotherapistId], references: [id], onDelete: SetNull)
+  assignedNutritionistId    String? @map("assigned_nutritionist_id")
+  assignedNutritionist      User?   @relation("AssignedNutritionist", fields: [assignedNutritionistId], references: [id], onDelete: SetNull)
+
+  // Patient Status & Consents (R-4.1-19, R-4.1-20, R-4.1-21, R-4.2-6)
+  status             PatientStatus @default(LEAD)
+  dataConsent        Boolean       @default(false) @map("data_consent")
+  dataConsentDate    DateTime?     @map("data_consent_date")
+  whatsappConsent    Boolean       @default(true) @map("whatsapp_consent")
+  receptionNotes     String?       @map("reception_notes") @db.Text
+  firstVisitAt       DateTime?     @map("first_visit_at")
+  dischargedAt       DateTime?     @map("discharged_at")
+  dischargedByUserId String?       @map("discharged_by_user_id")
+  dischargedByUser   User?         @relation("PatientDischargedBy", fields: [dischargedByUserId], references: [id], onDelete: SetNull)
+  dischargeReason    String?       @map("discharge_reason") @db.Text
+
+  // Audit Fields (R-0-2, R-13-1)
+  createdByUserId String?  @map("created_by_user_id")
+  createdByUser   User?    @relation("PatientCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  updatedByUserId String?  @map("updated_by_user_id")
+  updatedByUser   User?    @relation("PatientUpdatedBy", fields: [updatedByUserId], references: [id], onDelete: SetNull)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Slice B Relations
+  diagnoses          PatientDiagnosis[]
+  documents          PatientDocument[]
+  coveringAccessLogs CoveringAccessLog[]
+
+  @@index([fullName])
+  @@index([mobilePhone])
+  @@index([guardianPhone])
+  @@index([status])
+  @@index([assignedPhysiotherapistId])
+  @@index([assignedNutritionistId])
+  @@map("patients")
+}
+
+model PatientDiagnosis {
+  id                String    @id @default(uuid())
+  patientId         String    @map("patient_id")
+  patient           Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  diagnosisText     String    @map("diagnosis_text") @db.Text // R-4.1-22, R-9.3-1
+  diagnosedByUserId String    @map("diagnosed_by_user_id")
+  diagnosedByUser   User      @relation("DiagnosedByUser", fields: [diagnosedByUserId], references: [id], onDelete: Restrict)
+  diagnosedAt       DateTime  @default(now()) @map("diagnosed_at")
+  isActive          Boolean   @default(true) @map("is_active")
+  resolvedAt        DateTime? @map("resolved_at")
+  notes             String?   @db.Text
+  createdByUserId   String?   @map("created_by_user_id")
+  createdByUser     User?     @relation("PatientDiagnosisCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  updatedByUserId   String?   @map("updated_by_user_id")
+  updatedByUser     User?     @relation("PatientDiagnosisUpdatedBy", fields: [updatedByUserId], references: [id], onDelete: SetNull)
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  @@index([patientId, isActive])
+  @@index([diagnosedByUserId])
+  @@map("patient_diagnoses")
+}
+
+model PatientDocument {
+  id               String           @id @default(uuid())
+  patientId        String           @map("patient_id")
+  patient          Patient          @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  category         DocumentCategory // R-9.5-1
+  title            String           @db.VarChar(150)
+  fileKey          String           @map("file_key") @db.VarChar(500) // Private path outside web root (R-9.5-1)
+  fileName         String           @map("file_name") @db.VarChar(255)
+  fileSizeBytes    Int              @map("file_size_bytes") // Max 10MB (10,485,760 bytes)
+  mimeType         String           @map("mime_type") @db.VarChar(100) // application/pdf, image/jpeg, etc.
+  isMedical        Boolean          @default(true) @map("is_medical") // False for ID_ADMINISTRATIVE, PAYMENT_PROOF
+  uploadedByUserId String           @map("uploaded_by_user_id") // R-1.1-3
+  uploadedByUser   User             @relation("DocumentUploadedBy", fields: [uploadedByUserId], references: [id], onDelete: Restrict)
+  isActive         Boolean          @default(true) @map("is_active") // Soft-delete (R-0-3)
+  voidedAt         DateTime?        @map("voided_at")
+  voidReason       String?          @map("void_reason") @db.Text
+  createdByUserId  String?          @map("created_by_user_id")
+  createdByUser    User?            @relation("PatientDocumentCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  updatedByUserId  String?          @map("updated_by_user_id")
+  updatedByUser    User?            @relation("PatientDocumentUpdatedBy", fields: [updatedByUserId], references: [id], onDelete: SetNull)
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+
+  viewLogs DocumentViewLog[]
+
+  @@index([patientId, category])
+  @@index([uploadedByUserId])
+  @@index([isActive])
+  @@map("patient_documents")
+}
+
+model DocumentViewLog {
+  id               String          @id @default(uuid())
+  documentId       String          @map("document_id")
+  document         PatientDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  viewedByUserId   String          @map("viewed_by_user_id")
+  viewedByUser     User            @relation("DocumentViewedBy", fields: [viewedByUserId], references: [id], onDelete: Restrict)
+  viewedAt         DateTime        @default(now()) @map("viewed_at") // R-9.5-1, R-13-1
+  watermarkApplied Boolean         @default(true) @map("watermark_applied") // Viewer name + timestamp (R-9.5-1)
+  ipAddress        String          @map("ip_address") @db.VarChar(45)
+  userAgent        String?         @map("user_agent") @db.Text
+
+  @@index([documentId, viewedAt])
+  @@index([viewedByUserId, viewedAt])
+  @@map("document_view_logs")
+}
+
+model CoveringAccessLog {
+  id          String       @id @default(uuid())
+  patientId   String       @map("patient_id")
+  patient     Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  clinicianId String       @map("clinician_id")
+  clinician   User         @relation("CoveringAccessClinician", fields: [clinicianId], references: [id], onDelete: Restrict)
+  sessionId   String?      @map("session_id") // Session-bound covering access (R-1.1-21, DEC-013)
+  session     UserSession? @relation("SessionCoveringAccess", fields: [sessionId], references: [id], onDelete: SetNull)
+  reason      String       @db.Text // Mandatory written clinical justification (R-1.1-21)
+  grantedAt   DateTime     @default(now()) @map("granted_at")
+  expiresAt   DateTime     @map("expires_at") // Max 12 hours or logout
+  ipAddress   String       @map("ip_address") @db.VarChar(45)
+  userAgent   String?      @map("user_agent") @db.Text
+
+  @@index([clinicianId, patientId, grantedAt])
+  @@index([sessionId])
+  @@map("covering_access_logs")
 }
