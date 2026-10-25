@@ -1,0 +1,456 @@
+/**
+ * Masaar Clinic System — Appointment Status Machine
+ * 
+ * Spec Reference: docs/FEATURES-v2.2.md §5.5 (R-5.5-1 through R-5.5-13), §5.2, §5.4, §6.1, §6.2
+ * Rules Index: docs/design/rules-index.md
+ * Glossary: docs/design/glossary.md
+ * Decisions: DEC-008 (Waitlist package hold), DEC-018 (Late arrival alert)
+ * 
+ * Design Task 1.06: Typed status data file.
+ * Pure data and types only. No runtime application logic or database queries.
+ */
+
+import type { ClinicRole } from '../permissions';
+import type {
+  StatusDefinition,
+  StateTransition,
+  ForbiddenTransition,
+  StatusMachineDefinition,
+} from './types';
+
+export type AppointmentStatus =
+  | 'SCHEDULED'
+  | 'ARRIVED'
+  | 'COMPLETED'
+  | 'CANCELLED'
+  | 'NO_SHOW'
+  | 'WAITLISTED';
+
+export const APPOINTMENT_STATUSES: readonly AppointmentStatus[] = [
+  'SCHEDULED',
+  'ARRIVED',
+  'COMPLETED',
+  'CANCELLED',
+  'NO_SHOW',
+  'WAITLISTED',
+] as const;
+
+export const APPOINTMENT_STATUS_DEFINITIONS: readonly StatusDefinition<AppointmentStatus>[] = [
+  {
+    status: 'SCHEDULED',
+    labelEn: 'Scheduled',
+    labelAr: 'مجدول',
+    descriptionEn: 'Appointment booked for a specific bed, clinician, date and time slot.',
+    descriptionAr: 'الموعد محجوز لسرير وطبيب وتاريخ ووقت محدد.',
+    isTerminal: false,
+  },
+  {
+    status: 'ARRIVED',
+    labelEn: 'Arrived / Checked In',
+    labelAr: 'حضر / تم تسجيل الدخول',
+    descriptionEn: 'Patient is physically present in the clinic reception waiting area.',
+    descriptionAr: 'المريض حاضر فعلياً في منطقة الاستقبال بانتظار بدء الجلسة.',
+    isTerminal: false,
+  },
+  {
+    status: 'COMPLETED',
+    labelEn: 'Completed',
+    labelAr: 'مكتمل',
+    descriptionEn: 'Clinical treatment session completed and SOAP/InBody note submitted by clinician.',
+    descriptionAr: 'تم تقديم الجلسة العلاجية واعتماد الملاحظات السريرية من قِبل المعالج.',
+    isTerminal: false,
+  },
+  {
+    status: 'CANCELLED',
+    labelEn: 'Cancelled',
+    labelAr: 'ملغي',
+    descriptionEn: 'Appointment cancelled with a mandatory recorded reason. Permanent terminal status.',
+    descriptionAr: 'تم إلغاء الموعد مع تسجيل سبب إلزامي. حالة نهائية لا يمكن إعادة فتحها.',
+    isTerminal: true,
+  },
+  {
+    status: 'NO_SHOW',
+    labelEn: 'No Show',
+    labelAr: 'لم يحضر',
+    descriptionEn: 'Patient failed to attend scheduled appointment without prior cancellation.',
+    descriptionAr: 'لم يحضر المريض للموعد المحدد دون إخطار مسبق بالإلغاء.',
+    isTerminal: false,
+  },
+  {
+    status: 'WAITLISTED',
+    labelEn: 'Waitlisted',
+    labelAr: 'قائمة انتظار',
+    descriptionEn: 'Appointment on standby; calendar bed/clinician slot released, package session held.',
+    descriptionAr: 'موعد بقائمة الانتظار؛ تم تحرير سرير ووقت التقويم مع حجز جلسة الباقة.',
+    isTerminal: false,
+  },
+] as const;
+
+export const APPOINTMENT_CANCELLATION_REASONS = [
+  'PATIENT_REQUEST',
+  'ILLNESS',
+  'TRANSPORT',
+  'EMERGENCY',
+  'NO_CONTACT',
+  'CLINIC_INITIATED',
+  'OTHER',
+] as const;
+
+export type AppointmentCancellationReason = typeof APPOINTMENT_CANCELLATION_REASONS[number];
+
+export const APPOINTMENT_TRANSITIONS: readonly StateTransition<AppointmentStatus>[] = [
+  {
+    id: 'TR-APPT-01',
+    from: 'SCHEDULED',
+    to: 'ARRIVED',
+    allowedRoles: ['RECEPTIONIST', 'MANAGER', 'OWNER'],
+    requiresReason: false,
+    timeLimit: 'Allowed on or after scheduled appointment start time',
+    conditions: 'Patient presents at clinic front desk',
+    sideEffects: [
+      'Stores arrivedAt UTC timestamp',
+      'Calculates and stores lateMinutes if arrival exceeds start time',
+      'Sends immediate in-app notification to assigned clinician (R-14-1, R-14-2)',
+      'Automatically transitions patient status from LEAD to ACTIVE if first check-in (R-4.2-6)',
+      'Audits check-in event (R-13-1)',
+    ],
+    ruleIds: ['R-5.5-1', 'R-1.1-5', 'R-4.2-6', 'R-14-1', 'R-14-2'],
+    descriptionEn: 'Check in patient upon physical arrival at the clinic.',
+    descriptionAr: 'تسجيل حضور المريض عند وصوله الفعلي لمقر العيادة.',
+  },
+  {
+    id: 'TR-APPT-02',
+    from: 'ARRIVED',
+    to: 'SCHEDULED',
+    allowedRoles: ['RECEPTIONIST', 'MANAGER', 'OWNER'],
+    requiresReason: true,
+    timeLimit: 'Same calendar day only',
+    conditions: 'Undo mistaken check-in before clinician begins treatment',
+    sideEffects: [
+      'Clears arrivedAt timestamp',
+      'Clears lateMinutes calculation',
+      'Notifies assigned clinician of status reversal',
+      'Audits undo check-in with mandatory reason (R-13-1)',
+    ],
+    ruleIds: ['R-5.5-2', 'R-6-2'],
+    descriptionEn: 'Undo check-in mistakenly recorded on the same day.',
+    descriptionAr: 'التراجع عن تسجيل الحضور المسجل بالخطأ في نفس اليوم.',
+  },
+  {
+    id: 'TR-APPT-03',
+    from: 'ARRIVED',
+    to: 'COMPLETED',
+    allowedRoles: ['PHYSIOTHERAPIST', 'NUTRITIONIST', 'OWNER'],
+    requiresReason: false,
+    timeLimit: 'During or after scheduled appointment start time',
+    conditions: 'Clinician of the appointment (or Owner) submitting session completion form with valid clinical data',
+    sideEffects: [
+      'Stores completedAt UTC timestamp',
+      'Creates/submits clinical session note (SOAP / InBody) (R-9.1-7)',
+      'Deducts one session from linked active package (R-5.5-3, R-9.1-7)',
+      'Calculates earned clinician commission (R-11-1)',
+      'Starts 24-hour author-only clinical note edit countdown window (R-9.2-1, DEC-016)',
+      'Audits session completion event (R-13-1)',
+    ],
+    ruleIds: ['R-5.5-3', 'R-1.1-7', 'R-9.1-7', 'R-9.2-1', 'R-11-1'],
+    descriptionEn: 'Complete clinical session and submit clinical charting.',
+    descriptionAr: 'إتمام الجلسة العلاجية واعتماد التوثيق السريري للمريض.',
+  },
+  {
+    id: 'TR-APPT-04',
+    from: 'SCHEDULED',
+    to: 'CANCELLED',
+    allowedRoles: ['RECEPTIONIST', 'MANAGER', 'OWNER', 'PHYSIOTHERAPIST', 'NUTRITIONIST'],
+    requiresReason: true,
+    reasonOptions: APPOINTMENT_CANCELLATION_REASONS,
+    timeLimit: 'Any time prior to session start or execution',
+    conditions: 'Clinicians may cancel only their own assigned appointments (R-1.1-4)',
+    sideEffects: [
+      'Releases clinician calendar slot and bed reservation',
+      'No package session is deducted (R-5.5-13)',
+      'Sends in-app cancellation notification to assigned clinician if cancelled by front desk (R-14-3)',
+      'Status is permanently terminal (R-5.5-12)',
+      'Audits cancellation with mandatory category and explanation note (R-13-1)',
+    ],
+    ruleIds: ['R-5.5-4', 'R-1.1-4', 'R-5.5-12', 'R-5.5-13', 'R-14-3'],
+    descriptionEn: 'Cancel a scheduled appointment with a recorded business reason.',
+    descriptionAr: 'إلغاء موعد مجدول مع توثيق سبب الإلغاء في النظام.',
+  },
+  {
+    id: 'TR-APPT-05',
+    from: 'ARRIVED',
+    to: 'CANCELLED',
+    allowedRoles: ['RECEPTIONIST', 'MANAGER', 'OWNER'],
+    requiresReason: true,
+    reasonOptions: APPOINTMENT_CANCELLATION_REASONS,
+    timeLimit: 'Same day while in arrived status',
+    conditions: 'Patient left clinic before consultation/treatment began',
+    sideEffects: [
+      'Releases clinician and bed calendar reservation',
+      'No package session is deducted (R-5.5-13)',
+      'Notifies assigned clinician that patient departed (R-14-3)',
+      'Status is permanently terminal (R-5.5-12)',
+      'Audits cancellation with mandatory reason note (R-13-1)',
+    ],
+    ruleIds: ['R-5.5-5', 'R-5.5-12', 'R-5.5-13', 'R-14-3'],
+    descriptionEn: 'Cancel appointment after patient checked in but departed before treatment.',
+    descriptionAr: 'إلغاء الموعد بعد تسجيل الحضور بسبب مغادرة المريض قبل بدء الجلسة.',
+  },
+  {
+    id: 'TR-APPT-06',
+    from: 'SCHEDULED',
+    to: 'NO_SHOW',
+    allowedRoles: ['RECEPTIONIST', 'MANAGER', 'OWNER', 'PHYSIOTHERAPIST', 'NUTRITIONIST'],
+    requiresReason: true,
+    reasonOptions: APPOINTMENT_CANCELLATION_REASONS,
+    timeLimit: 'Only on or after appointment scheduled start time',
+    conditions: 'Clinicians may mark no-show only for their own assigned appointments (R-1.1-6)',
+    sideEffects: [
+      'Releases reserved bed and clinician room for walk-ins or waitlist',
+      'No package session is deducted (R-5.5-13)',
+      'Updates clinician utilization and attendance reporting metrics (R-12-5, R-12-6)',
+      'Audits no-show event with mandatory reason category (R-13-1)',
+    ],
+    ruleIds: ['R-5.5-6', 'R-1.1-6', 'R-5.5-13', 'R-12-5', 'R-12-6'],
+    descriptionEn: 'Mark patient as absent after scheduled appointment start time.',
+    descriptionAr: 'تسجيل تخلف المريض عن الحضور بعد حلول وقت الموعد.',
+  },
+  {
+    id: 'TR-APPT-07',
+    from: 'NO_SHOW',
+    to: 'SCHEDULED',
+    allowedRoles: ['RECEPTIONIST', 'MANAGER', 'OWNER', 'PHYSIOTHERAPIST', 'NUTRITIONIST'],
+    requiresReason: true,
+    timeLimit: 'Same calendar day only',
+    conditions: 'Undo mistaken no-show (e.g. patient arrived late or error discovered, R-1.1-6)',
+    sideEffects: [
+      'Restores appointment status to SCHEDULED',
+      'Clears no-show attendance record from clinician performance metrics',
+      'Re-runs calendar bed and clinician collision checks',
+      'Audits status reversal with explanation note (R-13-1)',
+    ],
+    ruleIds: ['R-5.5-7', 'R-1.1-6'],
+    descriptionEn: 'Undo a mistaken no-show record on the same day.',
+    descriptionAr: 'التراجع عن تسجيل عدم الحضور في نفس اليوم وإعادة الموعد لحالة مجدول.',
+  },
+  {
+    id: 'TR-APPT-08',
+    from: 'SCHEDULED',
+    to: 'WAITLISTED',
+    allowedRoles: ['RECEPTIONIST', 'MANAGER', 'OWNER'],
+    requiresReason: true,
+    timeLimit: 'Prior to or on scheduled appointment date',
+    conditions: 'Patient or clinic requests standby status due to scheduling conflict',
+    sideEffects: [
+      'Keeps appointment record intact',
+      'Releases calendar time slot and bed reservation for other bookings',
+      'Retains package session hold against availableSessions (DEC-008, R-5.5-8)',
+      'Adds patient to waitlist side panel on front-desk screen (R-5.4-5, R-6-1)',
+      'Audits move to waitlist (R-13-1)',
+    ],
+    ruleIds: ['R-5.5-8', 'R-1.1-4', 'R-5.4-5', 'R-6-1'],
+    descriptionEn: 'Move scheduled appointment to waitlist while keeping package session hold.',
+    descriptionAr: 'نقل الموعد إلى قائمة الانتظار مع تحرير السرير والاحتفاظ بحجز جلسة الباقة.',
+  },
+  {
+    id: 'TR-APPT-09',
+    from: 'WAITLISTED',
+    to: 'SCHEDULED',
+    allowedRoles: ['RECEPTIONIST', 'MANAGER', 'OWNER'],
+    requiresReason: false,
+    timeLimit: 'Any time prior to package expiry or as agreed with patient',
+    conditions: 'Slot opening identified; full double-booking and schedule validation re-runs',
+    sideEffects: [
+      'Executes full booking validation: clinician availability, bed availability, opening hours, closures',
+      'Assigns specific bed, clinician, and time slot',
+      'Converts package session hold into active scheduled session booking',
+      'Removes entry from waitlist panel',
+      'Audits re-scheduling (R-13-1)',
+    ],
+    ruleIds: ['R-5.5-9', 'R-1.1-4', 'R-5.2-1', 'R-5.2-2'],
+    descriptionEn: 'Schedule a waitlisted appointment into a confirmed calendar slot.',
+    descriptionAr: 'تأكيد حجز موعد من قائمة الانتظار في خانة زمنية وسرير محددين بعد التحقق.',
+  },
+  {
+    id: 'TR-APPT-10',
+    from: 'WAITLISTED',
+    to: 'CANCELLED',
+    allowedRoles: ['RECEPTIONIST', 'MANAGER', 'OWNER'],
+    requiresReason: true,
+    reasonOptions: APPOINTMENT_CANCELLATION_REASONS,
+    timeLimit: 'Any time while on waitlist',
+    conditions: 'Patient requests cancellation or no slot could be agreed upon',
+    sideEffects: [
+      'Releases held package session back to available package sessions (R-5.5-10)',
+      'Removes entry from waitlist side panel',
+      'Status becomes permanently terminal CANCELLED (R-5.5-12)',
+      'Audits cancellation with mandatory reason (R-13-1)',
+    ],
+    ruleIds: ['R-5.5-10', 'R-1.1-4', 'R-5.5-12', 'R-5.5-13'],
+    descriptionEn: 'Cancel waitlisted appointment and release held package session.',
+    descriptionAr: 'إلغاء موعد في قائمة الانتظار وتحرير جلسة الباقة المعلقة لصالح المريض.',
+  },
+  {
+    id: 'TR-APPT-11',
+    from: 'COMPLETED',
+    to: 'ARRIVED',
+    allowedRoles: ['OWNER'],
+    requiresReason: true,
+    timeLimit: 'Discretionary owner administrative review',
+    conditions: 'Owner intervention to correct session charting, billing errors, or mistargeted treatments',
+    sideEffects: [
+      'Restores one consumed session to linked patient package (R-5.5-11)',
+      'Reverses clinician earned commission calculation for this session (R-11-1)',
+      'Re-opens appointment into ARRIVED status allowing re-entry or cancellation',
+      'Re-opens clinical note for charting correction',
+      'Audits owner re-opening with mandatory explanation note (R-13-1)',
+    ],
+    ruleIds: ['R-5.5-11', 'R-1.1-8', 'R-13-1'],
+    descriptionEn: 'Re-open a completed session and restore consumed package session (Owner only).',
+    descriptionAr: 'إعادة فتح جلسة مكتملة واستعادة جلسة الباقة للمريض (صلاحية المالك فقط).',
+  },
+] as const;
+
+export const APPOINTMENT_FORBIDDEN_TRANSITIONS: readonly ForbiddenTransition<AppointmentStatus>[] = [
+  {
+    from: 'CANCELLED',
+    to: 'SCHEDULED',
+    reasonEn: 'Cancelled is permanently final (R-5.5-12). A new appointment must be booked.',
+    reasonAr: 'حالة الإلغاء نهائية تماماً (R-5.5-12). يجب حجز موعد جديد بدلاً من إعادة فتح الملغي.',
+    ruleIds: ['R-5.5-12'],
+  },
+  {
+    from: 'CANCELLED',
+    to: 'ARRIVED',
+    reasonEn: 'Cancelled is permanently final (R-5.5-12). Check-in is impossible.',
+    reasonAr: 'الموعد الملغي لا يمكن تسجيل حضوره؛ الحالة نهائية.',
+    ruleIds: ['R-5.5-12'],
+  },
+  {
+    from: 'CANCELLED',
+    to: 'COMPLETED',
+    reasonEn: 'Cannot complete a cancelled appointment.',
+    reasonAr: 'لا يمكن إتمام موعد ملغي.',
+    ruleIds: ['R-5.5-12'],
+  },
+  {
+    from: 'CANCELLED',
+    to: 'NO_SHOW',
+    reasonEn: 'Cannot mark cancelled appointment as no-show.',
+    reasonAr: 'لا يمكن تسجيل عدم حضور لموعد تم إلغاؤه مسبقاً.',
+    ruleIds: ['R-5.5-12'],
+  },
+  {
+    from: 'CANCELLED',
+    to: 'WAITLISTED',
+    reasonEn: 'Cannot move cancelled appointment to waitlist.',
+    reasonAr: 'لا يمكن نقل موعد ملغي إلى قائمة الانتظار.',
+    ruleIds: ['R-5.5-12'],
+  },
+  {
+    from: 'SCHEDULED',
+    to: 'COMPLETED',
+    reasonEn: 'Direct completion without check-in is strictly blocked (R-5.5-3). Patient must arrive first.',
+    reasonAr: 'يُحظر الإتمام المباشر دون تسجيل الحضور أولاً (R-5.5-3).',
+    ruleIds: ['R-5.5-3', 'R-5.5-12'],
+  },
+  {
+    from: 'COMPLETED',
+    to: 'SCHEDULED',
+    reasonEn: 'Completed appointments cannot be reset directly to scheduled; Owner must re-open to ARRIVED first.',
+    reasonAr: 'لا يمكن إعادة الموعد المكتمل لمجدول مباشرة؛ المالك فقط يعيد فتحه لحالة حضر.',
+    ruleIds: ['R-5.5-11', 'R-5.5-12'],
+  },
+  {
+    from: 'COMPLETED',
+    to: 'CANCELLED',
+    reasonEn: 'Completed clinical treatments cannot be cancelled directly. Must be re-opened by Owner first if error.',
+    reasonAr: 'لا يمكن إلغاء جلسة مكتملة مباشرة لحماية السجلات المالية والسريرية.',
+    ruleIds: ['R-5.5-11', 'R-5.5-12'],
+  },
+  {
+    from: 'COMPLETED',
+    to: 'NO_SHOW',
+    reasonEn: 'Completed session proves patient was present and treated. No-show is impossible.',
+    reasonAr: 'لا يمكن تحويل موعد مكتمل إلى لم يحضر؛ الجلسة نُفذت بالفعل.',
+    ruleIds: ['R-5.5-12'],
+  },
+  {
+    from: 'COMPLETED',
+    to: 'WAITLISTED',
+    reasonEn: 'Completed appointments cannot be moved to waitlist.',
+    reasonAr: 'لا يمكن نقل موعد مكتمل إلى قائمة الانتظار.',
+    ruleIds: ['R-5.5-12'],
+  },
+  {
+    from: 'NO_SHOW',
+    to: 'ARRIVED',
+    reasonEn: 'Cannot check in directly from no-show. Must undo to SCHEDULED first, then check in.',
+    reasonAr: 'لا يمكن تسجيل الحضور مباشرة من عدم الحضور؛ يجب التراجع إلى مجدول أولاً.',
+    ruleIds: ['R-5.5-7', 'R-5.5-12'],
+  },
+  {
+    from: 'NO_SHOW',
+    to: 'COMPLETED',
+    reasonEn: 'Cannot complete a no-show appointment without restoring to SCHEDULED and checking in to ARRIVED.',
+    reasonAr: 'لا يمكن إتمام موعد مسجل كعدم حضور دون استعادته وحضوره.',
+    ruleIds: ['R-5.5-3', 'R-5.5-7', 'R-5.5-12'],
+  },
+  {
+    from: 'NO_SHOW',
+    to: 'CANCELLED',
+    reasonEn: 'Cannot cancel a no-show appointment directly. Already recorded as absent; undo to SCHEDULED first if error.',
+    reasonAr: 'لا يمكن إلغاء موعد مسجل كعدم حضور؛ تراجع إلى مجدول أولاً إذا كان خطأ.',
+    ruleIds: ['R-5.5-7', 'R-5.5-12'],
+  },
+  {
+    from: 'NO_SHOW',
+    to: 'WAITLISTED',
+    reasonEn: 'Cannot move no-show appointment directly to waitlist.',
+    reasonAr: 'لا يمكن نقل موعد لم يحضر إلى قائمة الانتظار مباشرة.',
+    ruleIds: ['R-5.5-12'],
+  },
+  {
+    from: 'WAITLISTED',
+    to: 'ARRIVED',
+    reasonEn: 'Cannot check in a waitlisted patient. Must be scheduled to a specific bed, clinician, and slot first.',
+    reasonAr: 'لا يمكن تسجيل حضور مريض في قائمة الانتظار دون تحديد سرير وطبيب ووقت مجدول أولاً.',
+    ruleIds: ['R-5.5-9', 'R-5.5-12'],
+  },
+  {
+    from: 'WAITLISTED',
+    to: 'COMPLETED',
+    reasonEn: 'Cannot complete a waitlisted appointment. Must be scheduled and checked in first.',
+    reasonAr: 'لا يمكن إتمام موعد بقائمة الانتظار مباشرة.',
+    ruleIds: ['R-5.5-3', 'R-5.5-9', 'R-5.5-12'],
+  },
+  {
+    from: 'WAITLISTED',
+    to: 'NO_SHOW',
+    reasonEn: 'Waitlisted patient has no confirmed bed/time reservation, so no-show cannot occur.',
+    reasonAr: 'مريض قائمة الانتظار ليس لديه حجز سرير ووقت ملزم لتسجيل عدم حضور عليه.',
+    ruleIds: ['R-5.5-12'],
+  },
+  {
+    from: 'ARRIVED',
+    to: 'NO_SHOW',
+    reasonEn: 'Patient is already physically present in clinic. If patient leaves, use ARRIVED -> CANCELLED (R-5.5-5).',
+    reasonAr: 'المريض حاضر بالعيادة بالفعل؛ إذا غادر يُستخدم تحويل حضر إلى ملغي (R-5.5-5).',
+    ruleIds: ['R-5.5-5', 'R-5.5-12'],
+  },
+  {
+    from: 'ARRIVED',
+    to: 'WAITLISTED',
+    reasonEn: 'Cannot move an arrived patient to waitlist. If appointment postponed, cancel or reschedule.',
+    reasonAr: 'لا يمكن تحويل مريض حاضر إلى قائمة الانتظار.',
+    ruleIds: ['R-5.5-12'],
+  },
+] as const;
+
+export const APPOINTMENT_STATE_MACHINE: StatusMachineDefinition<AppointmentStatus> = {
+  entityName: 'Appointment',
+  initialStatus: 'SCHEDULED',
+  statuses: APPOINTMENT_STATUS_DEFINITIONS,
+  transitions: APPOINTMENT_TRANSITIONS,
+  forbiddenTransitions: APPOINTMENT_FORBIDDEN_TRANSITIONS,
+};
