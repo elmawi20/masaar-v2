@@ -16,7 +16,7 @@ This directory contains all approved Stage 1 design specifications, matrices, di
 | **1.02** | [`FEATURES-v2.2.md`](file:///F:/Claude%20CRM/docs/FEATURES-v2.2.md)<br>[`decisions.md`](file:///F:/Claude%20CRM/docs/design/decisions.md) | Apply answers to spec & bump version | **Done** | 2026-10-25 |
 | **1.03** | [`rules-index.md`](file:///F:/Claude%20CRM/docs/design/rules-index.md)<br>[`FEATURES-v2.2.md`](file:///F:/Claude%20CRM/docs/FEATURES-v2.2.md) | Unique rule IDs (R-section-n) index | **Done** | 2026-10-25 |
 | **1.04** | [`glossary.md`](file:///F:/Claude%20CRM/docs/design/glossary.md) | AR/EN business terms, DB & code naming | **Done** | 2026-10-25 |
-| **1.05** | `permissions.md`<br>`src/domain/permissions.ts` | Complete permission matrix & data tables | Pending | — |
+| **1.05** | [`permissions.md`](file:///F:/Claude%20CRM/docs/design/permissions.md)<br>[`src/domain/permissions.ts`](file:///F:/Claude%20CRM/src/domain/permissions.ts) | Complete permission matrix & data tables | **Done** | 2026-10-25 |
 | **1.06** | `state-machines.md`<br>`src/domain/status/*.ts` | State machine definitions & forbidden transitions | Pending | — |
 | **1.07** | `calculations.md` | All formulas, piasters rounding, edge cases | Pending | — |
 | **1.08** | `data-model.md` (Slice A)<br>`prisma/schema.prisma` | DB Slice A: Clinic, staff & auth | Pending | — |
