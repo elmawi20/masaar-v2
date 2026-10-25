@@ -156,6 +156,12 @@ This document lists every unclear, missing, or contradictory point identified du
   1. `commission_payouts.is_voided = true` is set, recording `voided_at`, `voided_by_user_id`, and `void_reason`.
   2. The linked `Doctor commission` expense voucher in `expenses` is automatically voided.
   3. The linked sessions in `commission_payout_sessions` are set to `is_voided = true`. By virtue of the partial unique index `idx_unique_active_paid_session (appointment_id) WHERE is_voided = false`, voiding releases the completed sessions so they can legitimately be included in a subsequent corrected payout run.
-- **Approved Resolution:** **Accepted.** Owner and Manager can void a commission payout voucher with a mandatory reason and full audit logging. The linked `Doctor commission` expense is automatically voided and completed sessions released via the partial unique index for recalculation.
-- **Status:** **Resolved** (Recorded in [DEC-026](file:///F:/Claude%20CRM/docs/design/decisions.md) & applied to spec §11, `R-11-4`)
 
+---
+
+### Q-17: Macronutrient Calorie Discrepancy Tolerance Warning
+- **Spec Reference:** §9.4 (Nutrition consultation, `R-9.4-1`)
+- **Question:** §9.4 specifies recording daily calorie target and protein/carbs/fat grams. Should the consultation form enforce a validation warning (or block submission) if the calculated caloric sum from macronutrients (`(protein_grams * 4) + (carbs_grams * 4) + (fat_grams * 9)`) deviates from `calorie_target` by more than 10%?
+- **Suggested Answer:** Non-blocking advisory warning only (soft alert). Clinical nutritionists frequently adjust for net carbohydrates (subtracting non-digestible dietary fiber) or use specialized ketogenic / post-bariatric dietary protocols where standard 4/4/9 Atwater factors diverge from total nominal calorie targets by 5% to 15%. A non-blocking advisory note ("تنبيه استرشادي: مجموع سعرات المغذيات يختلف عن السعرات المستهدفة بأكثر من 10%") alerts the clinician to accidental typos without blocking legitimate clinical prescriptions.
+- **Approved Resolution:** **Pending User Approval** (Omitted from wireframe design until approved per project rules: "If any of these is not in the spec, add it to open-questions.md instead of designing it").
+- **Status:** **Pending**

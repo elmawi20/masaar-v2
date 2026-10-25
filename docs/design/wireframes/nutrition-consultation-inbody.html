@@ -26,6 +26,17 @@
       margin: 12px 0;
       position: relative;
     }
+    .macro-calc-pill {
+      font-size: 11px;
+      font-weight: bold;
+      color: #065f46;
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-top: 4px;
+    }
   </style>
 </head>
 <body>
@@ -38,14 +49,14 @@
     <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--wf-border-dark); padding-bottom: 12px; margin-bottom: 18px;">
       <div>
         <h1 style="font-size: 18px; font-weight: bold;">كشف التغذية العلاجية وقياسات InBody</h1>
-        <p style="font-size: 12px; color: var(--wf-text-muted);">
+        <p style="font-size: 12px; color: var(--wf-text-muted); margin-top: 4px;">
           المريض: <strong>منى محمود إبراهيم (MAS-00109)</strong> · 29 سنة · أنثى · الطبيب: <strong>د. نورهان سعيد</strong>
         </p>
       </div>
       <a href="clinical-workspace-queue.html" class="btn btn-sm">إلغاء والعودة</a>
     </div>
 
-    <form onsubmit="event.preventDefault(); alert('تم حفظ قياسات InBody والبرنامج الغذائي واحتساب التطور بنجاح (R-9.4-1)');">
+    <form onsubmit="event.preventDefault(); alert('تم حفظ قياسات InBody والبرنامج الغذائي بنجاح (R-9.4-1)');">
       <!-- 1. InBody Body Composition Metrics -->
       <div class="card" style="margin-bottom: 18px; border-right: 4px solid var(--wf-grey-800);">
         <div class="card-header" style="padding-bottom: 8px; margin-bottom: 12px;">
@@ -53,44 +64,56 @@
           <span class="badge" style="background: var(--wf-grey-200);">الجلسة 2 من 8</span>
         </div>
 
+        <!-- Row 1: Height, Current Weight, Required Target Weight (Item 7) -->
         <div class="form-row">
           <div class="form-col form-group">
-            <label class="form-label">الطول (سم - يملأ تلقائياً وقابل للتعديل DEC-019):</label>
-            <input type="number" id="height" class="form-control" value="165" required oninput="calcBMI()">
+            <label class="form-label">الطول (سم - يملأ تلقائياً وقابل للتعديل) *:</label>
+            <input type="number" id="height" class="form-control" value="165" required oninput="calcMetrics()">
           </div>
           <div class="form-col form-group">
-            <label class="form-label">الوزن الحالي (كجم):</label>
-            <input type="number" step="0.1" id="weight" class="form-control" value="78.4" required oninput="calcBMI()">
+            <label class="form-label">الوزن الحالي (كجم) *:</label>
+            <input type="number" step="0.1" id="weight" class="form-control" value="78.4" required oninput="calcMetrics()">
           </div>
           <div class="form-col form-group">
-            <label class="form-label">مؤشر كتلة الجسم المحسوب (BMI كجم/م²):</label>
-            <input type="text" id="bmi" class="form-control" value="28.8" readonly style="background: var(--wf-grey-200); font-weight: bold;">
+            <label class="form-label" style="font-weight: bold;">الوزن المستهدف (كجم) *:</label>
+            <input type="number" step="0.1" id="target_weight" class="form-control" value="68.0" required>
+            <span style="font-size: 11px; color: var(--wf-text-muted);">حقل إلزامي لتحديد هدف الخطة العلاجية</span>
           </div>
         </div>
 
+        <!-- Row 2: BMI, Body Fat %, Muscle SMM -->
         <div class="form-row">
           <div class="form-col form-group">
-            <label class="form-label">نسبة الدهون في الجسم (Body Fat %):</label>
+            <label class="form-label">مؤشر كتلة الجسم المحسوب (كجم/م²):</label>
+            <input type="text" id="bmi" class="form-control" value="28.8" readonly style="background: var(--wf-grey-200); font-weight: bold;">
+            <span style="font-size: 11px; color: var(--wf-text-muted);">محسوب تلقائياً (الوزن ÷ مربع الطول بالمتر)</span>
+          </div>
+          <div class="form-col form-group">
+            <label class="form-label">نسبة الدهون في الجسم (%) *:</label>
             <input type="number" step="0.1" class="form-control" value="32.5" required>
           </div>
           <div class="form-col form-group">
-            <label class="form-label">كتلة العضلات الهيكلية (Muscle SMM كجم):</label>
+            <label class="form-label">كتلة العضلات الهيكلية (كجم) *:</label>
             <input type="number" step="0.1" class="form-control" value="26.2" required>
-          </div>
-          <div class="form-col form-group">
-            <label class="form-label">معدل الحرق الأساسي (BMR سعرة):</label>
-            <input type="number" class="form-control" value="1420" required>
           </div>
         </div>
 
+        <!-- Row 3: BMR calculated (Mifflin-St Jeor) + Optional Device BMR override (Item 6) + Visceral Fat -->
         <div class="form-row">
           <div class="form-col form-group">
-            <label class="form-label">الماء الكلي بالجسم (TBW لتر):</label>
-            <input type="number" step="0.1" class="form-control" value="36.8">
+            <label class="form-label">معدل الحرق الأساسي المحسوب (سعرة / يوم):</label>
+            <input type="text" id="bmr_calc" class="form-control" value="1,509 سعرة / يوم" readonly style="background: var(--wf-grey-200); font-weight: bold;">
+            <span style="font-size: 11px; color: var(--wf-text-muted);">محسوب تلقائياً بمعادلة ميفلين سانت جور من الوزن والطول والعمر والنوع</span>
           </div>
           <div class="form-col form-group">
-            <label class="form-label">مستوى الدهون الحشوية (Visceral Fat 1-20):</label>
-            <input type="number" class="form-control" value="7">
+            <label class="form-label">قراءة الجهاز المقاسة (اختياري - بديل الجهاز):</label>
+            <input type="number" id="device_bmr" class="form-control" value="1420" placeholder="اتركه فارغاً للاعتماد على المعادلة">
+            <span style="font-size: 11px; color: var(--wf-text-muted);">تجاوز اختياري: يدخل الأخصائي القراءة إذا اختلفت قراءة الجهاز (R-9.4-1)</span>
+          </div>
+          <div class="form-col form-group">
+            <label class="form-label">مستوى الدهون الحشوية (1-20):</label>
+            <input type="number" min="1" max="20" class="form-control" value="7">
+            <span style="font-size: 11px; color: var(--wf-text-muted);">مقياس رقمي من 1 إلى 20</span>
           </div>
         </div>
       </div>
@@ -98,14 +121,14 @@
       <!-- 2. Progress Chart Placeholder -->
       <div class="card" style="margin-bottom: 18px;">
         <div class="card-header" style="padding-bottom: 8px; margin-bottom: 12px;">
-          <div class="card-title" style="font-size: 14px;">2. منحنى تطور الوزن ونسبة الدهون (Progress Chart)</div>
+          <div class="card-title" style="font-size: 14px;">2. منحنى تطور الوزن ونسبة الدهون</div>
           <span style="font-size: 11px; color: var(--wf-text-muted);">انخفاض: -2.1 كجم خلال أسبوعين</span>
         </div>
 
         <div class="chart-box">
           <div style="font-weight: bold; font-size: 13px; margin-bottom: 4px;">[ رسم بياني تفاعلي: تتبع الوزن ونسبة الدهون ]</div>
           <div style="font-size: 11px; color: var(--wf-text-muted);">
-            الزيارة 1 (11 أكتوبر): 80.5 كجم (دهون 34.0%) إلى الزيارة 2 (25 أكتوبر): 78.4 كجم (دهون 32.5%)
+            الزيارة 1 (11 أكتوبر): 80.5 كجم (دهون 34.0%) إلى الزيارة 2 (25 أكتوبر): 78.4 كجم (دهون 32.5%) · الوزن المستهدف: 68.0 كجم
           </div>
           <!-- Simple CSS Sparkline Simulation -->
           <div style="display: flex; align-items: flex-end; gap: 40px; height: 70px; margin-top: 10px;">
@@ -128,20 +151,65 @@
         </div>
       </div>
 
-      <!-- 3. Dietary Plan & Prescriptions -->
+      <!-- 3. Dietary Plan & Prescriptions (Items 4 & 7) -->
       <div class="card" style="margin-bottom: 20px;">
         <div class="card-header" style="padding-bottom: 8px; margin-bottom: 12px;">
-          <div class="card-title" style="font-size: 14px;">3. البرنامج الغذائي والسعرات المقررة (Dietary Plan)</div>
+          <div class="card-title" style="font-size: 14px;">3. البرنامج الغذائي وتوزيع المغذيات الكبرى (R-9.4-1)</div>
         </div>
 
+        <!-- Protocol Select (Required - Item 7) & Calorie Target -->
         <div class="form-row">
           <div class="form-col form-group">
-            <label class="form-label">السعرات الحرارية اليومية المستهدفة:</label>
-            <input type="text" class="form-control" value="1,650 سعرة حرارية / يوم" required>
+            <label class="form-label" style="font-weight: bold;">البروتوكول الغذائي العلاجي *:</label>
+            <select id="protocol" class="form-control" required>
+              <option value="">-- اختر البروتوكول العلاجي --</option>
+              <option value="BALANCED_LIFESTYLE">نمط حياة صحي متوازن</option>
+              <option value="KETO">كيتو دايت علاجي</option>
+              <option value="LOW_CARB_ANTI_INFLAMMATORY" selected>منخفض النشويات ومضاد للالتهاب</option>
+              <option value="INTERMITTENT_FASTING">صيام متقطع</option>
+              <option value="SPORTS_NUTRITION">تغذية رياضيين وبناء عضلي</option>
+              <option value="DIABETIC_INSULIN_RESISTANCE">حمية مقاومة الأنسولين والسكري</option>
+              <option value="POST_BARIATRIC">متابعة ما بعد جراحات السمنة</option>
+              <option value="OTHER">أخرى</option>
+            </select>
           </div>
           <div class="form-col form-group">
-            <label class="form-label">توزيع المغذيات الكبرى (Carbs / Protein / Fat):</label>
-            <input type="text" class="form-control" value="45% نشويات معقدة · 30% بروتين · 25% دهون صحية">
+            <label class="form-label">السعرات الحرارية اليومية المستهدفة (سعرة / يوم) *:</label>
+            <input type="number" id="calorie_target" class="form-control" value="1650" required oninput="calcMacros()">
+            <span style="font-size: 11px; color: var(--wf-text-muted);">إجمالي الطاقة المحددة للخطة اليومية</span>
+          </div>
+        </div>
+
+        <!-- Macros entered in grams/day with % shown as calculated values (Item 4) -->
+        <div style="background: var(--wf-grey-100); border: 1px solid var(--wf-border-light); border-radius: 4px; padding: 12px; margin-bottom: 14px;">
+          <div style="font-size: 12px; font-weight: bold; margin-bottom: 8px;">
+            توزيع المغذيات الكبرى (يُدخل بالجرام يومياً، والنسب المئوية محسوبة تلقائياً — R-9.4-1):
+          </div>
+          <div class="form-row">
+            <div class="form-col form-group">
+              <label class="form-label">البروتين المستهدف (جرام/يوم) *:</label>
+              <input type="number" id="protein_g" class="form-control" value="120" required oninput="calcMacros()">
+              <div id="protein_calc" class="macro-calc-pill">480 سعرة (29.1%)</div>
+            </div>
+            <div class="form-col form-group">
+              <label class="form-label">النشويات / الكربوهيدرات (جرام/يوم) *:</label>
+              <input type="number" id="carbs_g" class="form-control" value="160" required oninput="calcMacros()">
+              <div id="carbs_calc" class="macro-calc-pill">640 سعرة (38.8%)</div>
+            </div>
+            <div class="form-col form-group">
+              <label class="form-label">الدهون الصحية (جرام/يوم) *:</label>
+              <input type="number" id="fat_g" class="form-control" value="60" required oninput="calcMacros()">
+              <div id="fat_calc" class="macro-calc-pill">540 سعرة (32.7%)</div>
+            </div>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed var(--wf-border-dark); padding-top: 8px; margin-top: 6px; font-size: 11px;">
+            <div>
+              <span>مجموع سعرات المغذيات المحسوبة: </span>
+              <strong id="macro_total_kcal">1,660 سعرة / يوم</strong> (معادلة أتواتر: بروتين×4 + نشويات×4 + دهون×9)
+            </div>
+            <div style="color: var(--wf-text-muted);">
+              النسب المئوية محسوبة ديناميكياً ولا تُخزن كحقول زائدة في قاعدة البيانات
+            </div>
           </div>
         </div>
 
@@ -161,13 +229,45 @@
   </div>
 
   <script>
-    function calcBMI() {
-      const h = parseFloat(document.getElementById('height').value) / 100;
+    function calcMetrics() {
+      const h = parseFloat(document.getElementById('height').value);
       const w = parseFloat(document.getElementById('weight').value);
+      const age = 29; // Patient age from demographics
+
+      // Calculate BMI
       if (h > 0 && w > 0) {
-        document.getElementById('bmi').value = (w / (h * h)).toFixed(1);
+        const hm = h / 100;
+        document.getElementById('bmi').value = (w / (hm * hm)).toFixed(1);
       }
+
+      // Calculate Mifflin-St Jeor BMR for female: 10*w + 6.25*h - 5*age - 161
+      if (h > 0 && w > 0) {
+        const bmr = Math.round((10 * w) + (6.25 * h) - (5 * age) - 161);
+        document.getElementById('bmr_calc').value = bmr.toLocaleString('en-US') + ' سعرة / يوم';
+      }
+    }
+
+    function calcMacros() {
+      const targetKcal = parseFloat(document.getElementById('calorie_target').value) || 0;
+      const p = parseFloat(document.getElementById('protein_g').value) || 0;
+      const c = parseFloat(document.getElementById('carbs_g').value) || 0;
+      const f = parseFloat(document.getElementById('fat_g').value) || 0;
+
+      const pKcal = p * 4;
+      const cKcal = c * 4;
+      const fKcal = f * 9;
+      const totalKcal = pKcal + cKcal + fKcal;
+
+      const pPct = targetKcal > 0 ? ((pKcal / targetKcal) * 100).toFixed(1) : '0';
+      const cPct = targetKcal > 0 ? ((cKcal / targetKcal) * 100).toFixed(1) : '0';
+      const fPct = targetKcal > 0 ? ((fKcal / targetKcal) * 100).toFixed(1) : '0';
+
+      document.getElementById('protein_calc').textContent = pKcal + ' سعرة (' + pPct + '%)';
+      document.getElementById('carbs_calc').textContent = cKcal + ' سعرة (' + cPct + '%)';
+      document.getElementById('fat_calc').textContent = fKcal + ' سعرة (' + fPct + '%)';
+      document.getElementById('macro_total_kcal').textContent = totalKcal.toLocaleString('en-US') + ' سعرة / يوم';
     }
   </script>
 </body>
 </html>
+

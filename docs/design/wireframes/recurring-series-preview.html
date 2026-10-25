@@ -7,12 +7,43 @@
   <link rel="stylesheet" href="wireframe.css">
   <style>
     .series-container {
-      max-width: 820px;
+      max-width: 860px;
       margin: 30px auto;
       background: var(--wf-surface);
       border: 1px solid var(--wf-border-dark);
       border-radius: 6px;
       padding: 24px;
+    }
+    .pkg-summary-card {
+      background: var(--wf-grey-100);
+      border: 1px solid var(--wf-border-dark);
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+    }
+    .conflict-row {
+      background: #fdf2f2 !important;
+      border: 1px solid #f87171 !important;
+    }
+    .conflict-badge {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #f87171;
+      font-weight: bold;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      display: inline-block;
+    }
+    .available-badge {
+      background: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+      font-weight: bold;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      display: inline-block;
     }
   </style>
 </head>
@@ -25,16 +56,47 @@
   <div class="series-container">
     <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--wf-border-dark); padding-bottom: 12px; margin-bottom: 16px;">
       <div>
-        <h1 style="font-size: 18px; font-weight: bold;">معاينة سلسلة مواعيد الباقة (12 جلسة)</h1>
-        <p style="font-size: 12px; color: var(--wf-text-muted);">
+        <h1 style="font-size: 18px; font-weight: bold;">معاينة سلسلة مواعيد الباقة (12 جلسة مطلوبة)</h1>
+        <p style="font-size: 12px; color: var(--wf-text-muted); margin-top: 4px;">
           المريض: <strong>أحمد مصطفى كامل (MAS-00104)</strong> · المعالج: <strong>د. كريم حسني</strong> · التردد: 3 جلسات أسبوعياً (سبت - إثنين - أربعاء) في <strong>9:30 ص</strong>
         </p>
       </div>
-      <span class="badge" style="background: var(--wf-grey-300); font-size: 12px; padding: 4px 8px;">11 متاح · 1 تعارض</span>
+      <span id="summary-badge" class="badge" style="background: var(--wf-grey-300); font-size: 12px; padding: 4px 8px;">11 متاح · 1 تعارض</span>
     </div>
 
-    <div class="alert" style="border-right: 4px solid var(--wf-grey-900);">
-      <strong>تنبيه فحص التعارضات (R-5.2-10):</strong> تم العثور على تعارض في الجلسة رقم 4 (السرير 2 محجوز لمريض آخر). يرجى اختيار سرير بديل أو تعديل التوقيت لإتمام الحفظ.
+    <!-- Package Summary Card at Top (R-5.2-7, R-7-8) -->
+    <div class="pkg-summary-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <div style="font-size: 13px; font-weight: bold;">
+          ملخص الباقة المرتبطة: باقة علاج طبيعي وتأهيل حركي (12 جلسة) — <code>PKG-2026-088</code>
+        </div>
+        <span class="badge" style="background: #e0e7ff; color: #3730a3; font-weight: bold;">باقة نشطة</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; font-size: 12px; background: #fff; padding: 10px; border: 1px solid var(--wf-border-light); border-radius: 4px;">
+        <div>
+          <span style="color: var(--wf-text-muted); display: block;">إجمالي جلسات الباقة:</span>
+          <strong>12 جلسة</strong>
+        </div>
+        <div>
+          <span style="color: var(--wf-text-muted); display: block;">الجلسات المتاحة للحجز:</span>
+          <strong style="color: #047857;">11 جلسة متاحة</strong> (1 مكتملة)
+        </div>
+        <div>
+          <span style="color: var(--wf-text-muted); display: block;">تاريخ انتهاء الصلاحية:</span>
+          <strong>2026-11-25</strong> (متبقي 31 يوماً)
+        </div>
+        <div>
+          <span style="color: var(--wf-text-muted); display: block;">حالة التوافق مع الصلاحية:</span>
+          <span style="color: #047857; font-weight: bold;">كافة التواريخ تقع قبل الانتهاء</span>
+        </div>
+      </div>
+      <div style="font-size: 11px; color: var(--wf-text-muted); margin-top: 8px;">
+        <strong>قواعد الحجز التلقائي (R-5.2-7, R-7-8):</strong> أي موعد يقع بعد تاريخ انتهاء الصلاحية (2026-11-25) أو يتجاوز رصيد الجلسات المتاحة (11 جلسة) يُدرج تلقائياً كتعارض مرفوض مع بيان السبب ولن يُحجز حتى تمديد الباقة أو تجديدها.
+      </div>
+    </div>
+
+    <div class="alert" style="border-right: 4px solid #b91c1c; background: #fef2f2; color: #991b1b; margin-bottom: 16px;">
+      <strong>تنبيه فحص التعارضات (R-5.2-3, R-5.2-4, R-5.3-1):</strong> تم العثور على تعارض في الموعد رقم 4 (السرير 2 محجوز لمريض آخر). يمكنك حجز الـ 11 موعداً المتاحة واستثناء الموعد المتعارض، أو اختيار سرير بديل لحل التعارض وحجز السلسلة كاملة.
     </div>
 
     <table class="wf-table" style="margin-bottom: 20px;">
@@ -56,7 +118,7 @@
           <td>الإثنين</td>
           <td>9:30 ص - 10:30 ص</td>
           <td>غرفة 1 - سرير 2</td>
-          <td><span style="font-weight: bold;"> متاح</span></td>
+          <td><span class="available-badge">متاح</span></td>
           <td>—</td>
         </tr>
         <tr>
@@ -65,7 +127,7 @@
           <td>الأربعاء</td>
           <td>9:30 ص - 10:30 ص</td>
           <td>غرفة 1 - سرير 2</td>
-          <td><span style="font-weight: bold;"> متاح</span></td>
+          <td><span class="available-badge">متاح</span></td>
           <td>—</td>
         </tr>
         <tr>
@@ -74,24 +136,25 @@
           <td>السبت</td>
           <td>9:30 ص - 10:30 ص</td>
           <td>غرفة 1 - سرير 2</td>
-          <td><span style="font-weight: bold;"> متاح</span></td>
+          <td><span class="available-badge">متاح</span></td>
           <td>—</td>
         </tr>
-        <!-- Conflicted row -->
-        <tr style="background: var(--wf-grey-300); border: 2px solid #000;">
+        <!-- Conflicted row 4: Bed collision (uses danger/warning style with text, not solid black) -->
+        <tr id="row-conflict" class="conflict-row">
           <td><strong>4</strong></td>
           <td><strong>2026-11-02</strong></td>
           <td><strong>الإثنين</strong></td>
           <td><strong>9:30 ص - 10:30 ص</strong></td>
-          <td>غرفة 1 - سرير 2</td>
-          <td>
-            <span class="badge" style="background: #000; color: #fff;"> تعارض (سرير محجوز)</span>
+          <td id="row-bed-label">غرفة 1 - سرير 2</td>
+          <td id="row-status-cell">
+            <span class="conflict-badge">تعارض: السرير محجوز</span>
           </td>
           <td>
-            <select class="form-control" style="font-size: 11px; padding: 2px 4px; display: inline-block; width: 180px;">
-              <option>نقل إلى: غرفة 1 - سرير 1 (متاح)</option>
-              <option>نقل إلى: غرفة 1 - سرير 3 (متاح)</option>
-              <option>تغيير الوقت إلى: 10:30 ص</option>
+            <select id="conflict-resolution" class="form-control" style="font-size: 11px; padding: 3px 6px; display: inline-block; width: 220px;" onchange="resolveConflict(this.value)">
+              <option value="none">-- اختر حلاً للتعارض --</option>
+              <option value="bed1">نقل إلى: غرفة 1 - سرير 1 (متاح)</option>
+              <option value="bed3">نقل إلى: غرفة 1 - سرير 3 (متاح)</option>
+              <option value="time">تغيير الوقت إلى: 10:30 ص (متاح)</option>
             </select>
           </td>
         </tr>
@@ -101,7 +164,7 @@
           <td>الأربعاء</td>
           <td>9:30 ص - 10:30 ص</td>
           <td>غرفة 1 - سرير 2</td>
-          <td><span style="font-weight: bold;"> متاح</span></td>
+          <td><span class="available-badge">متاح</span></td>
           <td>—</td>
         </tr>
         <tr>
@@ -110,7 +173,7 @@
           <td>السبت</td>
           <td>9:30 ص - 10:30 ص</td>
           <td>غرفة 1 - سرير 2</td>
-          <td><span style="font-weight: bold;"> متاح</span></td>
+          <td><span class="available-badge">متاح</span></td>
           <td>—</td>
         </tr>
         <tr>
@@ -119,7 +182,7 @@
           <td>الإثنين</td>
           <td>9:30 ص - 10:30 ص</td>
           <td>غرفة 1 - سرير 2</td>
-          <td><span style="font-weight: bold;"> متاح</span></td>
+          <td><span class="available-badge">متاح</span></td>
           <td>—</td>
         </tr>
         <tr>
@@ -128,7 +191,7 @@
           <td>الأربعاء</td>
           <td>9:30 ص - 10:30 ص</td>
           <td>غرفة 1 - سرير 2</td>
-          <td><span style="font-weight: bold;"> متاح</span></td>
+          <td><span class="available-badge">متاح</span></td>
           <td>—</td>
         </tr>
         <tr>
@@ -137,7 +200,7 @@
           <td>السبت</td>
           <td>9:30 ص - 10:30 ص</td>
           <td>غرفة 1 - سرير 2</td>
-          <td><span style="font-weight: bold;"> متاح</span></td>
+          <td><span class="available-badge">متاح</span></td>
           <td>—</td>
         </tr>
         <tr>
@@ -146,7 +209,7 @@
           <td>الإثنين</td>
           <td>9:30 ص - 10:30 ص</td>
           <td>غرفة 1 - سرير 2</td>
-          <td><span style="font-weight: bold;"> متاح</span></td>
+          <td><span class="available-badge">متاح</span></td>
           <td>—</td>
         </tr>
         <tr>
@@ -155,7 +218,7 @@
           <td>الأربعاء</td>
           <td>9:30 ص - 10:30 ص</td>
           <td>غرفة 1 - سرير 2</td>
-          <td><span style="font-weight: bold;"> متاح</span></td>
+          <td><span class="available-badge">متاح</span></td>
           <td>—</td>
         </tr>
         <tr>
@@ -164,21 +227,80 @@
           <td>السبت</td>
           <td>9:30 ص - 10:30 ص</td>
           <td>غرفة 1 - سرير 2</td>
-          <td><span style="font-weight: bold;"> متاح</span></td>
+          <td><span class="available-badge">متاح</span></td>
           <td>—</td>
         </tr>
       </tbody>
     </table>
 
-    <div style="display: flex; justify-content: space-between; align-items: center;">
+    <!-- Action Buttons: Never promise 12 when 1 conflicts -->
+    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--wf-border-light); padding-top: 16px;">
       <a href="booking-form.html" class="btn">← تعديل معايير السلسلة</a>
       <div style="display: flex; gap: 8px;">
         <button type="button" class="btn" onclick="alert('تم إلغاء السلسلة بالكامل'); window.location.href='calendar-day.html';">إلغاء</button>
-        <button type="button" class="btn btn-primary" onclick="alert('تم حل التعارض وحفظ الـ 12 موعداً دفعة واحدة بنجاح (R-5.2-10)'); window.location.href='calendar-day.html';">
-          تأكيد وحجز كافة مواعيد السلسلة (12 موعد)
+        
+        <!-- Primary action: Book only available sessions (11) -->
+        <button id="btn-confirm-available" type="button" class="btn btn-primary" onclick="alert('تم حجز الـ 11 موعداً المتاحة بنجاح واستثناء الموعد رقم 4 المتعارض (R-5.3-1)'); window.location.href='calendar-day.html';">
+          حجز المواعيد المتاحة (11)
+        </button>
+
+        <!-- Secondary action: Disabled until conflicts are resolved -->
+        <button id="btn-confirm-all" type="button" class="btn" disabled style="opacity: 0.5; cursor: not-allowed;" onclick="alert('تم حجز كافة المواعيد (12 موعد) بنجاح'); window.location.href='calendar-day.html';" title="معطل حتى يتم حل كافة التعارضات">
+          حجز السلسلة كاملة (12 موعد - معطل لوجود تعارض)
         </button>
       </div>
     </div>
   </div>
+
+  <script>
+    function resolveConflict(value) {
+      const row = document.getElementById('row-conflict');
+      const statusCell = document.getElementById('row-status-cell');
+      const bedLabel = document.getElementById('row-bed-label');
+      const summaryBadge = document.getElementById('summary-badge');
+      const btnAvailable = document.getElementById('btn-confirm-available');
+      const btnAll = document.getElementById('btn-confirm-all');
+
+      if (value !== 'none') {
+        row.className = '';
+        row.style.background = '#ecfdf5';
+        row.style.border = '1px solid #10b981';
+        statusCell.innerHTML = '<span class="available-badge">متاح (تم حل التعارض)</span>';
+        if (value === 'bed1') bedLabel.textContent = 'غرفة 1 - سرير 1';
+        else if (value === 'bed3') bedLabel.textContent = 'غرفة 1 - سرير 3';
+        else if (value === 'time') bedLabel.textContent = 'غرفة 1 - سرير 2 (10:30 ص)';
+
+        summaryBadge.textContent = '12 متاح · 0 تعارض';
+        summaryBadge.style.background = '#d1fae5';
+        summaryBadge.style.color = '#065f46';
+
+        btnAvailable.style.display = 'none';
+        btnAll.disabled = false;
+        btnAll.style.opacity = '1';
+        btnAll.style.cursor = 'pointer';
+        btnAll.className = 'btn btn-primary';
+        btnAll.textContent = 'تأكيد وحجز كافة مواعيد السلسلة (12 موعد)';
+      } else {
+        row.className = 'conflict-row';
+        row.style.background = '#fdf2f2';
+        row.style.border = '1px solid #f87171';
+        statusCell.innerHTML = '<span class="conflict-badge">تعارض: السرير محجوز</span>';
+        bedLabel.textContent = 'غرفة 1 - سرير 2';
+
+        summaryBadge.textContent = '11 متاح · 1 تعارض';
+        summaryBadge.style.background = 'var(--wf-grey-300)';
+        summaryBadge.style.color = '';
+
+        btnAvailable.style.display = 'inline-block';
+        btnAvailable.textContent = 'حجز المواعيد المتاحة (11)';
+        btnAll.disabled = true;
+        btnAll.style.opacity = '0.5';
+        btnAll.style.cursor = 'not-allowed';
+        btnAll.className = 'btn';
+        btnAll.textContent = 'حجز السلسلة كاملة (12 موعد - معطل لوجود تعارض)';
+      }
+    }
+  </script>
 </body>
 </html>
+
