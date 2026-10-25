@@ -62,58 +62,77 @@
     </div>
   </header>
 
-  <div class="app-container">
+    <!-- Sidebar: Receptionist role-restricted menu per permissions.md -->
     <aside class="app-sidebar">
-      <div class="nav-section-title">ملف المريض</div>
-      <a href="#overview" class="app-nav-link active">البيانات الإدارية</a>
-      <a href="#appts" class="app-nav-link">جدول المواعيد</a>
-      <a href="#packages" class="app-nav-link">الباقات والعقود</a>
-      <a href="#billing" class="app-nav-link">الفواتير والسندات</a>
-      <a href="#docs" class="app-nav-link">المستندات الإدارية</a>
+      <!-- Role Label & Current User Badge (Item 4) -->
+      <div class="sidebar-user-badge">
+        <div class="sidebar-user-avatar">م</div>
+        <div>
+          <span class="sidebar-user-role">الاستقبال</span>
+          <span class="sidebar-user-name">مريم أحمد</span>
+        </div>
+      </div>
 
-      <div class="nav-section-title">شاشات العيادة</div>
-      <a href="today.html" class="app-nav-link">لوحة اليوم</a>
-      <a href="session-complete.html" class="app-nav-link">استكمال الجلسة الطبي</a>
-      <a href="index.html" class="app-nav-link">دليل الهوية المرئية</a>
+      <div class="nav-section-title">إدارة العيادة اليومية</div>
+      <a href="today.html" class="app-nav-link">لوحة الاستقبال واليوم</a>
+      <a href="../wireframes/calendar-day.html" class="app-nav-link">جدول الأسرة والمواعيد</a>
+      <a href="patient-profile.html" class="app-nav-link active">سجل المرضى الإداري</a>
+      <a href="../wireframes/patient-registration.html" class="app-nav-link">تسجيل مريض جديد</a>
+
+      <div class="nav-section-title">الماليات والدرج</div>
+      <a href="../wireframes/collect-payment.html" class="app-nav-link">تحصيل دفعة وفواتير</a>
+      <a href="../wireframes/cash-closing.html" class="app-nav-link">إغلاق الوردية النقدية</a>
+
+      <div class="nav-section-title">روابط النظام</div>
+      <a href="index.html" class="app-nav-link">دليل الهوية والمكونات</a>
+      <a href="../wireframes/index.html" class="app-nav-link">فهرس النماذج السلكية</a>
     </aside>
 
     <main class="app-main">
-      <!-- Patient Profile Header Card -->
-      <div class="ui-card" style="border-right: 5px solid var(--primary-600);">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
-          <div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <h1 style="font-size: 20px; font-weight: 700;">أحمد مصطفى كامل</h1>
-              <span class="status-badge" style="background: var(--primary-50); color: var(--primary-600); border-color: var(--primary-200);">
-                كود: MAS-00104
-              </span>
-              <span class="status-badge badge-completed">ملف نشط</span>
+      <div class="app-main-container">
+        <!-- Patient Profile Header Card (Receptionist view: No diagnosis or medical alerts R-1.1-2) -->
+        <div class="ui-card" style="border-right: 5px solid var(--primary-600);">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <h1 style="font-size: 20px; font-weight: 700;">أحمد مصطفى كامل</h1>
+                <span class="status-badge" style="background: var(--primary-50); color: var(--primary-600); border-color: var(--primary-200);">
+                  كود: MAS-00104
+                </span>
+                <span class="status-badge badge-completed">ملف نشط</span>
+              </div>
+
+              <div style="font-size: 13px; color: var(--text-secondary); margin-top: 6px;">
+                34 سنة · ذكر · هاتف: <strong style="direction: ltr; display: inline-block;">010 1234 5678</strong> · المعالج المتابع: <strong>د. كريم حسني</strong>
+              </div>
+
+              <!-- Administrative tags only (No clinical diagnosis or medical alerts for receptionist R-1.1-2, R-4.1-21) -->
+              <div style="margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap;">
+                <span class="status-badge" style="background: var(--bg-surface); border-color: var(--border-strong); font-size: 11px;">
+                  موافقة واتساب: مفعلة
+                </span>
+                <span class="status-badge" style="background: var(--bg-surface); border-color: var(--border-strong); font-size: 11px;">
+                  اللغة المفضلة: العربية
+                </span>
+                <span class="status-badge" style="background: var(--bg-surface); border-color: var(--border-strong); font-size: 11px;">
+                  هاتف الطوارئ: مسجل (012 3456 7890)
+                </span>
+              </div>
             </div>
 
-            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">
-              34 سنة · ذكر · هاتف: <strong style="direction: ltr; display: inline-block;">010 1234 5678</strong> · المعالج المتابع: <strong>د. كريم حسني</strong>
-            </div>
-
-            <div style="margin-top: 10px;">
-              <span class="status-badge badge-arrived" style="border-color: var(--status-arrived-border); font-size: 11px;">
-                تنبيه طبي: ارتفاع ضغط الدم
-              </span>
-            </div>
-          </div>
-
-          <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
-            <div style="background: var(--bg-app); border: 1px solid var(--border-strong); padding: 8px 16px; border-radius: 6px; text-align: center;">
-              <div style="font-size: 11px; color: var(--text-muted);">الرصيد المالي المستحق:</div>
-              <div style="font-size: 20px; font-weight: 700; color: var(--text-main);">450.00 ج.م</div>
-            </div>
-            <div style="display: flex; gap: 6px;">
-              <a href="../wireframes/booking-form.html" class="btn-clinical btn-clinical-primary btn-clinical-sm">حجز موعد</a>
-              <a href="../wireframes/package-create-extend.html" class="btn-clinical btn-clinical-sm">إصدار باقة</a>
-              <a href="../wireframes/collect-payment.html" class="btn-clinical btn-clinical-sm">تحصيل دفعة</a>
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+              <div style="background: var(--bg-app); border: 1px solid var(--border-strong); padding: 8px 16px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 11px; color: var(--text-muted);">الرصيد المالي المستحق:</div>
+                <div style="font-size: 20px; font-weight: 700; color: var(--text-main);">450.00 ج.م</div>
+              </div>
+              <div style="display: flex; gap: 6px;">
+                <a href="../wireframes/booking-form.html" class="btn-clinical btn-clinical-primary btn-clinical-sm">حجز موعد</a>
+                <a href="../wireframes/package-create-extend.html" class="btn-clinical btn-clinical-sm">إصدار باقة</a>
+                <a href="../wireframes/collect-payment.html" class="btn-clinical btn-clinical-sm">تحصيل دفعة</a>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
       <!-- Navigation Tabs -->
       <div class="tab-bar">
@@ -219,8 +238,9 @@
           </tbody>
         </table>
       </div>
-    </main>
-  </div>
+    </div>
+  </main>
+</div>
 
   <script>
     const moonSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';

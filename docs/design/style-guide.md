@@ -86,12 +86,13 @@ Neutral slates ensure high legibility and zero visual fatigue over long 8-hour c
 | Level | Font Size | Line Height | Weight | Usage |
 |---|---|---|---|---|
 | `H1` Page Title | 20px (1.25rem) | 28px | Bold (700) | Screen titles (`لوحة الاستقبال — اليوم`) |
-| `H2` Section Title | 16px (1.00rem) | 24px | SemiBold (600) | Card headers, modal headings |
-| `H3` Group Label | 14px (0.875rem) | 20px | SemiBold (600) | Form section divisions, subheadings |
-| `Body` | 13px (0.8125rem) | 20px | Regular (400) | Data table cells, form inputs, notes |
-| `Body Medium` | 13px (0.8125rem) | 20px | Medium (500) | Navigation items, buttons, patient names |
-| `Small / Caption` | 11px (0.6875rem) | 16px | Regular (400) | Help text, badges, secondary timestamps |
-| `Mono Numbers` | 13px - 18px | — | Bold (700) | Currency amounts, receipt numbers |
+| `H2` Section Title | 16px - 18px | 24px | SemiBold (600) | Card headers, modal headings |
+| `H3` Group Label | 15px | 22px | SemiBold (600) | Form section divisions, subheadings |
+| `Front Desk Tables` | **15px** (0.9375rem) | 22px | Regular / Bold | Data table cells in reception & calendar views for rapid legibility |
+| `Body (Base)` | **14px** (0.875rem) | 22px | Regular (400) | **Minimum base body font size across all screens** |
+| `Body Medium` | 14px (0.875rem) | 22px | Medium (500) | Navigation items, buttons, patient names |
+| `Small / Caption` | 11px - 12px | 18px | Regular (400) | Helper text, secondary badges, timestamps |
+| `Mono Numbers` | 14px - 20px | — | Bold (700) | Currency amounts, receipt numbers, KPI figures |
 
 ### 4.3 Strict Formatting Standards
 1. **Egyptian Currency:** Formatted with Arabic abbreviation and two decimal places:
@@ -104,44 +105,78 @@ Neutral slates ensure high legibility and zero visual fatigue over long 8-hour c
    - Correct: `25 أكتوبر 2026` · `الأحد 25 أكتوبر`
 4. **Phone Numbers:** Stored normalized `01XXXXXXXXX`, displayed with readability spacing:
    - Format: `010 1234 5678`
+5. **Single-Language Principle:** Real clinic screens display strictly one language at a time. No parenthetical English translations on Arabic screens (e.g. `الوضع الداكن` instead of `الوضع الداكن (Dark Mode)`).
 
 ---
 
-## 5. Layout Densities: Compact vs Spacious
+## 5. Layout Architecture & Densities
 
-To match the actual cognitive rhythm of a clinical setting, two distinct density profiles are applied:
+### 5.1 Centered Max-Width Grid Container
+- All application main content screens are bounded by a centered max-width container:
+  - **Max Content Width:** `~1400px` (`max-width: 1400px; margin: 0 auto; width: 100%;`)
+  - **Centering:** Prevents high-resolution desktop ultrawide stretching, ensuring clinicians and receptionists can comfortably scan across data tables and forms without excessive neck movement.
 
-### 5.1 Compact Layout (Front Desk, Calendar, & Reports)
+### 5.2 Compact Layout (Front Desk, Calendar, & Operations)
 - **Target:** Receptionists and Practice Managers managing high patient volume.
 - **Rules:**
-  - Table row height: `36px - 40px`
-  - Input field padding: `6px 10px`
+  - Table row height: `40px - 44px`
+  - Table font size: **15px** for fast readability across patient streams
+  - Input field padding: `8px 10px`
   - Gap between elements: `8px - 12px`
   - Information-dense data grids to minimize vertical scrolling during rush hours.
 
-### 5.2 Spacious Layout (Clinical SOAP Notes & InBody Consultations)
+### 5.3 Spacious Layout (Clinical SOAP Notes & InBody Consultations)
 - **Target:** Treating Physiotherapists and Nutritionists documenting patient care.
 - **Rules:**
   - Form section padding: `16px 20px`
   - Form input height / textarea min-height: `90px - 120px` for SOAP narratives
   - Gap between clinical sections: `16px - 24px`
-  - Generous touch targets for pain scale buttons (`44px` height).
+  - Generous touch targets for dual pain scale buttons (`44px` height).
 
 ---
 
-## 6. Component Style Specifications
+## 6. Access Control & Privacy UI Rules
 
-### 6.1 Buttons
+### 6.1 Patient Profile Tab Visibility by Role
+In accordance with patient medical privacy (`R-1.1-2`, `R-4.1-21`) and document categories (`R-9.5-1`), each role sees strictly scoped tabs on the Patient Profile (`patient-profile.html`):
+
+| Role | Visible Profile Tabs | Masked / Hidden Tabs | Privacy Rationale |
+|---|---|---|---|
+| **Receptionist** (`RECEPTIONIST`) | • المواعيد والزيارات<br>• الباقات العلاجية (الرصيد المتاح)<br>• الفواتير والمقبوضات<br>• المستندات الإدارية وإثبات الدفع | 🚫 السجلات الطبية والتقارير السريرية<br>🚫 التشخيص الطبي<br>🚫 استشارات التغذية وفحص InBody<br>🚫 المستندات الطبية (أشعة، رنين، تحاليل) | الاستقبال يدير الحجوزات والماليات فقط؛ حجب التشخيص والملف الطبي إلزامي قانونياً وسريرياً (`R-1.1-2`) |
+| **Manager** (`MANAGER`) | • المواعيد والزيارات<br>• الباقات العلاجية وسجل التعديلات<br>• الفواتير وسجل الاسترداد والإلغاء<br>• المستندات الإدارية وإثبات الدفع | 🚫 السجلات الطبية والتقارير السريرية<br>🚫 التشخيص الطبي<br>🚫 قياسات InBody السريرية<br>🚫 المستندات الطبية والفحوصات | المدير يدير العمليات والماليات والتدقيق، دون أي اطلاع على التاريخ المرضي للمرضى (`R-1-2`) |
+| **Physiotherapist** (`PHYSIOTHERAPIST`) | • المواعيد والزيارات<br>• رصيد جلسات الباقة (عرض فقط)<br>• السجلات الإكلينيكية وتقارير SOAP<br>• التشخيص الطبي للمريض<br>• الفحوصات والمستندات الطبية (أشعة/تحاليل) | 🚫 فواتير العيادة وسندات الدفع<br>🚫 نقدية الدرج وإغلاق الوردية<br>🚫 مصروفات العيادة أو عمولات الزملاء | المعالج يركز على الخطة التأهيلية ولا يطلع على تفاصيل المحاسبة النقدية للعيادة (`R-1-4`) |
+| **Nutritionist** (`NUTRITIONIST`) | • المواعيد والزيارات<br>• رصيد باقات التغذية (عرض فقط)<br>• كشوفات التغذية وفحوصات InBody ورسم التطور<br>• التشخيص وبروتوكول النظام الغذائي<br>• التحاليل الطبية ذات الصلة | 🚫 فواتير العيادة وسندات الدفع<br>🚫 نقدية الدرج وإغلاق الوردية<br>🚫 مصروفات العيادة أو عمولات الزملاء | أخصائي التغذية معني بالقياسات البدنية والحمية العلاجية دون المعاملات النقدية العامة (`R-1-5`) |
+| **Owner** (`OWNER`) | • **كافة التبويبات بدون أي حجب** (الإدارية، المالية، السريرية، والتاريخ الكامل) | لا يوجد حجب | المالك يتمتع بصلاحية شاملة على كافة قطاعات النظام الطبية والتشغيلية (`R-1-1`) |
+
+### 6.2 Role-Restricted Side Navigation Menus
+- **Small Role Label at Top:** Every sidebar must prominently feature a top badge declaring the current logged-in role and user name (e.g. `الاستقبال — مريم` or `د. كريم حسني — علاج طبيعي`).
+- **Zero Extraneous Links:** A receptionist's menu **never** contains clinical completion or medical charting links. A clinician's menu **never** contains cash drawer closing or clinic billing links (`permissions.md`).
+
+### 6.3 Front Desk Shift Cash vs Clinic Revenue
+- **Receptionist Dashboard:** The front desk today screen displays **"نقدية ورديتي الحالية"** (`cash in my shift`), representing solely the cash collected by that logged-in receptionist in their active unclosed drawer (`R-8.4-1`).
+- **Owner & Manager Dashboards:** Total clinic daily revenue and multi-method breakdown (Cash, Visa, InstaPay, Vodafone Cash) appear **exclusively** on Owner/Manager dashboards.
+
+### 6.4 Clinical Session Completion Pain Scales
+- Per `R-9.1-1`, the physiotherapy session completion form (`session-complete.html`) requires **two distinct visual pain scales (0–10)**:
+  1. **مستوى الألم قبل الجلسة (Pain Before):** من 0 إلى 10 (إلزامي `required`).
+  2. **مستوى الألم بعد الجلسة (Pain After):** من 0 إلى 10 (إلزامي `required`).
+- Both scales must be documented before session completion to track immediate therapeutic efficacy and longitudinal recovery.
+
+---
+
+## 7. Component Style Specifications
+
+### 7.1 Buttons
 - **Primary Button:** Solid Deep Teal background (`#0E6251`), white text, crisp 4px border radius. Hover: `#117A65`. Active: `#0B5345`.
 - **Secondary / Outline Button:** Background transparent/white, 1px solid border (`#CBD5E1`), text main (`#0F172A`). Hover: `#F1F5F9`.
 - **Danger Button:** Muted crimson border and text (`#B91C1C`), white background. Hover: light pink `#FEE2E2`.
 
-### 6.2 Form Inputs & Controls
+### 7.2 Form Inputs & Controls
 - Clean border (`1px solid #CBD5E1`), solid white surface in light mode (`#1E293B` in dark mode).
 - Focus state: Deep teal outline (`2px solid #0E6251`) with zero offset.
-- Labels: Placed above inputs, 12px SemiBold with asterisk for required fields.
+- Labels: Placed above inputs, 13px SemiBold with asterisk for required fields.
 
-### 6.3 Dark Mode Adaptation
+### 7.3 Dark Mode Adaptation
 - Handled cleanly via CSS Custom Properties on `[data-theme="dark"]`.
 - Background transitions smoothly without high-contrast neon glare.
 - Pure black (`#000000`) is avoided in favor of clinical deep navy (`#0B1120`) to prevent eye fatigue.
@@ -149,13 +184,14 @@ To match the actual cognitive rhythm of a clinical setting, two distinct density
 
 ---
 
-## 7. Implementation Deliverables
+## 8. Implementation Deliverables
 
 The visual style is implemented across:
-1. `docs/design/style/fonts/`: Directory containing all self-hosted font files.
+1. `docs/design/style/fonts/`: Directory containing all 25 self-hosted local `.woff2` font files.
 2. `docs/design/style/fonts.css`: Local `@font-face` definitions.
-3. `docs/design/style/style.css`: Unified stylesheet with full token definitions and light/dark theme support.
+3. `docs/design/style/style.css`: Unified stylesheet with full token definitions, base 14px font size, 15px table cells, centered 1400px layout, and light/dark theme support.
 4. `docs/design/style/index.html`: Visual style guide showcase & live tokens inspector.
-5. `docs/design/style/today.html`: Front Desk Today colored mockup (compact density).
-6. `docs/design/style/patient-profile.html`: Patient Profile colored mockup (admin & financial hub).
-7. `docs/design/style/session-complete.html`: Session Completion & SOAP Note colored mockup (spacious clinical density).
+5. `docs/design/style/today.html`: Front Desk Today colored mockup (receptionist role, cash in my shift, 15px table, centered ~1400px).
+6. `docs/design/style/patient-profile.html`: Patient Profile colored mockup (receptionist role, admin tabs only, no diagnosis).
+7. `docs/design/style/session-complete.html`: Session Completion colored mockup (clinician role, two required pain scales: before & after).
+

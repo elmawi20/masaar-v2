@@ -112,7 +112,7 @@ body {
   direction: rtl;
   text-align: right;
   line-height: 1.5;
-  font-size: 13px;
+  font-size: 14px; /* Base font size min 14px */
   -webkit-font-smoothing: antialiased;
 }
 
@@ -166,14 +166,54 @@ body {
 }
 
 .app-sidebar {
-  width: 230px;
+  width: 240px;
   background: var(--bg-sidebar);
   border-left: 1px solid var(--border-subtle);
-  padding: 16px 10px;
+  padding: 16px 12px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   flex-shrink: 0;
+}
+
+/* Logged-in User & Role Badge at Top of Sidebar */
+.sidebar-user-badge {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sidebar-user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--primary-50);
+  color: var(--primary-600);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.sidebar-user-role {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-main);
+  display: block;
+  line-height: 1.2;
+}
+
+.sidebar-user-name {
+  font-size: 11px;
+  color: var(--text-muted);
+  display: block;
+  margin-top: 2px;
 }
 
 .nav-section-title {
@@ -193,7 +233,7 @@ body {
   text-decoration: none;
   color: var(--text-secondary);
   font-weight: 500;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .app-nav-link:hover {
@@ -207,10 +247,19 @@ body {
   font-weight: 700;
 }
 
+/* App Main Content Area: Centered, max-width ~1400px */
 .app-main {
   flex: 1;
-  padding: 20px;
+  padding: 24px 20px;
   overflow-x: auto;
+  display: flex;
+  justify-content: center;
+}
+
+.app-main-container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 /* UI Cards */
@@ -352,27 +401,29 @@ body {
   font-size: 11px;
 }
 
-/* Tables (Compact Front Desk vs Standard) */
+/* Tables (Compact Front Desk vs Standard - 15px on front desk tables) */
 .clinical-table {
   width: 100%;
   border-collapse: collapse;
   text-align: right;
-  font-size: 12px;
+  font-size: 15px; /* 15px on front desk tables per style guide */
 }
 
 .clinical-table th {
   background: var(--bg-app);
   border: 1px solid var(--border-subtle);
-  padding: 8px 10px;
+  padding: 10px 12px;
   font-weight: 700;
+  font-size: 14px;
   color: var(--text-secondary);
 }
 
 .clinical-table td {
   border: 1px solid var(--border-subtle);
-  padding: 8px 10px;
+  padding: 10px 12px;
   color: var(--text-main);
   vertical-align: middle;
+  font-size: 15px;
 }
 
 .clinical-table tr:hover {

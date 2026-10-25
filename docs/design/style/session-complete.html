@@ -85,67 +85,121 @@
   </header>
 
   <div class="app-container">
+    <!-- Sidebar: Clinician role-restricted menu per permissions.md -->
     <aside class="app-sidebar">
+      <!-- Role Label & Current User Badge (Item 4) -->
+      <div class="sidebar-user-badge">
+        <div class="sidebar-user-avatar">ك</div>
+        <div>
+          <span class="sidebar-user-role">أخصائي علاج طبيعي</span>
+          <span class="sidebar-user-name">د. كريم حسني</span>
+        </div>
+      </div>
+
       <div class="nav-section-title">العيادة السريرية</div>
-      <a href="../wireframes/clinical-workspace-queue.html" class="app-nav-link">قائمة انتظار المعالج</a>
-      <a href="session-complete.html" class="app-nav-link active">استكمال الجلسة</a>
-      <a href="../wireframes/clinical-note-versions-addendum.html" class="app-nav-link">تاريخ التعديلات والملحقات</a>
+      <a href="../wireframes/clinical-workspace-queue.html" class="app-nav-link">قائمة انتظار المرضى بالعيادة</a>
+      <a href="../wireframes/calendar-day.html" class="app-nav-link">جدولي ومواعيدي اليومية</a>
+      <a href="session-complete.html" class="app-nav-link active">توثيق الجلسة الطبية</a>
+      <a href="../wireframes/clinical-note-versions-addendum.html" class="app-nav-link">سجل التعديلات والملحقات</a>
       <a href="../wireframes/nutrition-consultation-inbody.html" class="app-nav-link">استشارة التغذية وقياسات الجسم</a>
 
-      <div class="nav-section-title">شاشات العيادة</div>
-      <a href="today.html" class="app-nav-link">لوحة اليوم</a>
-      <a href="patient-profile.html" class="app-nav-link">ملف المريض</a>
-      <a href="index.html" class="app-nav-link">دليل الهوية المرئية</a>
+      <div class="nav-section-title">روابط النظام</div>
+      <a href="index.html" class="app-nav-link">دليل الهوية والمكونات</a>
+      <a href="../wireframes/index.html" class="app-nav-link">فهرس النماذج السلكية</a>
     </aside>
 
     <main class="app-main">
-      <div class="spacious-form">
-        <!-- Patient Banner -->
-        <div class="ui-card" style="border-right: 5px solid var(--primary-600); margin-bottom: 20px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-            <div>
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <h1 style="font-size: 18px; font-weight: 700;">توثيق جلسة علاج طبيعي تأهيلي</h1>
-                <span class="status-badge" style="background: var(--primary-50); color: var(--primary-600); border-color: var(--primary-200);">
-                  الجلسة 4 من 12
+      <div class="app-main-container">
+        <div class="spacious-form">
+          <!-- Patient Banner -->
+          <div class="ui-card" style="border-right: 5px solid var(--primary-600); margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <h1 style="font-size: 18px; font-weight: 700;">توثيق جلسة علاج طبيعي تأهيلي</h1>
+                  <span class="status-badge" style="background: var(--primary-50); color: var(--primary-600); border-color: var(--primary-200);">
+                    الجلسة 4 من 12
+                  </span>
+                  <span class="status-badge badge-arrived">حضر بالعيادة</span>
+                </div>
+                <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
+                  المريض: <strong>أحمد مصطفى كامل (MAS-00104)</strong> · 34 سنة · المعالج: <strong>د. كريم حسني</strong> · موعد: <strong>9:30 ص</strong>
+                </div>
+              </div>
+              <a href="../wireframes/clinical-workspace-queue.html" class="btn-clinical btn-clinical-sm">إلغاء والعودة للقائمة</a>
+            </div>
+          </div>
+
+          <form onsubmit="event.preventDefault(); alert('تم اعتماد واستكمال الجلسة بنجاح (R-9.1-1)'); window.location.href='today.html';">
+            <!-- 1. Visual Pain Scales: Pain Before and Pain After (0-10, Both Required - Item 1) -->
+            <div class="ui-card" style="padding: 20px;">
+              <div class="ui-card-header" style="margin-bottom: 12px;">
+                <div class="ui-card-title">1. مقياس شدة الألم (من 0 إلى 10) — قبل وبعد الجلسة *</div>
+                <span style="font-size: 11px; color: var(--text-muted);">تسجيل كلا المقياسين إلزامي لاعتماد الجلسة (R-9.1-1)</span>
+              </div>
+
+              <!-- Pain Before Scale (Required) -->
+              <div style="margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px dashed var(--border-subtle);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                  <label style="font-weight: 700; font-size: 13px; color: var(--text-main);">
+                    مستوى الألم قبل بدء الجلسة *:
+                  </label>
+                  <span id="pain-before-status" style="font-weight: 700; font-size: 13px; color: var(--status-noshow-text);">
+                    6 من 10 (ألم متوسط إلى شديد)
+                  </span>
+                </div>
+                <input type="hidden" name="pain_before" id="pain-before-val" value="6" required>
+                <div class="pain-row" id="pain-before-row">
+                  <div class="pain-box" onclick="setPainBefore(0, '0 من 10 (لا ألم)')">0<small style="font-size: 9px;">لا ألم</small></div>
+                  <div class="pain-box" onclick="setPainBefore(1, '1 من 10 (ألم خفيف)')">1</div>
+                  <div class="pain-box" onclick="setPainBefore(2, '2 من 10 (ألم خفيف)')">2</div>
+                  <div class="pain-box" onclick="setPainBefore(3, '3 من 10 (ألم خفيف)')">3</div>
+                  <div class="pain-box" onclick="setPainBefore(4, '4 من 10 (ألم متوسط)')">4<small style="font-size: 9px;">متوسط</small></div>
+                  <div class="pain-box" onclick="setPainBefore(5, '5 من 10 (ألم متوسط)')">5</div>
+                  <div class="pain-box active" onclick="setPainBefore(6, '6 من 10 (ألم متوسط إلى شديد)')">6</div>
+                  <div class="pain-box" onclick="setPainBefore(7, '7 من 10 (ألم شديد)')">7<small style="font-size: 9px;">شديد</small></div>
+                  <div class="pain-box" onclick="setPainBefore(8, '8 من 10 (ألم شديد)')">8</div>
+                  <div class="pain-box" onclick="setPainBefore(9, '9 من 10 (ألم شديد جداً)')">9</div>
+                  <div class="pain-box" onclick="setPainBefore(10, '10 من 10 (ألم أقصى)')">10<small style="font-size: 9px;">أقصى ألم</small></div>
+                </div>
+              </div>
+
+              <!-- Pain After Scale (Required) -->
+              <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                  <label style="font-weight: 700; font-size: 13px; color: var(--text-main);">
+                    مستوى الألم بعد انتهاء الجلسة *:
+                  </label>
+                  <span id="pain-after-status" style="font-weight: 700; font-size: 13px; color: var(--status-completed-text);">
+                    2 من 10 (ألم خفيف بعد الجلسة)
+                  </span>
+                </div>
+                <input type="hidden" name="pain_after" id="pain-after-val" value="2" required>
+                <div class="pain-row" id="pain-after-row">
+                  <div class="pain-box" onclick="setPainAfter(0, '0 من 10 (لا يوجد ألم نهائياً)')">0<small style="font-size: 9px;">لا ألم</small></div>
+                  <div class="pain-box" onclick="setPainAfter(1, '1 من 10 (ألم طفيف جداً)')">1</div>
+                  <div class="pain-box active" onclick="setPainAfter(2, '2 من 10 (ألم خفيف بعد الجلسة)')">2</div>
+                  <div class="pain-box" onclick="setPainAfter(3, '3 من 10 (ألم خفيف)')">3</div>
+                  <div class="pain-box" onclick="setPainAfter(4, '4 من 10 (ألم متوسط)')">4<small style="font-size: 9px;">متوسط</small></div>
+                  <div class="pain-box" onclick="setPainAfter(5, '5 من 10 (ألم متوسط)')">5</div>
+                  <div class="pain-box" onclick="setPainAfter(6, '6 من 10 (ألم متوسط إلى شديد)')">6</div>
+                  <div class="pain-box" onclick="setPainAfter(7, '7 من 10 (ألم شديد)')">7<small style="font-size: 9px;">شديد</small></div>
+                  <div class="pain-box" onclick="setPainAfter(8, '8 من 10 (ألم شديد)')">8</div>
+                  <div class="pain-box" onclick="setPainAfter(9, '9 من 10 (ألم شديد جداً)')">9</div>
+                  <div class="pain-box" onclick="setPainAfter(10, '10 من 10 (ألم أقصى)')">10<small style="font-size: 9px;">أقصى ألم</small></div>
+                </div>
+              </div>
+
+              <!-- Pain Improvement Summary -->
+              <div style="margin-top: 14px; background: var(--bg-app); border: 1px solid var(--border-subtle); padding: 8px 12px; border-radius: 4px; font-size: 12px; display: flex; justify-content: space-between; align-items: center;">
+                <span id="pain-diff-summary">
+                  معدل الاستجابة السريرية: <strong style="color: var(--status-completed-text);">تراجع الألم بمقدار 4 درجات (تحسن ممتاز)</strong>
                 </span>
-                <span class="status-badge badge-arrived">حضر بالعيادة</span>
+                <span style="color: var(--text-muted); font-size: 11px;">
+                  انخفاض من 6 إلى 2 أثناء الجلسة
+                </span>
               </div>
-              <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
-                المريض: <strong>أحمد مصطفى كامل (MAS-00104)</strong> · 34 سنة · المعالج: <strong>د. كريم حسني</strong> · موعد: <strong>9:30 ص</strong>
-              </div>
             </div>
-            <a href="../wireframes/clinical-workspace-queue.html" class="btn-clinical btn-clinical-sm">إلغاء والعودة للقائمة</a>
-          </div>
-        </div>
-
-        <form onsubmit="event.preventDefault(); alert('تم اعتماد واستكمال الجلسة بنجاح'); window.location.href='today.html';">
-          <!-- 1. Visual Pain Scale (0-10) -->
-          <div class="ui-card" style="padding: 20px;">
-            <div class="ui-card-header" style="margin-bottom: 8px;">
-              <div class="ui-card-title">1. مقياس شدة الألم الحالي (من 0 إلى 10)</div>
-              <span id="pain-status" style="font-weight: 700; font-size: 13px; color: var(--primary-600);">
-                مستوى الألم: 4 من 10 (ألم متوسط)
-              </span>
-            </div>
-            <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">
-              تقييم المريض لمستوى ألم أسفل الظهر الحالي مقارنة ببدء الخطة العلاجية:
-            </p>
-
-            <div class="pain-row">
-              <div class="pain-box" onclick="setPain(0, '0 من 10 (لا يوجد ألم)')">0<small style="font-size: 9px;">لا ألم</small></div>
-              <div class="pain-box" onclick="setPain(1, '1 من 10 (ألم خفيف)')">1</div>
-              <div class="pain-box" onclick="setPain(2, '2 من 10 (ألم خفيف)')">2</div>
-              <div class="pain-box" onclick="setPain(3, '3 من 10 (ألم خفيف)')">3</div>
-              <div class="pain-box active" onclick="setPain(4, '4 من 10 (ألم متوسط)')">4<small style="font-size: 9px;">متوسط</small></div>
-              <div class="pain-box" onclick="setPain(5, '5 من 10 (ألم متوسط)')">5</div>
-              <div class="pain-box" onclick="setPain(6, '6 من 10 (ألم متوسط)')">6</div>
-              <div class="pain-box" onclick="setPain(7, '7 من 10 (ألم شديد)')">7<small style="font-size: 9px;">شديد</small></div>
-              <div class="pain-box" onclick="setPain(8, '8 من 10 (ألم شديد)')">8</div>
-              <div class="pain-box" onclick="setPain(9, '9 من 10 (ألم شديد جداً)')">9</div>
-              <div class="pain-box" onclick="setPain(10, '10 من 10 (ألم لا يطاق)')">10<small style="font-size: 9px;">أقصى ألم</small></div>
-            </div>
-          </div>
 
           <!-- 2. SOAP Clinical Note Sections (Spacious) -->
           <div class="ui-card" style="padding: 20px;">
@@ -243,16 +297,51 @@
               </button>
             </div>
           </div>
+          </div>
         </form>
       </div>
-    </main>
-  </div>
+    </div>
+  </main>
+</div>
 
   <script>
-    function setPain(val, label) {
-      document.querySelectorAll('.pain-box').forEach(el => el.classList.remove('active'));
-      event.target.closest('.pain-box').classList.add('active');
-      document.getElementById('pain-status').textContent = 'مستوى الألم: ' + label;
+    let currentBefore = 6;
+    let currentAfter = 2;
+
+    function updatePainSummary() {
+      const diff = currentBefore - currentAfter;
+      const el = document.getElementById('pain-diff-summary');
+      if (diff > 0) {
+        el.innerHTML = 'معدل الاستجابة السريرية: <strong style="color: var(--status-completed-text);">تراجع الألم بمقدار ' + diff + ' درجات (تحسن ملحوظ)</strong>';
+      } else if (diff === 0) {
+        el.innerHTML = 'معدل الاستجابة السريرية: <strong style="color: var(--text-main);">استقرار مستوى الألم دون تغيير</strong>';
+      } else {
+        el.innerHTML = 'معدل الاستجابة السريرية: <strong style="color: var(--status-noshow-text);">ارتفاع الألم بمقدار ' + Math.abs(diff) + ' درجات (متابعة خاصة)</strong>';
+      }
+    }
+
+    function setPainBefore(val, label) {
+      currentBefore = val;
+      document.getElementById('pain-before-val').value = val;
+      const row = document.getElementById('pain-before-row');
+      row.querySelectorAll('.pain-box').forEach((el, idx) => {
+        if (idx === val) el.classList.add('active');
+        else el.classList.remove('active');
+      });
+      document.getElementById('pain-before-status').textContent = label;
+      updatePainSummary();
+    }
+
+    function setPainAfter(val, label) {
+      currentAfter = val;
+      document.getElementById('pain-after-val').value = val;
+      const row = document.getElementById('pain-after-row');
+      row.querySelectorAll('.pain-box').forEach((el, idx) => {
+        if (idx === val) el.classList.add('active');
+        else el.classList.remove('active');
+      });
+      document.getElementById('pain-after-status').textContent = label;
+      updatePainSummary();
     }
 
     const moonSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
