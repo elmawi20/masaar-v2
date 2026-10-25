@@ -4,7 +4,7 @@ This directory contains all approved Stage 1 design specifications, matrices, di
 
 - **Specification Reference:** [FEATURES-v2.2.md](file:///F:/Claude%20CRM/docs/FEATURES-v2.2.md)
 - **Current Stage:** Stage 1 (Design)
-- **Status:** In Progress
+- **Status:** Approved / Design Freeze (Gate 1 Passed)
 
 ---
 
@@ -33,7 +33,7 @@ This directory contains all approved Stage 1 design specifications, matrices, di
 | **1.18** | [`actions.md`](file:///F:/Claude%20CRM/docs/design/actions.md) | Server actions catalog with validation & audit | **Done** | 2026-10-25 |
 | **1.19** | [`messages.md`](file:///F:/Claude%20CRM/docs/design/messages.md) | AR/EN translation keys & WhatsApp templates | **Done** | 2026-10-25 |
 | **1.20** | [`test-plan.md`](file:///F:/Claude%20CRM/docs/design/test-plan.md) | 100% Rule ID traceability & test suites | **Done** | 2026-10-25 |
-| **1.21** | Design freeze (Gate 1) | Strict reviewer verification & Git tag `design-v1` | Pending | — |
+| **1.21** | Design freeze (Gate 1) | Strict reviewer verification & Git tag `design-v1` | **Done** | 2026-10-25 |
 
 ---
 
