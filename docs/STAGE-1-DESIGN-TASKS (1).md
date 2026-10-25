@@ -200,6 +200,6 @@ Do not change files. If nothing is wrong, answer "DESIGN READY".
 | 1.17 | Wireframes C | ☐ | |
 | 1.17b | Visual style & mockups | ☐ | |
 | 1.18 | Action catalog | ☑ | design 1.18 action catalog |
-| 1.19 | Messages catalog | ☐ | |
+| 1.19 | Messages catalog | ☑ | design 1.19 messages catalog |
 | 1.20 | Test plan & traceability | ☐ | |
 | 1.21 | Design freeze (Gate 1) | ☐ | tag `design-v1` |

@@ -31,7 +31,7 @@ This directory contains all approved Stage 1 design specifications, matrices, di
 | **1.17** | [`wireframes/`](file:///F:/Claude%20CRM/docs/design/wireframes/index.html#section-117) (Clinical & Admin) | Low-fidelity HTML wireframes: Clinical & Admin | **Done** | 2026-10-25 |
 | **1.17b** | [`style-guide.md`](file:///F:/Claude%20CRM/docs/design/style-guide.md)<br>[`style/`](file:///F:/Claude%20CRM/docs/design/style/index.html) | Visual style guide & colored high-fidelity mockups | **Done** | 2026-10-25 |
 | **1.18** | [`actions.md`](file:///F:/Claude%20CRM/docs/design/actions.md) | Server actions catalog with validation & audit | **Done** | 2026-10-25 |
-| **1.19** | `messages.md` | AR/EN translation keys & WhatsApp templates | Pending | — |
+| **1.19** | [`messages.md`](file:///F:/Claude%20CRM/docs/design/messages.md) | AR/EN translation keys & WhatsApp templates | **Done** | 2026-10-25 |
 | **1.20** | `test-plan.md` | 100% Rule ID traceability & test suites | Pending | — |
 | **1.21** | Design freeze (Gate 1) | Strict reviewer verification & Git tag `design-v1` | Pending | — |
 
