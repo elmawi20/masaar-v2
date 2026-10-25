@@ -23,7 +23,7 @@ This directory contains all approved Stage 1 design specifications, matrices, di
 | **1.09** | [`data-model.md`](file:///F:/Claude%20CRM/docs/design/data-model.md) (Slice B)<br>[`prisma/schema.prisma`](file:///F:/Claude%20CRM/prisma/schema.prisma) | DB Slice B: Patients & documents | **Done** | 2026-10-25 |
 | **1.10** | [`data-model.md`](file:///F:/Claude%20CRM/docs/design/data-model.md) (Slice C)<br>[`prisma/schema.prisma`](file:///F:/Claude%20CRM/prisma/schema.prisma) | DB Slice C: Scheduling & exclusion constraints | **Done** | 2026-10-25 |
 | **1.11** | [`data-model.md`](file:///F:/Claude%20CRM/docs/design/data-model.md) (Slice D)<br>[`prisma/schema.prisma`](file:///F:/Claude%20CRM/prisma/schema.prisma) | DB Slice D: Packages & money | **Done** | 2026-10-25 |
-| **1.12** | `data-model.md` (Slice E)<br>`prisma/schema.prisma` | DB Slice E: Clinical, nutrition & back office | Pending | — |
+| **1.12** | [`data-model.md`](file:///F:/Claude%20CRM/docs/design/data-model.md) (Slice E)<br>[`prisma/schema.prisma`](file:///F:/Claude%20CRM/prisma/schema.prisma) | DB Slice E: Clinical, nutrition & back office | **Done** | 2026-10-25 |
 | **1.13** | `constraints.md`<br>Consolidated Schema | DB review, complete ERD & validation | Pending | — |
 | **1.14** | `screens.md` | Screen catalog & navigation map by role | Pending | — |
 | **1.15** | `wireframes/` (Auth & Front Desk) | Low-fidelity HTML wireframes: Auth & Front desk | Pending | — |

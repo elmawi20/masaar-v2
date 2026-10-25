@@ -4,6 +4,7 @@
 // Stage 1 Design — Database Slice B: Patients & Documents
 // Stage 1 Design — Database Slice C: Scheduling
 // Stage 1 Design — Database Slice D: Packages & Money
+// Stage 1 Design — Database Slice E: Clinical, Nutrition & Back Office
 
 datasource db {
   provider = "postgresql"
@@ -173,6 +174,45 @@ enum PaymentMethod {
 enum CashShiftStatus {
   OPEN
   CLOSED
+}
+
+// ============================================================================
+// Enums for Slice E (Clinical, Nutrition & Back Office)
+// ============================================================================
+
+enum TreatmentModality {
+  TENS
+  ULTRASOUND
+  SHOCKWAVE
+  LASER
+  MANUAL_THERAPY
+  DRY_NEEDLING
+  EXERCISE_THERAPY
+  OTHER
+}
+
+enum DietaryProtocol {
+  KETO
+  LOW_CARB_ANTI_INFLAMMATORY
+  INTERMITTENT_FASTING
+  SPORTS_NUTRITION
+  DIABETIC_INSULIN_RESISTANCE
+  POST_BARIATRIC
+  BALANCED_LIFESTYLE
+  OTHER
+}
+
+enum ExpenseCategory {
+  SUPPLIES
+  EQUIPMENT
+  MAINTENANCE
+  RENT
+  UTILITIES
+  SALARIES
+  DOCTOR_COMMISSION
+  HOSPITALITY
+  MARKETING
+  OTHER
 }
 
 // ============================================================================
@@ -379,6 +419,27 @@ model User {
   priceChangesAuthored  PriceChangeHistory[] @relation("PriceChangedBy")
   cashClosingsConducted CashClosing[]        @relation("CashierClosings")
   cashClosingsWitnessed CashClosing[]        @relation("WitnessClosings")
+
+  // Clinical & Back Office Relations (Slice E)
+  clinicalNotesAuthored       ClinicalNote[]         @relation("ClinicianNotes")
+  clinicalNotesVoided         ClinicalNote[]         @relation("ClinicalNoteVoidedBy")
+  clinicalNotesCreated        ClinicalNote[]         @relation("ClinicalNoteCreatedBy")
+  clinicalNotesUpdated        ClinicalNote[]         @relation("ClinicalNoteUpdatedBy")
+  clinicalNoteVersionsEdited  ClinicalNoteVersion[]  @relation("NoteVersionEditedBy")
+  clinicalNoteAddendaAuthored ClinicalNoteAddendum[] @relation("NoteAddendumAuthor")
+  clinicalNoteAddendaVoided   ClinicalNoteAddendum[] @relation("NoteAddendumVoidedBy")
+  inBodyRecordsRecorded       InBodyRecord[]         @relation("InBodyRecordedBy")
+  inBodyRecordsVoided         InBodyRecord[]         @relation("InBodyVoidedBy")
+  inBodyRecordsCreated        InBodyRecord[]         @relation("InBodyCreatedBy")
+  inBodyRecordsUpdated        InBodyRecord[]         @relation("InBodyUpdatedBy")
+  expensesCreated             Expense[]              @relation("ExpenseCreatedBy")
+  expensesVoided              Expense[]              @relation("ExpenseVoidedBy")
+  expensesUpdated             Expense[]              @relation("ExpenseUpdatedBy")
+  expenseEditsAuthored        ExpenseEditHistory[]   @relation("ExpenseEditedBy")
+  commissionPayoutsReceived   CommissionPayout[]     @relation("ClinicianCommissionPayouts")
+  commissionPayoutsCreated    CommissionPayout[]     @relation("CommissionPayoutCreatedBy")
+  commissionPayoutsVoided     CommissionPayout[]     @relation("CommissionPayoutVoidedBy")
+  commissionPayoutsUpdated    CommissionPayout[]     @relation("CommissionPayoutUpdatedBy")
 
   @@map("users")
 }
@@ -631,6 +692,10 @@ model Patient {
   packages Package[]
   charges  Charge[]
 
+  // Slice E Relations
+  clinicalNotes ClinicalNote[]
+  inBodyRecords InBodyRecord[]
+
   @@index([fullName])
   @@index([mobilePhone])
   @@index([guardianPhone])
@@ -777,6 +842,11 @@ model Appointment {
   notifications InAppNotification[]
   charges       Charge[]
   priceChanges  PriceChangeHistory[]
+
+  // Slice E Relations
+  clinicalNote            ClinicalNote?
+  inBodyRecord            InBodyRecord?
+  commissionPayoutSession CommissionPayoutSession?
 
   @@index([patientId, appointmentDate])
   @@index([clinicianId, startsAt, endsAt])
@@ -1075,8 +1145,240 @@ model CashClosing {
 
   payments Payment[]
   refunds  Refund[]
+  expenses Expense[]
 
   @@index([cashierUserId, status])
   @@index([openedAt, closedAt])
   @@map("cash_closings")
+}
+
+// ============================================================================
+// 10. Clinical, Nutrition & Back Office (Slice E)
+// ============================================================================
+
+model ClinicalNote {
+  id                  String              @id @default(uuid())
+  appointmentId       String              @unique @map("appointment_id") // 1-to-1 with Appointment (R-9.1-7)
+  appointment         Appointment         @relation(fields: [appointmentId], references: [id], onDelete: Restrict)
+  patientId           String              @map("patient_id")
+  patient             Patient             @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  clinicianId         String              @map("clinician_id")
+  clinician           User                @relation("ClinicianNotes", fields: [clinicianId], references: [id], onDelete: Restrict)
+  painBefore          Int                 @map("pain_before") // 0..10 scale (R-9.1-1)
+  painAfter           Int                 @map("pain_after") // 0..10 scale (R-9.1-1)
+  subjective          String?             @db.Text // SOAP (R-9.1-2)
+  objective           String?             @db.Text // SOAP (R-9.1-2)
+  assessment          String?             @db.Text // SOAP (R-9.1-2)
+  plan                String?             @db.Text // SOAP (R-9.1-2)
+  treatmentModalities TreatmentModality[] @map("treatment_modalities") // Multi-select treatment items (R-9.1-3)
+  treatmentNotes      String?             @map("treatment_notes") @db.Text
+  homeExercises       String?             @map("home_exercises") @db.Text // Carried forward from last session, editable (R-9.1-4)
+  completedAt         DateTime            @default(now()) @map("completed_at") // Starts 24h edit window (R-9.2-1, DEC-016)
+  isLocked            Boolean             @default(false) @map("is_locked") // True once 24h expires (R-9.2-2)
+  isVoided            Boolean             @default(false) @map("is_voided")
+  voidReason          String?             @map("void_reason") @db.Text
+  voidedAt            DateTime?           @map("voided_at")
+  voidedByUserId      String?             @map("voided_by_user_id")
+  voidedByUser        User?               @relation("ClinicalNoteVoidedBy", fields: [voidedByUserId], references: [id], onDelete: SetNull)
+  createdByUserId     String?             @map("created_by_user_id")
+  createdByUser       User?               @relation("ClinicalNoteCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  updatedByUserId     String?             @map("updated_by_user_id")
+  updatedByUser       User?               @relation("ClinicalNoteUpdatedBy", fields: [updatedByUserId], references: [id], onDelete: SetNull)
+  createdAt           DateTime            @default(now()) @map("created_at")
+  updatedAt           DateTime            @updatedAt @map("updated_at")
+
+  versions ClinicalNoteVersion[]
+  addenda  ClinicalNoteAddendum[]
+
+  @@index([patientId, completedAt])
+  @@index([clinicianId])
+  @@index([isVoided])
+  @@map("clinical_notes")
+}
+
+model ClinicalNoteVersion {
+  id                  String              @id @default(uuid())
+  noteId              String              @map("note_id")
+  note                ClinicalNote        @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  versionNumber       Int                 @map("version_number") // Incremental revision counter (R-9.2-1)
+  painBefore          Int                 @map("pain_before")
+  painAfter           Int                 @map("pain_after")
+  subjective          String?             @db.Text
+  objective           String?             @db.Text
+  assessment          String?             @db.Text
+  plan                String?             @db.Text
+  treatmentModalities TreatmentModality[] @map("treatment_modalities")
+  treatmentNotes      String?             @map("treatment_notes") @db.Text
+  homeExercises       String?             @map("home_exercises") @db.Text
+  editedByUserId      String              @map("edited_by_user_id")
+  editedByUser        User                @relation("NoteVersionEditedBy", fields: [editedByUserId], references: [id], onDelete: Restrict)
+  editedAt            DateTime            @default(now()) @map("edited_at")
+  changeSummary       String?             @map("change_summary") @db.Text
+
+  @@unique([noteId, versionNumber])
+  @@index([noteId])
+  @@index([editedByUserId])
+  @@map("clinical_note_versions")
+}
+
+model ClinicalNoteAddendum {
+  id             String       @id @default(uuid())
+  noteId         String       @map("note_id")
+  note           ClinicalNote @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  content        String       @db.Text // Post-24h clinical remarks (R-9.2-2)
+  authorId       String       @map("author_id")
+  author         User         @relation("NoteAddendumAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  isVoided       Boolean      @default(false) @map("is_voided")
+  voidReason     String?      @map("void_reason") @db.Text
+  voidedAt       DateTime?    @map("voided_at")
+  voidedByUserId String?      @map("voided_by_user_id")
+  voidedByUser   User?        @relation("NoteAddendumVoidedBy", fields: [voidedByUserId], references: [id], onDelete: SetNull)
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  @@index([noteId])
+  @@index([authorId])
+  @@map("clinical_note_addenda")
+}
+
+model InBodyRecord {
+  id                   String          @id @default(uuid())
+  patientId            String          @map("patient_id")
+  patient              Patient         @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  appointmentId        String?         @unique @map("appointment_id")
+  appointment          Appointment?    @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  testDate             DateTime        @map("test_date")
+  heightCm             Decimal         @map("height_cm") @db.Decimal(5, 1) // Pre-filled from profile/prior test, remains editable (R-9.4-1)
+  weightKg             Decimal         @map("weight_kg") @db.Decimal(5, 2) // Mandatory weight (kg)
+  targetWeightKg       Decimal?        @map("target_weight_kg") @db.Decimal(5, 2)
+  skeletalMuscleMassKg Decimal?        @map("skeletal_muscle_mass_kg") @db.Decimal(5, 2)
+  bodyFatPercentage    Decimal?        @map("body_fat_percentage") @db.Decimal(4, 1)
+  visceralFatLevel     Int?            @map("visceral_fat_level") // 1..20
+  deviceBmrKcal        Int?            @map("device_bmr_kcal") // Device-provided BMR override if available (R-9.4-1)
+  calorieTargetKcal    Int?            @map("calorie_target_kcal")
+  targetProteinGrams   Int?            @map("target_protein_grams")
+  targetCarbsGrams     Int?            @map("target_carbs_grams")
+  targetFatGrams       Int?            @map("target_fat_grams")
+  protocol             DietaryProtocol @default(BALANCED_LIFESTYLE)
+  protocolNotes        String?         @map("protocol_notes") @db.Text
+  clinicalNotes        String?         @map("clinical_notes") @db.Text
+  recordedByUserId     String          @map("recorded_by_user_id")
+  recordedByUser       User            @relation("InBodyRecordedBy", fields: [recordedByUserId], references: [id], onDelete: Restrict)
+  isVoided             Boolean         @default(false) @map("is_voided")
+  voidReason           String?         @map("void_reason") @db.Text
+  voidedAt             DateTime?       @map("voided_at")
+  voidedByUserId       String?         @map("voided_by_user_id")
+  voidedByUser         User?           @relation("InBodyVoidedBy", fields: [voidedByUserId], references: [id], onDelete: SetNull)
+  createdByUserId      String?         @map("created_by_user_id")
+  createdByUser        User?           @relation("InBodyCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  updatedByUserId      String?         @map("updated_by_user_id")
+  updatedByUser        User?           @relation("InBodyUpdatedBy", fields: [updatedByUserId], references: [id], onDelete: SetNull)
+  createdAt            DateTime        @default(now()) @map("created_at")
+  updatedAt            DateTime        @updatedAt @map("updated_at")
+
+  @@index([patientId, testDate])
+  @@index([recordedByUserId])
+  @@index([isVoided])
+  @@map("inbody_records")
+}
+
+model Expense {
+  id              String          @id @default(uuid())
+  title           String          @db.VarChar(150)
+  category        ExpenseCategory // Supplies, Equipment, Salaries, Doctor commission, etc. (R-10-1)
+  amountPiasters  Int             @map("amount_piasters") // Integer piasters > 0 (R-0-4, R-10-1)
+  paymentMethod   PaymentMethod   @map("payment_method")
+  expenseDate     DateTime        @map("expense_date")
+  reason          String?         @db.Text
+  receiptFileKey  String?         @map("receipt_file_key") @db.VarChar(500) // Private document key (R-10-1)
+  cashShiftId     String?         @map("cash_shift_id") // Links to CashClosing if cash drawer expense (R-10-2, DEC-020)
+  cashShift       CashClosing?    @relation(fields: [cashShiftId], references: [id], onDelete: SetNull)
+  isVoided        Boolean         @default(false) @map("is_voided") // Soft-delete via void (R-10-3)
+  voidReason      String?         @map("void_reason") @db.Text
+  voidedAt        DateTime?       @map("voided_at")
+  voidedByUserId  String?         @map("voided_by_user_id")
+  voidedByUser    User?           @relation("ExpenseVoidedBy", fields: [voidedByUserId], references: [id], onDelete: SetNull)
+  createdByUserId String          @map("created_by_user_id")
+  createdByUser   User            @relation("ExpenseCreatedBy", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  updatedByUserId String?         @map("updated_by_user_id")
+  updatedByUser   User?           @relation("ExpenseUpdatedBy", fields: [updatedByUserId], references: [id], onDelete: SetNull)
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  editHistory      ExpenseEditHistory[]
+  commissionPayout CommissionPayout?
+
+  @@index([category, expenseDate])
+  @@index([cashShiftId])
+  @@index([createdByUserId])
+  @@index([isVoided])
+  @@map("expenses")
+}
+
+model ExpenseEditHistory {
+  id                     String          @id @default(uuid())
+  expenseId              String          @map("expense_id")
+  expense                Expense         @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  previousTitle          String          @map("previous_title") @db.VarChar(150)
+  previousCategory       ExpenseCategory @map("previous_category")
+  previousAmountPiasters Int             @map("previous_amount_piasters")
+  previousPaymentMethod  PaymentMethod   @map("previous_payment_method")
+  previousExpenseDate    DateTime        @map("previous_expense_date")
+  previousReason         String?         @map("previous_reason") @db.Text
+  editedByUserId         String          @map("edited_by_user_id")
+  editedByUser           User            @relation("ExpenseEditedBy", fields: [editedByUserId], references: [id], onDelete: Restrict)
+  editedAt               DateTime        @default(now()) @map("edited_at")
+  editReason             String          @map("edit_reason") @db.Text // Mandatory audit explanation (R-10-3)
+
+  @@index([expenseId])
+  @@index([editedByUserId])
+  @@map("expense_edit_history")
+}
+
+model CommissionPayout {
+  id                  String        @id @default(uuid())
+  clinicianId         String        @map("clinician_id")
+  clinician           User          @relation("ClinicianCommissionPayouts", fields: [clinicianId], references: [id], onDelete: Restrict)
+  periodStartDate     DateTime      @map("period_start_date")
+  periodEndDate       DateTime      @map("period_end_date")
+  totalPayoutPiasters Int           @map("total_payout_piasters") // Sum of linked session commissions (R-11-2)
+  paymentMethod       PaymentMethod @map("payment_method")
+  payoutDate          DateTime      @map("payout_date")
+  expenseId           String?       @unique @map("expense_id") // Links to generated DOCTOR_COMMISSION expense (R-11-2)
+  expense             Expense?      @relation(fields: [expenseId], references: [id], onDelete: SetNull)
+  notes               String?       @db.Text
+  isVoided            Boolean       @default(false) @map("is_voided")
+  voidReason          String?       @map("void_reason") @db.Text
+  voidedAt            DateTime?     @map("voided_at")
+  voidedByUserId      String?       @map("voided_by_user_id")
+  voidedByUser        User?         @relation("CommissionPayoutVoidedBy", fields: [voidedByUserId], references: [id], onDelete: SetNull)
+  createdByUserId     String        @map("created_by_user_id")
+  createdByUser       User          @relation("CommissionPayoutCreatedBy", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  updatedByUserId     String?       @map("updated_by_user_id")
+  updatedByUser       User?         @relation("CommissionPayoutUpdatedBy", fields: [updatedByUserId], references: [id], onDelete: SetNull)
+  createdAt           DateTime      @default(now()) @map("created_at")
+  updatedAt           DateTime      @updatedAt @map("updated_at")
+
+  paidSessions CommissionPayoutSession[]
+
+  @@index([clinicianId, payoutDate])
+  @@index([isVoided])
+  @@map("commission_payouts")
+}
+
+model CommissionPayoutSession {
+  id                       String           @id @default(uuid())
+  payoutId                 String           @map("payout_id")
+  payout                   CommissionPayout @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+  appointmentId            String           @unique @map("appointment_id") // One payout per session — never paid twice (R-11-2)
+  appointment              Appointment      @relation(fields: [appointmentId], references: [id], onDelete: Restrict)
+  sessionValuePiasters     Int              @map("session_value_piasters") // Session value at time of calculation (R-11-1)
+  commissionRateSnapshot   Decimal          @map("commission_rate_snapshot") @db.Decimal(5, 2) // % or fixed snapshot
+  commissionAmountPiasters Int              @map("commission_amount_piasters") // Exact piaster amount paid
+  isVoided                 Boolean          @default(false) @map("is_voided") // Released if parent payout is voided
+  createdAt                DateTime         @default(now()) @map("created_at")
+
+  @@index([payoutId])
+  @@index([appointmentId])
+  @@map("commission_payout_sessions")
 }

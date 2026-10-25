@@ -555,6 +555,138 @@ erDiagram
     }
 ```
 
+### 2.5 Slice E — Clinical, Nutrition & Back Office ERD
+
+```mermaid
+erDiagram
+    Appointment ||--o| ClinicalNote : "documents_session"
+    Appointment ||--o| InBodyRecord : "inbody_assessment"
+    Appointment ||--o| CommissionPayoutSession : "paid_session"
+
+    Patient ||--o{ ClinicalNote : "medical_records"
+    Patient ||--o{ InBodyRecord : "nutrition_evaluations"
+
+    ClinicalNote ||--o{ ClinicalNoteVersion : "edit_history"
+    ClinicalNote ||--o{ ClinicalNoteAddendum : "addenda"
+
+    Expense ||--o{ ExpenseEditHistory : "edit_history"
+    Expense ||--o| CashClosing : "cash_drawer_expense"
+    Expense ||--o| CommissionPayout : "doctor_commission_expense"
+
+    CommissionPayout ||--|{ CommissionPayoutSession : "payout_breakdown"
+
+    User ||--o{ ClinicalNote : "clinician_author"
+    User ||--o{ ClinicalNoteVersion : "version_editor"
+    User ||--o{ ClinicalNoteAddendum : "addendum_author"
+    User ||--o{ InBodyRecord : "nutritionist_evaluator"
+    User ||--o{ Expense : "incurred_by"
+    User ||--o{ ExpenseEditHistory : "expense_editor"
+    User ||--o{ CommissionPayout : "beneficiary_doctor"
+    User ||--o{ CommissionPayout : "approved_by"
+
+    ClinicalNote {
+        uuid id PK
+        uuid appointment_id FK "unique"
+        uuid patient_id FK
+        uuid clinician_id FK
+        int pain_before "0..10"
+        int pain_after "0..10"
+        text subjective
+        text objective
+        text assessment
+        text plan
+        string home_exercises
+        datetime completed_at
+        boolean is_locked
+        boolean is_voided
+    }
+
+    ClinicalNoteVersion {
+        uuid id PK
+        uuid note_id FK
+        int version_number
+        int pain_before
+        int pain_after
+        text subjective
+        text objective
+        text assessment
+        text plan
+        uuid edited_by_user_id FK
+        datetime edited_at
+    }
+
+    ClinicalNoteAddendum {
+        uuid id PK
+        uuid note_id FK
+        text content
+        uuid author_id FK
+        datetime created_at
+        boolean is_voided
+    }
+
+    InBodyRecord {
+        uuid id PK
+        uuid patient_id FK
+        uuid appointment_id FK "nullable"
+        datetime test_date
+        decimal height_cm "50..250"
+        decimal weight_kg "20..300"
+        decimal skeletal_muscle_mass_kg
+        decimal body_fat_percentage
+        int visceral_fat_level "1..20"
+        enum protocol
+        uuid recorded_by_user_id FK
+        boolean is_voided
+    }
+
+    Expense {
+        uuid id PK
+        string title
+        enum category
+        int amount_piasters
+        enum payment_method
+        datetime expense_date
+        uuid cash_shift_id FK "nullable"
+        uuid created_by_user_id FK
+        boolean is_voided
+    }
+
+    ExpenseEditHistory {
+        uuid id PK
+        uuid expense_id FK
+        string previous_title
+        enum previous_category
+        int previous_amount_piasters
+        enum previous_payment_method
+        uuid edited_by_user_id FK
+        datetime edited_at
+        text edit_reason
+    }
+
+    CommissionPayout {
+        uuid id PK
+        uuid clinician_id FK
+        datetime period_start_date
+        datetime period_end_date
+        int total_payout_piasters
+        enum payment_method
+        datetime payout_date
+        uuid expense_id FK "unique"
+        uuid created_by_user_id FK
+        boolean is_voided
+    }
+
+    CommissionPayoutSession {
+        uuid id PK
+        uuid payout_id FK
+        uuid appointment_id FK "unique"
+        int session_value_piasters
+        decimal commission_rate_snapshot
+        int commission_amount_piasters
+        boolean is_voided
+    }
+```
+
 ---
 
 ## 3. Database Table Dictionaries
@@ -1570,6 +1702,292 @@ erDiagram
 
 ---
 
+### Slice E — Clinical, Nutrition & Back Office Tables
+
+### 3.37 `clinical_notes`
+- **Purpose:** Primary clinical session completion document capturing SOAP notes, pain scale ratings, treatments administered, and home exercise protocols.
+- **Rule References:** `R-9.1-1` through `R-9.1-7`, `R-9.2-1`, `R-9.2-2`, `DEC-016`
+
+| Column | Type | Nullable | Default | Description (AR / EN) | Rule ID |
+|---|---|:---:|---|---|:---:|
+| `id` | `UUID` | No | `uuid()` | Primary Key (معرف الملاحظة الإكلينيكية) | `R-9.1-1` |
+| `appointment_id` | `UUID` | No | — | 1-to-1 FK to `appointments.id` (معرف الموعد المرتبط - علاقة فريدة) | `R-9.1-7` |
+| `patient_id` | `UUID` | No | — | FK to `patients.id` (معرف المريض) | `R-9.1-1` |
+| `clinician_id` | `UUID` | No | — | FK to `users.id` of attending clinician (الطبيب المعالج / المؤلف) | `R-9.1-1` |
+| `pain_before` | `INTEGER` | No | — | Pain score before session: 0..10 integer scale (مستوى الألم قبل الجلسة) | `R-9.1-1` |
+| `pain_after` | `INTEGER` | No | — | Pain score after session: 0..10 integer scale (مستوى الألم بعد الجلسة) | `R-9.1-1` |
+| `subjective` | `TEXT` | Yes | `NULL` | SOAP - Subjective symptoms reported by patient (الأعراض والشكوى) | `R-9.1-2` |
+| `objective` | `TEXT` | Yes | `NULL` | SOAP - Objective clinician findings and tests (الفحص السريري والملاحظات) | `R-9.1-2` |
+| `assessment` | `TEXT` | Yes | `NULL` | SOAP - Clinical assessment and progress evaluation (التقييم الإكلينيكي) | `R-9.1-2` |
+| `plan` | `TEXT` | Yes | `NULL` | SOAP - Treatment plan for upcoming visits (الخطة العلاجية القادمة) | `R-9.1-2` |
+| `treatment_modalities` | `VARCHAR(50)[]` | No | `'{}'` | Modalities applied: TENS, Ultrasound, Shockwave, Laser, Manual therapy, Dry needling, Exercise therapy, Other (العلاجات المقدمة) | `R-9.1-3` |
+| `treatment_notes` | `TEXT` | Yes | `NULL` | Detailed notes on treatments or settings used (تفاصيل الأجهزة والعلاج) | `R-9.1-3` |
+| `home_exercises` | `TEXT` | Yes | `NULL` | Prescribed home exercises, carried forward and editable (التمارين المنزلية) | `R-9.1-4` |
+| `completed_at` | `TIMESTAMPTZ` | No | `now()` | Exact timestamp session was completed; starts 24h edit window (تاريخ ووقت إتمام الجلسة) | `R-9.2-1`, `DEC-016` |
+| `is_locked` | `BOOLEAN` | No | `false` | True once 24h editing window elapses (قفل الملاحظة الإكلينيكية) | `R-9.2-2` |
+| `is_voided` | `BOOLEAN` | No | `false` | Soft-delete flag (إلغاء الملاحظة) | `R-0-3` |
+| `void_reason` | `TEXT` | Yes | `NULL` | Justification for voiding note (سبب الإلغاء) | `R-0-3` |
+| `voided_at` | `TIMESTAMPTZ` | Yes | `NULL` | Voiding timestamp (تاريخ الإلغاء) | `R-0-3` |
+| `voided_by_user_id` | `UUID` | Yes | `NULL` | FK to `users.id` who voided note (أُلغي بواسطة) | `R-0-2` |
+| `created_by_user_id` | `UUID` | Yes | `NULL` | FK to `users.id` of author | `R-0-2` |
+| `updated_by_user_id` | `UUID` | Yes | `NULL` | FK to `users.id` of editor | `R-0-2` |
+| `created_at` | `TIMESTAMPTZ` | No | `now()` | Record creation timestamp | `R-0-5` |
+| `updated_at` | `TIMESTAMPTZ` | No | `now()` | Record update timestamp | `R-0-5` |
+
+- **Foreign Keys:**
+  - `appointment_id REFERENCES appointments(id) ON DELETE RESTRICT`
+  - `patient_id REFERENCES patients(id) ON DELETE CASCADE`
+  - `clinician_id REFERENCES users(id) ON DELETE RESTRICT`
+  - `voided_by_user_id REFERENCES users(id) ON DELETE SET NULL`
+  - `created_by_user_id REFERENCES users(id) ON DELETE SET NULL`
+  - `updated_by_user_id REFERENCES users(id) ON DELETE SET NULL`
+- **Unique Constraints:**
+  - `UNIQUE (appointment_id)` — One note per completed appointment.
+- **Indexes:**
+  - `CREATE INDEX idx_clinical_notes_patient_completed ON clinical_notes (patient_id, completed_at)`
+  - `CREATE INDEX idx_clinical_notes_clinician ON clinical_notes (clinician_id)`
+  - `CREATE INDEX idx_clinical_notes_voided ON clinical_notes (is_voided)`
+
+---
+
+### 3.38 `clinical_note_versions`
+- **Purpose:** Full audit snapshot history of modifications made to a clinical note by its author within the 24-hour edit window.
+- **Rule References:** `R-9.2-1`, `DEC-016`
+
+| Column | Type | Nullable | Default | Description (AR / EN) | Rule ID |
+|---|---|:---:|---|---|:---:|
+| `id` | `UUID` | No | `uuid()` | Primary Key (معرف إصدار الملاحظة) | `R-9.2-1` |
+| `note_id` | `UUID` | No | — | FK to `clinical_notes.id` (معرف الملاحظة الأصلية) | `R-9.2-1` |
+| `version_number` | `INTEGER` | No | — | Sequential revision number 1, 2, 3... (رقم الإصدار) | `R-9.2-1` |
+| `pain_before` | `INTEGER` | No | — | Snapshot of pain before (مستوى الألم قبل الجلسة) | `R-9.2-1` |
+| `pain_after` | `INTEGER` | No | — | Snapshot of pain after (مستوى الألم بعد الجلسة) | `R-9.2-1` |
+| `subjective` | `TEXT` | Yes | `NULL` | Snapshot of SOAP Subjective | `R-9.2-1` |
+| `objective` | `TEXT` | Yes | `NULL` | Snapshot of SOAP Objective | `R-9.2-1` |
+| `assessment` | `TEXT` | Yes | `NULL` | Snapshot of SOAP Assessment | `R-9.2-1` |
+| `plan` | `TEXT` | Yes | `NULL` | Snapshot of SOAP Plan | `R-9.2-1` |
+| `treatment_modalities` | `VARCHAR(50)[]` | No | `'{}'` | Snapshot of treatment modalities array | `R-9.2-1` |
+| `treatment_notes` | `TEXT` | Yes | `NULL` | Snapshot of treatment notes | `R-9.2-1` |
+| `home_exercises` | `TEXT` | Yes | `NULL` | Snapshot of home exercises | `R-9.2-1` |
+| `edited_by_user_id` | `UUID` | No | — | FK to `users.id` who performed edit (عُدل بواسطة) | `R-9.2-1` |
+| `edited_at` | `TIMESTAMPTZ` | No | `now()` | Exact timestamp of revision (تاريخ وتوقيت التعديل) | `R-0-5` |
+| `change_summary` | `TEXT` | Yes | `NULL` | Optional author summary of changes (ملخص التعديلات) | `R-9.2-1` |
+
+- **Foreign Keys:**
+  - `note_id REFERENCES clinical_notes(id) ON DELETE CASCADE`
+  - `edited_by_user_id REFERENCES users(id) ON DELETE RESTRICT`
+- **Unique Constraints:**
+  - `UNIQUE (note_id, version_number)`
+- **Indexes:**
+  - `CREATE INDEX idx_clinical_note_versions_note ON clinical_note_versions (note_id)`
+  - `CREATE INDEX idx_clinical_note_versions_user ON clinical_note_versions (edited_by_user_id)`
+
+---
+
+### 3.39 `clinical_note_addenda`
+- **Purpose:** Supplementary clinical entries appended after the 24-hour edit window has expired, preserving the original sealed record.
+- **Rule References:** `R-9.2-2`
+
+| Column | Type | Nullable | Default | Description (AR / EN) | Rule ID |
+|---|---|:---:|---|---|:---:|
+| `id` | `UUID` | No | `uuid()` | Primary Key (معرف ملحق الملاحظة) | `R-9.2-2` |
+| `note_id` | `UUID` | No | — | FK to `clinical_notes.id` (معرف الملاحظة الإكلينيكية الأصلية) | `R-9.2-2` |
+| `content` | `TEXT` | No | — | Clinical addendum text / remarks (نص الملحق الإكلينيكي الإضافي) | `R-9.2-2` |
+| `author_id` | `UUID` | No | — | FK to `users.id` of author adding addendum (كاتب الملحق) | `R-9.2-2` |
+| `is_voided` | `BOOLEAN` | No | `false` | Soft-delete flag (إلغاء الملحق) | `R-0-3` |
+| `void_reason` | `TEXT` | Yes | `NULL` | Reason for voiding addendum (سبب الإلغاء) | `R-0-3` |
+| `voided_at` | `TIMESTAMPTZ` | Yes | `NULL` | Voiding timestamp (تاريخ الإلغاء) | `R-0-3` |
+| `voided_by_user_id` | `UUID` | Yes | `NULL` | FK to `users.id` who voided addendum (أُلغي بواسطة) | `R-0-2` |
+| `created_at` | `TIMESTAMPTZ` | No | `now()` | Record creation timestamp | `R-0-5` |
+| `updated_at` | `TIMESTAMPTZ` | No | `now()` | Record update timestamp | `R-0-5` |
+
+- **Foreign Keys:**
+  - `note_id REFERENCES clinical_notes(id) ON DELETE CASCADE`
+  - `author_id REFERENCES users(id) ON DELETE RESTRICT`
+  - `voided_by_user_id REFERENCES users(id) ON DELETE SET NULL`
+- **Indexes:**
+  - `CREATE INDEX idx_clinical_note_addenda_note ON clinical_note_addenda (note_id)`
+  - `CREATE INDEX idx_clinical_note_addenda_author ON clinical_note_addenda (author_id)`
+
+---
+
+### 3.40 `inbody_records`
+- **Purpose:** Comprehensive body composition test data and dietary protocol prescriptions from nutrition consultations.
+- **Rule References:** `R-9.4-1`
+
+| Column | Type | Nullable | Default | Description (AR / EN) | Rule ID |
+|---|---|:---:|---|---|:---:|
+| `id` | `UUID` | No | `uuid()` | Primary Key (معرف فحص مكونات الجسم) | `R-9.4-1` |
+| `patient_id` | `UUID` | No | — | FK to `patients.id` (معرف المريض) | `R-9.4-1` |
+| `appointment_id` | `UUID` | Yes | `NULL` | Optional FK to `appointments.id` (معرف الجلسة الاستشارية) | `R-9.4-1` |
+| `test_date` | `TIMESTAMPTZ` | No | — | Test calendar timestamp (تاريخ وتوقيت الفحص) | `R-9.4-1` |
+| `height_cm` | `DECIMAL(5,1)` | No | — | Height in cm, 50.0..250.0; pre-filled from profile/prior test, remains editable (الطول بالسنتيمتر) | `R-9.4-1` |
+| `weight_kg` | `DECIMAL(5,2)` | No | — | Weight in kg, 20.0..300.0 (الوزن بالكيلوجرام) | `R-9.4-1` |
+| `target_weight_kg` | `DECIMAL(5,2)` | Yes | `NULL` | Goal weight in kg (الوزن المستهدف) | `R-9.4-1` |
+| `skeletal_muscle_mass_kg` | `DECIMAL(5,2)` | Yes | `NULL` | Skeletal muscle mass in kg (الكتلة العضلية الهيكلية) | `R-9.4-1` |
+| `body_fat_percentage` | `DECIMAL(4,1)` | Yes | `NULL` | Body fat percentage e.g. 22.4% (نسبة الدهون بالجسم) | `R-9.4-1` |
+| `visceral_fat_level` | `INTEGER` | Yes | `NULL` | Visceral fat rating: 1..20 scale (مستوى الدهون الحشوية) | `R-9.4-1` |
+| `device_bmr_kcal` | `INTEGER` | Yes | `NULL` | Device-measured BMR override in kcal/day if device differs from Mifflin-St Jeor (معدل الحرق الأساسي المقاس بالجهاز) | `R-9.4-1` |
+| `calorie_target_kcal` | `INTEGER` | Yes | `NULL` | Prescribed daily caloric intake target (السعرات الحرارية المستهدفة يومياً) | `R-9.4-1` |
+| `target_protein_grams` | `INTEGER` | Yes | `NULL` | Prescribed daily protein intake in grams (البروتين المستهدف بالجرام) | `R-9.4-1` |
+| `target_carbs_grams` | `INTEGER` | Yes | `NULL` | Prescribed daily carbohydrate intake in grams (الكربوهيدرات بالجرام) | `R-9.4-1` |
+| `target_fat_grams` | `INTEGER` | Yes | `NULL` | Prescribed daily fat intake in grams (الدهون بالجرام) | `R-9.4-1` |
+| `protocol` | `VARCHAR(50)` | No | `'BALANCED_LIFESTYLE'` | Diet protocol: `KETO`, `LOW_CARB_ANTI_INFLAMMATORY`, `INTERMITTENT_FASTING`, `SPORTS_NUTRITION`, `DIABETIC_INSULIN_RESISTANCE`, `POST_BARIATRIC`, `BALANCED_LIFESTYLE`, `OTHER` (البروتوكول الغذائي) | `R-9.4-1` |
+| `protocol_notes` | `TEXT` | Yes | `NULL` | Specific protocol meal instructions (إرشادات النظام الغذائي) | `R-9.4-1` |
+| `clinical_notes` | `TEXT` | Yes | `NULL` | Nutritionist clinical evaluation notes (ملاحظات أخصائي التغذية) | `R-9.4-1` |
+| `recorded_by_user_id` | `UUID` | No | — | FK to `users.id` of attending nutritionist (سجل بواسطة) | `R-9.4-1` |
+| `is_voided` | `BOOLEAN` | No | `false` | Soft-delete flag (إلغاء الفحص) | `R-0-3` |
+| `void_reason` | `TEXT` | Yes | `NULL` | Justification for voiding record (سبب الإلغاء) | `R-0-3` |
+| `voided_at` | `TIMESTAMPTZ` | Yes | `NULL` | Voiding timestamp | `R-0-3` |
+| `voided_by_user_id` | `UUID` | Yes | `NULL` | FK to `users.id` who voided record | `R-0-2` |
+| `created_by_user_id` | `UUID` | Yes | `NULL` | FK to `users.id` of author | `R-0-2` |
+| `updated_by_user_id` | `UUID` | Yes | `NULL` | FK to `users.id` of editor | `R-0-2` |
+| `created_at` | `TIMESTAMPTZ` | No | `now()` | Record creation timestamp | `R-0-5` |
+| `updated_at` | `TIMESTAMPTZ` | No | `now()` | Record update timestamp | `R-0-5` |
+
+- **Foreign Keys:**
+  - `patient_id REFERENCES patients(id) ON DELETE CASCADE`
+  - `appointment_id REFERENCES appointments(id) ON DELETE SET NULL`
+  - `recorded_by_user_id REFERENCES users(id) ON DELETE RESTRICT`
+  - `voided_by_user_id REFERENCES users(id) ON DELETE SET NULL`
+  - `created_by_user_id REFERENCES users(id) ON DELETE SET NULL`
+  - `updated_by_user_id REFERENCES users(id) ON DELETE SET NULL`
+- **Unique Constraints:**
+  - `UNIQUE (appointment_id)` — One InBody record per appointment if linked.
+- **Indexes:**
+  - `CREATE INDEX idx_inbody_records_patient_date ON inbody_records (patient_id, test_date)`
+  - `CREATE INDEX idx_inbody_records_user ON inbody_records (recorded_by_user_id)`
+  - `CREATE INDEX idx_inbody_records_voided ON inbody_records (is_voided)`
+
+---
+
+### 3.41 `expenses`
+- **Purpose:** Operational and back-office expense vouchers with category classification, payment method, receipt images, and cash shift linkage.
+- **Rule References:** `R-10-1`, `R-10-2`, `R-10-3`, `R-0-3`, `R-0-4`, `DEC-020`
+
+| Column | Type | Nullable | Default | Description (AR / EN) | Rule ID |
+|---|---|:---:|---|---|:---:|
+| `id` | `UUID` | No | `uuid()` | Primary Key (معرف سند المصروف) | `R-10-1` |
+| `title` | `VARCHAR(150)` | No | — | Expense title e.g. "Physical Therapy Gel Supplies" (بيان المصروف) | `R-10-1` |
+| `category` | `VARCHAR(50)` | No | — | Category: `SUPPLIES`, `EQUIPMENT`, `MAINTENANCE`, `RENT`, `UTILITIES`, `SALARIES`, `DOCTOR_COMMISSION`, `HOSPITALITY`, `MARKETING`, `OTHER` (بند المصروفات) | `R-10-1` |
+| `amount_piasters` | `INTEGER` | No | — | Expense amount in integer piasters > 0 (قيمة المصروف بالقروش) | `R-0-4`, `R-10-1` |
+| `payment_method` | `VARCHAR(50)` | No | — | Method: `CASH`, `INSTAPAY`, `VODAFONE_CASH`, `CARD`, `FAWRY`, `BANK_TRANSFER` (طريقة السداد) | `R-10-1` |
+| `expense_date` | `TIMESTAMPTZ` | No | — | Date and time expense was incurred (تاريخ المصروف) | `R-10-1` |
+| `reason` | `TEXT` | Yes | `NULL` | Business justification or detailed breakdown (سبب ومبرر الصرف) | `R-10-1` |
+| `receipt_file_key` | `VARCHAR(500)` | Yes | `NULL` | Private storage path for scanned receipt/invoice image (صورة الإيصال أو الفاتورة) | `R-10-1` |
+| `cash_shift_id` | `UUID` | Yes | `NULL` | FK to `cash_closings.id` if disbursed from cash drawer; locks when shift closes (الوردية المرتبطة) | `R-10-2`, `DEC-020` |
+| `is_voided` | `BOOLEAN` | No | `false` | Soft-delete flag; records are voided, never hard-deleted (إلغاء المصروف) | `R-0-3`, `R-10-3` |
+| `void_reason` | `TEXT` | Yes | `NULL` | Mandatory reason for voiding expense (سبب الإلغاء) | `R-10-3` |
+| `voided_at` | `TIMESTAMPTZ` | Yes | `NULL` | Voiding timestamp | `R-10-3` |
+| `voided_by_user_id` | `UUID` | Yes | `NULL` | FK to `users.id` who voided expense (أُلغي بواسطة) | `R-0-2` |
+| `created_by_user_id` | `UUID` | No | — | FK to `users.id` of author (أُنشئ بواسطة) | `R-0-2`, `R-10-1` |
+| `updated_by_user_id` | `UUID` | Yes | `NULL` | FK to `users.id` of editor | `R-0-2` |
+| `created_at` | `TIMESTAMPTZ` | No | `now()` | Record creation timestamp | `R-0-5` |
+| `updated_at` | `TIMESTAMPTZ` | No | `now()` | Record update timestamp | `R-0-5` |
+
+- **Foreign Keys:**
+  - `cash_shift_id REFERENCES cash_closings(id) ON DELETE SET NULL`
+  - `voided_by_user_id REFERENCES users(id) ON DELETE SET NULL`
+  - `created_by_user_id REFERENCES users(id) ON DELETE RESTRICT`
+  - `updated_by_user_id REFERENCES users(id) ON DELETE SET NULL`
+- **Indexes:**
+  - `CREATE INDEX idx_expenses_category_date ON expenses (category, expense_date)`
+  - `CREATE INDEX idx_expenses_cash_shift ON expenses (cash_shift_id)`
+  - `CREATE INDEX idx_expenses_user ON expenses (created_by_user_id)`
+  - `CREATE INDEX idx_expenses_voided ON expenses (is_voided)`
+
+---
+
+### 3.42 `expense_edit_history`
+- **Purpose:** Full audit log of modifications made to expense records by Owner/Manager with mandatory justification.
+- **Rule References:** `R-10-3`
+
+| Column | Type | Nullable | Default | Description (AR / EN) | Rule ID |
+|---|---|:---:|---|---|:---:|
+| `id` | `UUID` | No | `uuid()` | Primary Key (معرف سجل تعديل المصروف) | `R-10-3` |
+| `expense_id` | `UUID` | No | — | FK to `expenses.id` (معرف المصروف المعدل) | `R-10-3` |
+| `previous_title` | `VARCHAR(150)` | No | — | Title before modification (البيان السابق) | `R-10-3` |
+| `previous_category` | `VARCHAR(50)` | No | — | Category before modification (البند السابق) | `R-10-3` |
+| `previous_amount_piasters` | `INTEGER` | No | — | Amount in piasters before modification (المبلغ السابق بالقروش) | `R-10-3` |
+| `previous_payment_method` | `VARCHAR(50)` | No | — | Payment method before modification (طريقة السداد السابقة) | `R-10-3` |
+| `previous_expense_date` | `TIMESTAMPTZ` | No | — | Date before modification (تاريخ الصرف السابق) | `R-10-3` |
+| `previous_reason` | `TEXT` | Yes | `NULL` | Reason before modification (السبب السابق) | `R-10-3` |
+| `edited_by_user_id` | `UUID` | No | — | FK to `users.id` who made change (عُدل بواسطة) | `R-10-3` |
+| `edited_at` | `TIMESTAMPTZ` | No | `now()` | Timestamp of modification (تاريخ وتوقيت التعديل) | `R-0-5` |
+| `edit_reason` | `TEXT` | No | — | Mandatory administrative explanation for edit (سبب التعديل الإلزامي) | `R-10-3` |
+
+- **Foreign Keys:**
+  - `expense_id REFERENCES expenses(id) ON DELETE CASCADE`
+  - `edited_by_user_id REFERENCES users(id) ON DELETE RESTRICT`
+- **Indexes:**
+  - `CREATE INDEX idx_expense_edit_history_expense ON expense_edit_history (expense_id)`
+  - `CREATE INDEX idx_expense_edit_history_user ON expense_edit_history (edited_by_user_id)`
+
+---
+
+### 3.43 `commission_payouts`
+- **Purpose:** Settlement voucher paying a clinician their earned commissions for completed sessions over a specified period.
+- **Rule References:** `R-11-1`, `R-11-2`, `R-11-3`, `R-0-3`, `R-0-4`
+
+| Column | Type | Nullable | Default | Description (AR / EN) | Rule ID |
+|---|---|:---:|---|---|:---:|
+| `id` | `UUID` | No | `uuid()` | Primary Key (معرف إذن صرف العمولة) | `R-11-2` |
+| `clinician_id` | `UUID` | No | — | FK to `users.id` of doctor receiving payout (الطبيب المستحق) | `R-11-2` |
+| `period_start_date` | `TIMESTAMPTZ` | No | — | Start of payout period (بداية فترة الاستحقاق) | `R-11-2` |
+| `period_end_date` | `TIMESTAMPTZ` | No | — | End of payout period (نهاية فترة الاستحقاق) | `R-11-2` |
+| `total_payout_piasters` | `INTEGER` | No | — | Total commission paid in integer piasters (إجمالي العمولة المستحقة بالقروش) | `R-0-4`, `R-11-2` |
+| `payment_method` | `VARCHAR(50)` | No | — | Method: `CASH`, `INSTAPAY`, `BANK_TRANSFER`, etc. (طريقة الصرف) | `R-11-2` |
+| `payout_date` | `TIMESTAMPTZ` | No | — | Date and time payout was processed (تاريخ وتوقيت الصرف) | `R-11-2` |
+| `expense_id` | `UUID` | Yes | `NULL` | 1-to-1 FK to `expenses.id` generated under category DOCTOR_COMMISSION (معرف المصروف المرتبط) | `R-11-2` |
+| `notes` | `TEXT` | Yes | `NULL` | Administrative remarks or deduction notes (ملاحظات الصرف) | `R-11-2` |
+| `is_voided` | `BOOLEAN` | No | `false` | Soft-delete flag (إلغاء الصرف) | `R-0-3` |
+| `void_reason` | `TEXT` | Yes | `NULL` | Justification for voiding payout (سبب إلغاء الصرف) | `R-0-3` |
+| `voided_at` | `TIMESTAMPTZ` | Yes | `NULL` | Voiding timestamp | `R-0-3` |
+| `voided_by_user_id` | `UUID` | Yes | `NULL` | FK to `users.id` who voided payout (أُلغي بواسطة) | `R-0-2` |
+| `created_by_user_id` | `UUID` | No | — | FK to `users.id` of Owner/Manager who approved payout (اعتمد بواسطة) | `R-11-2` |
+| `updated_by_user_id` | `UUID` | Yes | `NULL` | FK to `users.id` of editor | `R-0-2` |
+| `created_at` | `TIMESTAMPTZ` | No | `now()` | Record creation timestamp | `R-0-5` |
+| `updated_at` | `TIMESTAMPTZ` | No | `now()` | Record update timestamp | `R-0-5` |
+
+- **Foreign Keys:**
+  - `clinician_id REFERENCES users(id) ON DELETE RESTRICT`
+  - `expense_id REFERENCES expenses(id) ON DELETE SET NULL`
+  - `voided_by_user_id REFERENCES users(id) ON DELETE SET NULL`
+  - `created_by_user_id REFERENCES users(id) ON DELETE RESTRICT`
+  - `updated_by_user_id REFERENCES users(id) ON DELETE SET NULL`
+- **Unique Constraints:**
+  - `UNIQUE (expense_id)` — One expense per commission payout voucher.
+- **Indexes:**
+  - `CREATE INDEX idx_commission_payouts_clinician_date ON commission_payouts (clinician_id, payout_date)`
+  - `CREATE INDEX idx_commission_payouts_voided ON commission_payouts (is_voided)`
+
+---
+
+### 3.44 `commission_payout_sessions`
+- **Purpose:** Audit join table tying specific completed appointment sessions to a commission payout voucher, guaranteeing no session can ever be paid twice.
+- **Rule References:** `R-11-1`, `R-11-2`, `R-11-3`
+
+| Column | Type | Nullable | Default | Description (AR / EN) | Rule ID |
+|---|---|:---:|---|---|:---:|
+| `id` | `UUID` | No | `uuid()` | Primary Key (معرف ربط جلسة العمولة) | `R-11-2` |
+| `payout_id` | `UUID` | No | — | FK to `commission_payouts.id` (معرف إذن الصرف) | `R-11-2` |
+| `appointment_id` | `UUID` | No | — | FK to `appointments.id` (معرف الجلسة المنجزة - محمي من التكرار) | `R-11-2` |
+| `session_value_piasters` | `INTEGER` | No | — | Monetary session value at payout time: appointment price or floor(package_price / sessions) (قيمة الجلسة بالقروش) | `R-11-1`, `calculations.md §5.5` |
+| `commission_rate_snapshot` | `DECIMAL(5,2)` | No | — | Clinician commission rate snapshot e.g. 25.00% or fixed piasters (نسبة أو فئة العمولة المعتمدة) | `R-11-1`, `DEC-010` |
+| `commission_amount_piasters` | `INTEGER` | No | — | Exact commission paid for this session in integer piasters (قيمة عمولة الجلسة بالقروش) | `R-11-1`, `calculations.md §5.5` |
+| `is_voided` | `BOOLEAN` | No | `false` | True if parent payout was voided, releasing the session (إلغاء صرف الجلسة) | `R-11-2` |
+| `created_at` | `TIMESTAMPTZ` | No | `now()` | Record creation timestamp | `R-0-5` |
+
+- **Foreign Keys:**
+  - `payout_id REFERENCES commission_payouts(id) ON DELETE CASCADE`
+  - `appointment_id REFERENCES appointments(id) ON DELETE RESTRICT`
+- **Unique Constraints:**
+  - `UNIQUE (appointment_id)` — Enforced at DB level via partial unique index `idx_unique_active_paid_session WHERE is_voided = false` to guarantee no session can ever be paid twice.
+- **Indexes:**
+  - `CREATE INDEX idx_commission_payout_sessions_payout ON commission_payout_sessions (payout_id)`
+  - `CREATE INDEX idx_commission_payout_sessions_appointment ON commission_payout_sessions (appointment_id)`
+
+---
+
 ## 4. PostgreSQL Database Triggers & Check Constraints (Raw SQL)
 
 The following database triggers and constraints are written in raw SQL and will be packaged into Prisma migrations in Stage 2 to guarantee database-level enforcement of business rules:
@@ -1831,13 +2249,106 @@ CREATE TRIGGER trg_price_change_history_immutability
 BEFORE UPDATE OR DELETE ON price_change_history
 FOR EACH ROW
 EXECUTE FUNCTION trg_block_price_change_history_mutation();
+
+-- 16. Clinical Note 24-Hour Edit Window Trigger (R-9.2-1, R-9.2-2, DEC-016)
+-- Allows author to edit note within 24 hours of initial completion.
+-- After 24 hours, updates to core note fields are permanently blocked (only addenda permitted).
+CREATE OR REPLACE FUNCTION trg_check_clinical_note_edit_window()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- If 24 hours have elapsed since completed_at, block changes to clinical content
+    IF now() > (OLD.completed_at + INTERVAL '24 hours') THEN
+        IF (NEW.pain_before IS DISTINCT FROM OLD.pain_before OR
+            NEW.pain_after IS DISTINCT FROM OLD.pain_after OR
+            NEW.subjective IS DISTINCT FROM OLD.subjective OR
+            NEW.objective IS DISTINCT FROM OLD.objective OR
+            NEW.assessment IS DISTINCT FROM OLD.assessment OR
+            NEW.plan IS DISTINCT FROM OLD.plan OR
+            NEW.treatment_modalities IS DISTINCT FROM OLD.treatment_modalities OR
+            NEW.treatment_notes IS DISTINCT FROM OLD.treatment_notes OR
+            NEW.home_exercises IS DISTINCT FROM OLD.home_exercises) THEN
+            RAISE EXCEPTION 'The 24-hour edit window for this clinical note has expired. Please append an addendum instead.'
+                USING ERRCODE = 'integrity_constraint_violation';
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_clinical_notes_edit_window
+BEFORE UPDATE ON clinical_notes
+FOR EACH ROW
+EXECUTE FUNCTION trg_check_clinical_note_edit_window();
+
+-- 17. Closed Cash Shift Expense Modification Lock Trigger (R-10-2, DEC-020)
+-- Prevents editing or voiding expense vouchers that have been sealed in a closed cash drawer shift.
+CREATE OR REPLACE FUNCTION trg_check_closed_shift_expense_lock()
+RETURNS TRIGGER AS $$
+DECLARE
+    shift_status VARCHAR(20);
+BEGIN
+    IF OLD.cash_shift_id IS NOT NULL THEN
+        SELECT status INTO shift_status FROM cash_closings WHERE id = OLD.cash_shift_id;
+        IF shift_status = 'CLOSED' THEN
+            RAISE EXCEPTION 'This expense is locked because it is included in a closed cash drawer shift.'
+                USING ERRCODE = 'integrity_constraint_violation';
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_lock_closed_shift_expenses
+BEFORE UPDATE OR DELETE ON expenses
+FOR EACH ROW
+WHEN (OLD.is_voided = false AND NEW.is_voided = true)
+EXECUTE FUNCTION trg_check_closed_shift_expense_lock();
+
+-- 18. Commission Single-Payout Partial Unique Index (R-11-2)
+-- Enforces that an appointment session can never be included in more than one active commission payout.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_unique_active_paid_session 
+ON commission_payout_sessions (appointment_id) 
+WHERE is_voided = false;
+
+-- 19. Clinical, Nutrition & Back-Office Check Constraints (R-0-4, R-9.1-1, R-9.4-1, R-10-1, R-11-2)
+ALTER TABLE clinical_notes 
+ADD CONSTRAINT chk_clinical_notes_pain_before 
+CHECK (pain_before >= 0 AND pain_before <= 10);
+
+ALTER TABLE clinical_notes 
+ADD CONSTRAINT chk_clinical_notes_pain_after 
+CHECK (pain_after >= 0 AND pain_after <= 10);
+
+ALTER TABLE inbody_records 
+ADD CONSTRAINT chk_inbody_records_height 
+CHECK (height_cm >= 50.0 AND height_cm <= 250.0);
+
+ALTER TABLE inbody_records 
+ADD CONSTRAINT chk_inbody_records_weight 
+CHECK (weight_kg >= 20.0 AND weight_kg <= 300.0);
+
+ALTER TABLE inbody_records 
+ADD CONSTRAINT chk_inbody_records_visceral_fat 
+CHECK (visceral_fat_level IS NULL OR (visceral_fat_level >= 1 AND visceral_fat_level <= 20));
+
+ALTER TABLE expenses 
+ADD CONSTRAINT chk_expenses_positive_amount 
+CHECK (amount_piasters > 0);
+
+ALTER TABLE commission_payouts 
+ADD CONSTRAINT chk_commission_payouts_period 
+CHECK (period_start_date <= period_end_date);
+
+ALTER TABLE commission_payouts 
+ADD CONSTRAINT chk_commission_payouts_positive_amount 
+CHECK (total_payout_piasters >= 0);
 ```
 
 ---
 
 ## 5. Non-Stored Calculated Values (Traceability to `calculations.md`)
 
-In strict accordance with **Rule R-0-6** and **DEC-005**, the following values are dynamically calculated at query time and **omitted from Slice A tables**:
+In strict accordance with **Rule R-0-6** and **DEC-005**, the following values are dynamically calculated at query time and **omitted from physical database tables**:
 
 | Derived Entity / Metric | Formula Source | Why Not Stored |
 |---|---|---|
@@ -1862,3 +2373,9 @@ In strict accordance with **Rule R-0-6** and **DEC-005**, the following values a
 | **Refund Maximum Allowed** | [calculations.md §2.4](file:///F:/Claude%20CRM/docs/design/calculations.md#24-refund-maximum-calculation) | Evaluated dynamically: `paid_piasters - (completed_sessions * per_session_value)` (`R-8.3-2`). |
 | **Expected Cash in Shift Closing** | [calculations.md §2.5](file:///F:/Claude%20CRM/docs/design/calculations.md#25-cash-shift-closing-expected-cash) | Evaluated dynamically at closing: `cash_payments - cash_refunds_handed_out - cash_expenses` (`R-8.4-1`). |
 | **Cash Closing Drawer Difference** | [calculations.md §2.5](file:///F:/Claude%20CRM/docs/design/calculations.md#25-cash-shift-closing-expected-cash) | Computed: `counted_cash_piasters - expected_cash_piasters` (`R-8.4-1`). |
+| **Body Mass Index (BMI)** | [calculations.md §6.1](file:///F:/Claude%20CRM/docs/design/calculations.md#61-body-mass-index-bmi) | Dynamically computed from `weight_kg / (height_m^2)` rounded to 1 decimal place (`R-9.4-1`). |
+| **Basal Metabolic Rate (BMR)** | [calculations.md §6.2](file:///F:/Claude%20CRM/docs/design/calculations.md#62-basal-metabolic-rate-bmr--mifflin-st-jeor) | Dynamically computed via Mifflin-St Jeor formula based on age, gender, weight, and height (`R-9.4-1`). |
+| **Clinical Note Edit Countdown Minutes** | [calculations.md §6.3](file:///F:/Claude%20CRM/docs/design/calculations.md#63-clinical-note-edit-countdown) | Evaluated dynamically: `max(0, floor((completed_at + 24h - now()) / 60s))` (`R-9.2-1`, `DEC-016`). |
+| **Clinician Session Commission Amount** | [calculations.md §5.5](file:///F:/Claude%20CRM/docs/design/calculations.md#55-clinician-commission-calculation) | Evaluated dynamically during payout selection based on session price and doctor commission contract (`R-11-1`). |
+| **Total Commission Payout Amount** | [calculations.md §5.5](file:///F:/Claude%20CRM/docs/design/calculations.md#55-clinician-commission-calculation) | Computed dynamically as sum of individual eligible completed sessions for selected doctor and period (`R-11-2`). |
+
