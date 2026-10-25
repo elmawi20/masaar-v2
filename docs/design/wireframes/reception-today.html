@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة الاستقبال — اليوم | عيادة مسار</title>
+  <link rel="stylesheet" href="wireframe.css">
+</head>
+<body>
+  <div class="wf-banner">
+    <span>[واجهة سلكية تجريبية - Task 1.15] لوحة الاستقبال والمتابعة اليومية (SCR-B01)</span>
+    <a href="index.html">← فهرس جميع الواجهات</a>
+  </div>
+
+  <div class="app-shell">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">عيادة مسار — المعادي</div>
+      <div class="nav-group">
+        <span class="nav-label">الاستقبال والتشغيل</span>
+        <a href="reception-today.html" class="nav-item active">📅 اليوم (Today)</a>
+        <a href="calendar-day.html" class="nav-item">🗓️ جدول الأسرة والمواعيد</a>
+        <a href="patient-profile.html" class="nav-item">👥 دليل المرضى</a>
+        <a href="patient-registration.html" class="nav-item">➕ مريض جديد</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-label">الماليات والصندوق</span>
+        <a href="collect-payment.html" class="nav-item">💳 تحصيل دفعة / فواتير</a>
+        <a href="cash-closing.html" class="nav-item">📥 إغلاق الوردية النقدية</a>
+      </div>
+      <div style="margin-top: auto; padding-top: 16px; border-top: 1px solid var(--wf-border);">
+        <div style="font-size: 11px; color: var(--wf-text-muted);">المستخدم النشط:</div>
+        <div style="font-weight: bold; font-size: 12px;">سارة إبراهيم (موظف استقبال)</div>
+        <div style="font-size: 11px; color: var(--wf-text-muted); margin-top: 4px;">وردية مفتوحة: 09:00 ص</div>
+        <a href="auth-login.html" class="btn btn-sm" style="width: 100%; margin-top: 8px;">تبديل المستخدم / خروج</a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="topbar">
+        <div>
+          <h1 style="font-size: 18px; font-weight: bold;">لوحة تشغيل اليوم — الأحد 25 أكتوبر 2026</h1>
+          <p style="font-size: 12px; color: var(--wf-text-muted);">متابعة تدفق المرضى، تسجيل الحضور، وتنبيهات التأخير (R-6-2, R-14)</p>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <a href="booking-form.html" class="btn btn-primary">➕ حجز موعد جديد</a>
+          <a href="patient-registration.html" class="btn">👤 تسجيل مريض جديد</a>
+          <a href="cash-closing.html" class="btn">💵 إغلاق وردية النقدية</a>
+        </div>
+      </div>
+
+      <!-- KPI Summary Cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-value">28</div>
+          <div class="kpi-label">إجمالي مواعيد اليوم</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-value">6</div>
+          <div class="kpi-label">وصلوا بالانتظار</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-value">4</div>
+          <div class="kpi-label">داخل الجلسة حالياً</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-value">14</div>
+          <div class="kpi-label">جلسات مكتملة</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-value">2</div>
+          <div class="kpi-label">لم يحضر (No-show)</div>
+        </div>
+        <div class="kpi-card" style="border-right: 3px solid var(--wf-grey-800);">
+          <div class="kpi-value">3,450.00 ج.م</div>
+          <div class="kpi-label">نقدية الدرج الحالية</div>
+        </div>
+      </div>
+
+      <!-- Late Arrival Alert Banner (R-14, DEC-018) -->
+      <div class="alert" style="border-right: 4px solid var(--wf-grey-800); display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <strong>⚠️ تنبيه تأخر مريض (> 10 دقائق):</strong>
+          المريض <strong>عمر فاروق حسن</strong> موعده كان في <strong>05:30 م</strong> ولم يسجل حضوره حتى الآن (تأخير 18 دقيقة).
+        </div>
+        <div style="display: flex; gap: 6px;">
+          <button class="btn btn-sm" onclick="alert('جارٍ الاتصال بالمريض على الرقم 01019283741...');">اتصال هاتفي</button>
+          <a href="appointment-action-panel.html" class="btn btn-sm">فتح إجراءات الموعد</a>
+        </div>
+      </div>
+
+      <!-- Patient Stream Table -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">قائمة مواعيد اليوم التدفقية (Stream)</div>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" class="form-control" placeholder="بحث بالاسم أو رقم الهاتف..." style="width: 220px; font-size: 12px; padding: 4px 8px;">
+            <select class="form-control" style="width: 140px; font-size: 12px; padding: 4px 8px;">
+              <option>جميع الحالات</option>
+              <option>وصلوا بالانتظار (6)</option>
+              <option>داخل الجلسة (4)</option>
+              <option>مجدول قادم (4)</option>
+              <option>مكتمل (14)</option>
+            </select>
+          </div>
+        </div>
+
+        <table class="wf-table">
+          <thead>
+            <tr>
+              <th>الوقت</th>
+              <th>كود المريض</th>
+              <th>اسم المريض</th>
+              <th>رقم الهاتف</th>
+              <th>نوع الجلسة</th>
+              <th>المعالج المعين</th>
+              <th>المكان / السرير</th>
+              <th>الحالة</th>
+              <th>المالية / الرصيد</th>
+              <th>إجراءات سريعة</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>09:30 ص</strong></td>
+              <td>MAS-00104</td>
+              <td>أحمد مصطفى كامل</td>
+              <td>01012345678</td>
+              <td>علاج طبيعي</td>
+              <td>د. كريم حسني</td>
+              <td>غرفة 1 - سرير 2</td>
+              <td><span class="badge">حضر (منذ 15 د)</span></td>
+              <td><span class="badge" style="background: var(--wf-grey-300);">خالص (باقة 12)</span></td>
+              <td>
+                <a href="appointment-action-panel.html" class="btn btn-sm">إدارة الموعد</a>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>10:15 ص</strong></td>
+              <td>MAS-00109</td>
+              <td>منى محمود إبراهيم</td>
+              <td>01198765432</td>
+              <td>علاج طبيعي</td>
+              <td>د. سارة عادل</td>
+              <td>غرفة 1 - سرير 1</td>
+              <td><span class="badge">مكتمل</span></td>
+              <td><span class="badge">خالص (450.00 ج.م)</span></td>
+              <td>
+                <a href="appointment-action-panel.html" class="btn btn-sm">عرض الإيصال</a>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>05:30 م</strong></td>
+              <td>MAS-00142</td>
+              <td>عمر فاروق حسن</td>
+              <td>01019283741</td>
+              <td>تغذية علاجية</td>
+              <td>د. نورهان سعيد</td>
+              <td>غرفة 2 - كشف</td>
+              <td><span class="badge" style="border: 2px solid #000;">متأخر (18 د)</span></td>
+              <td><span class="badge" style="border: 1px dashed #000;">متبقي 450.00 ج.م</span></td>
+              <td>
+                <button class="btn btn-sm btn-primary" onclick="alert('تم تسجيل الحضور الساعة 05:48 م وحساب 18 دقيقة تأخير (R-5.5-3)');">تسجيل حضور</button>
+                <a href="collect-payment.html" class="btn btn-sm">تحصيل</a>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>06:00 م</strong></td>
+              <td>MAS-00155</td>
+              <td>يوسف أحمد إبراهيم (طفل)</td>
+              <td>01223344556 <small>(ولي أمر: الأب)</small></td>
+              <td>علاج طبيعي أطفال</td>
+              <td>د. كريم حسني</td>
+              <td>غرفة 1 - سرير 3</td>
+              <td><span class="badge">مجدول</span></td>
+              <td><span class="badge">متبقي 450.00 ج.م</span></td>
+              <td>
+                <button class="btn btn-sm" onclick="alert('تم نسخ رابط WhatsApp التذكيري wa.me/201223344556 (R-6-2)');">واتساب</button>
+                <a href="appointment-action-panel.html" class="btn btn-sm">خيارات</a>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>06:30 م</strong></td>
+              <td>MAS-00160</td>
+              <td>ريهام عادل توفيق</td>
+              <td>01555667788</td>
+              <td>علاج طبيعي</td>
+              <td>د. سارة عادل</td>
+              <td>غرفة 1 - سرير 2</td>
+              <td><span class="badge">مجدول</span></td>
+              <td><span class="badge">باقة (متبقي 3 جلسات)</span></td>
+              <td>
+                <a href="appointment-action-panel.html" class="btn btn-sm">إدارة الموعد</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

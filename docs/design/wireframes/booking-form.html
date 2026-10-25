@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>نموذج حجز موعد جديد — عيادة مسار</title>
+  <link rel="stylesheet" href="wireframe.css">
+  <style>
+    .booking-container {
+      max-width: 680px;
+      margin: 40px auto;
+      background: var(--wf-surface);
+      border: 1px solid var(--wf-border-dark);
+      border-radius: 6px;
+      padding: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wf-banner">
+    <span>[واجهة سلكية تجريبية - Task 1.15] نموذج حجز موعد جديد (MDL-B03)</span>
+    <a href="calendar-day.html">← العودة للجدول</a>
+  </div>
+
+  <div class="booking-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--wf-border-dark); padding-bottom: 12px; margin-bottom: 20px;">
+      <h1 style="font-size: 18px; font-weight: bold;">حجز موعد جديد بالعيادة</h1>
+      <a href="calendar-day.html" class="btn btn-sm">إلغاء والعودة</a>
+    </div>
+
+    <form onsubmit="event.preventDefault(); alert('تم التحقق من عدم وجود تعارض للسرير أو الطبيب وتأكيد الحجز بنجاح (R-5.2-1)'); window.location.href='calendar-day.html';">
+      <!-- Patient Search & Selection -->
+      <div class="form-group">
+        <label class="form-label">المريض (بحث بالاسم، رقم الهاتف أو هاتف ولي الأمر):</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" class="form-control" value="أحمد مصطفى كامل (01012345678 - MAS-00104)" required>
+          <a href="patient-registration.html" class="btn btn-sm">➕ مريض جديد</a>
+        </div>
+        <div style="font-size: 11px; color: var(--wf-text-muted); margin-top: 4px;">
+          لدى المريض: <strong>باقة علاج طبيعي نشطة (متبقي 4 جلسات متاحة)</strong>
+        </div>
+      </div>
+
+      <!-- Service & Clinician -->
+      <div class="form-row">
+        <div class="form-col form-group">
+          <label class="form-label">نوع الجلسة / الخدمة (R-2):</label>
+          <select class="form-control" required>
+            <option selected>علاج طبيعي (Physiotherapy)</option>
+            <option>تغذية علاجية (Nutrition)</option>
+            <option>كشف واستشارة استشاري (Consultant Assessment)</option>
+          </select>
+        </div>
+        <div class="form-col form-group">
+          <label class="form-label">المعالج المطلوب (R-5.2):</label>
+          <select class="form-control" required>
+            <option selected>د. كريم حسني (علاج طبيعي)</option>
+            <option>د. سارة عادل (علاج طبيعي)</option>
+            <option>د. نورهان سعيد (تغذية)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Bed & Room Selection -->
+      <div class="form-row">
+        <div class="form-col form-group">
+          <label class="form-label">الغرفة والسرير المحدد (R-2):</label>
+          <select class="form-control" required>
+            <option>غرفة 1 — سرير 1 (علاج طبيعي)</option>
+            <option selected>غرفة 1 — سرير 2 (علاج طبيعي)</option>
+            <option>غرفة 1 — سرير 3 (علاج طبيعي)</option>
+            <option>غرفة 2 — سرير 4 (تأهيل حركي)</option>
+            <option>غرفة 2 — سرير 5 (كشف استشاري)</option>
+          </select>
+        </div>
+        <div class="form-col form-group">
+          <label class="form-label">مدة الجلسة:</label>
+          <select class="form-control" required>
+            <option>30 دقيقة</option>
+            <option>45 دقيقة</option>
+            <option selected>60 دقيقة (ساعة كاملة)</option>
+            <option>90 دقيقة</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Date & 15-Minute Start Time -->
+      <div class="form-row">
+        <div class="form-col form-group">
+          <label class="form-label">تاريخ الموعد:</label>
+          <input type="date" class="form-control" value="2026-10-25" required>
+        </div>
+        <div class="form-col form-group">
+          <label class="form-label">وقت البدء (مضاعفات 15 دقيقة R-5.1):</label>
+          <select class="form-control" required>
+            <option>09:00 ص</option>
+            <option>09:15 ص</option>
+            <option selected>09:30 ص</option>
+            <option>09:45 ص</option>
+            <option>10:00 ص</option>
+            <option>10:15 ص</option>
+            <option>10:30 ص</option>
+            <option>11:00 ص</option>
+            <option>05:30 م</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Price & Package Deduction -->
+      <div class="card" style="background: var(--wf-grey-100); padding: 14px; margin-bottom: 16px;">
+        <div class="form-group">
+          <label class="form-check">
+            <input type="checkbox" id="use-package" checked>
+            <span style="font-weight: bold; font-size: 13px;">خصم الجلسة من باقة المريض النشطة (#PKG-2026-004)</span>
+          </label>
+          <div style="font-size: 11px; color: var(--wf-text-muted); margin-right: 22px;">
+            سيتم حجز جلسة واحدة من رصيد الباقة المتبقي (4 -> 3 جلسات متاحة).
+          </div>
+        </div>
+
+        <div class="form-row" style="margin-top: 10px;">
+          <div class="form-col form-group" style="margin-bottom: 0;">
+            <label class="form-label">سعر الجلسة الافتراضي (ج.م):</label>
+            <input type="text" class="form-control" value="450.00 ج.م" style="font-weight: bold;">
+          </div>
+          <div class="form-col form-group" style="margin-bottom: 0;">
+            <label class="form-label">سبب تعديل السعر (إن وجد - يسجل بالرقابة DEC-012):</label>
+            <input type="text" class="form-control" placeholder="خصم خاص متفق عليه...">
+          </div>
+        </div>
+      </div>
+
+      <!-- Recurring Appointment Toggle -->
+      <div class="card" style="border: 1px dashed var(--wf-border-dark); padding: 14px; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-weight: bold; font-size: 13px;">حجز سلسلة مواعيد متكررة للباقة (Recurring Series)</div>
+            <div style="font-size: 11px; color: var(--wf-text-muted);">
+              جدولة عدة جلسات مقدماً (مثل: سبت وإثنين وأربعاء لمدة شهر) وفحص التعارضات
+            </div>
+          </div>
+          <a href="recurring-series-preview.html" class="btn btn-sm">معاينة السلسلة (Preview)</a>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 8px;">
+        <a href="calendar-day.html" class="btn">إلغاء</a>
+        <button type="submit" class="btn btn-primary" style="padding: 8px 24px;">تأكيد وحفظ الموعد</button>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

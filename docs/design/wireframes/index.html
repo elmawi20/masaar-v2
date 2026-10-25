@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>فهرس الواجهات السلكية (Wireframes Index) — عيادة مسار</title>
+  <link rel="stylesheet" href="wireframe.css">
+  <style>
+    .index-container {
+      max-width: 960px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+    .task-section {
+      margin-bottom: 30px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wf-banner">
+    <span>نظام عيادة مسار — دليل الواجهات السلكية الأولية (Low-Fidelity HTML Wireframes)</span>
+    <span>Stage 1: Tasks 1.15, 1.16, 1.17</span>
+  </div>
+
+  <div class="index-container">
+    <div style="margin: 24px 0; border-bottom: 2px solid var(--wf-border-dark); padding-bottom: 16px;">
+      <h1 style="font-size: 22px; font-weight: bold;">فهرس الشاشات والنماذج السلكية (Wireframes)</h1>
+      <p style="font-size: 13px; color: var(--wf-text-muted);">
+        نماذج سلكية رمادية تفاعلية تحاكي الهيكل الوظيفي، وتدفق البيانات الحقيقية، والقيود الصارمة باللغة العربية (RTL).
+      </p>
+    </div>
+
+    <!-- Task 1.15 Section -->
+    <div class="task-section">
+      <div class="card-header" style="background: var(--wf-grey-200); padding: 10px 14px; border: 1px solid var(--wf-border-dark); border-radius: 4px;">
+        <h2 style="font-size: 15px; font-weight: bold;">حزمة 1.15: المصادقة والاستقبال وجدول المواعيد (Auth & Front Desk)</h2>
+        <span class="badge" style="background: var(--wf-grey-800); color: #fff;">✅ مكتمل (9 شاشات)</span>
+      </div>
+
+      <table class="wf-table" style="margin-top: 10px;">
+        <thead>
+          <tr>
+            <th style="width: 200px;">الشاشة / النموذج</th>
+            <th>الكود والمسار</th>
+            <th>الوصف والقواعد المنفذة</th>
+            <th style="width: 140px;">الأدوار المصرح لها</th>
+            <th style="width: 100px;">معاينة</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>تسجيل الدخول</strong></td>
+            <td><code>SCR-A01</code> · <code>auth-login.html</code></td>
+            <td>البريد الإلكتروني وكلمة المرور وخيار تذكر الجهاز الموثوق لـ 30 يوماً (R-15.2-4)</td>
+            <td>الجميع (عام)</td>
+            <td><a href="auth-login.html" class="btn btn-sm btn-primary">فتح الشاشة</a></td>
+          </tr>
+          <tr>
+            <td><strong>إعداد المصادقة الثنائية (2FA)</strong></td>
+            <td><code>SCR-A02</code> · <code>auth-otp-setup.html</code></td>
+            <td>توليد رمز QR، المفتاح السري، و 8 رموز نسخ احتياطي للطوارئ (R-15.2-1, R-15.2-2)</td>
+            <td>الموظفون الجدد</td>
+            <td><a href="auth-otp-setup.html" class="btn btn-sm btn-primary">فتح الشاشة</a></td>
+          </tr>
+          <tr>
+            <td><strong>التحقق بخطوتين (OTP Entry)</strong></td>
+            <td><code>SCR-A03</code> · <code>auth-otp-verify.html</code></td>
+            <td>تحدي الـ 6 أرقام مع دعم رموز الطوارئ البديلة وتذكر الجهاز (R-15.2-3)</td>
+            <td>الجميع</td>
+            <td><a href="auth-otp-verify.html" class="btn btn-sm btn-primary">فتح الشاشة</a></td>
+          </tr>
+          <tr>
+            <td><strong>استعادة كلمة المرور</strong></td>
+            <td><code>SCR-A04</code> · <code>auth-forgot-password.html</code></td>
+            <td>إدخال البريد، رمز التحقق المؤقت، وتعيين كلمة مرور جديدة (R-15.1-1)</td>
+            <td>الجميع</td>
+            <td><a href="auth-forgot-password.html" class="btn btn-sm btn-primary">فتح الشاشة</a></td>
+          </tr>
+          <tr>
+            <td><strong>لوحة الاستقبال — اليوم</strong></td>
+            <td><code>SCR-B01</code> · <code>reception-today.html</code></td>
+            <td>إحصائيات اليوم، تدفق المرضى، تسجيل الحضور، وتنبيهات التأخر > 10 دقائق (R-6-2, R-14)</td>
+            <td>استقبال، مدير، مالك</td>
+            <td><a href="reception-today.html" class="btn btn-sm btn-primary">فتح الشاشة</a></td>
+          </tr>
+          <tr>
+            <td><strong>جدول الأسِرّة اليومي (15 دقيقة)</strong></td>
+            <td><code>SCR-B02</code> · <code>calendar-day.html</code></td>
+            <td>شبكة 15 دقيقة تقاطع الغرف والأسرة مع الوقت ومواعيد اليوم المجدولة (R-5.1, R-5.2)</td>
+            <td>استقبال، مدير، مالك</td>
+            <td><a href="calendar-day.html" class="btn btn-sm btn-primary">فتح الشاشة</a></td>
+          </tr>
+          <tr>
+            <td><strong>درج إجراءات الموعد</strong></td>
+            <td><code>DRW-B05</code> · <code>appointment-action-panel.html</code></td>
+            <td>تسجيل الحضور، إلغاء الحضور، تحويل لقائمة الانتظار، إلغاء مع السبب، تذكير واتساب</td>
+            <td>استقبال، مدير، مالك</td>
+            <td><a href="appointment-action-panel.html" class="btn btn-sm btn-primary">فتح الشاشة</a></td>
+          </tr>
+          <tr>
+            <td><strong>نموذج حجز موعد جديد</strong></td>
+            <td><code>MDL-B03</code> · <code>booking-form.html</code></td>
+            <td>تحديد المريض، السرير، المعالج، والوقت، وتعديل السعر المبرر قبل الدفع (DEC-012)</td>
+            <td>استقبال، مدير، مالك</td>
+            <td><a href="booking-form.html" class="btn btn-sm btn-primary">فتح الشاشة</a></td>
+          </tr>
+          <tr>
+            <td><strong>معاينة سلسلة مواعيد الباقة</strong></td>
+            <td><code>MDL-B04</code> · <code>recurring-series-preview.html</code></td>
+            <td>معاينة تواريخ السلسلة وحل تعارضات السرير أو الأخصائي لكل جلسة (R-5.2-10)</td>
+            <td>استقبال، مدير، مالك</td>
+            <td><a href="recurring-series-preview.html" class="btn btn-sm btn-primary">فتح الشاشة</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Task 1.16 Placeholder Section -->
+    <div class="task-section" id="section-116">
+      <div class="card-header" style="background: var(--wf-grey-200); padding: 10px 14px; border: 1px solid var(--wf-border-dark); border-radius: 4px;">
+        <h2 style="font-size: 15px; font-weight: bold;">حزمة 1.16: المرضى والماليات (Patients & Money)</h2>
+        <span class="badge" style="background: var(--wf-grey-600); color: #fff;">قيد الإنجاز (Task 1.16)</span>
+      </div>
+      <p style="font-size: 12px; color: var(--wf-text-muted); padding: 10px 0;">
+        سيتم إدراج شاشات تسجيل المرضى مع التحقق من هاتف ولي الأمر، الملف الإداري، إصدار وتمديد الباقات، تحصيل الدفعات، إيصال A5، وإلغاء/استرداد المبالغ، وإغلاق الوردية النقدية.
+      </p>
+    </div>
+
+    <!-- Task 1.17 Placeholder Section -->
+    <div class="task-section" id="section-117">
+      <div class="card-header" style="background: var(--wf-grey-200); padding: 10px 14px; border: 1px solid var(--wf-border-dark); border-radius: 4px;">
+        <h2 style="font-size: 15px; font-weight: bold;">حزمة 1.17: الملفات الطبية والإدارة (Clinical & Admin)</h2>
+        <span class="badge" style="background: var(--wf-grey-600); color: #fff;">قيد الإنجاز (Task 1.17)</span>
+      </div>
+      <p style="font-size: 12px; color: var(--wf-text-muted); padding: 10px 0;">
+        سيتم إدراج مساحة عمل المعالج، استكمال الجلسة وتقارير SOAP، تعديل الملاحظة والملحقات، استشارة التغذية و InBody، تقارير الإدارة، إعدادات العيادة، وجداول الموظفين، وسجل الرقابة.
+      </p>
+    </div>
+  </div>
+</body>
+</html>

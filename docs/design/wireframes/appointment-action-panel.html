@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة إجراءات الموعد — عيادة مسار</title>
+  <link rel="stylesheet" href="wireframe.css">
+  <style>
+    .drawer-container {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 480px;
+      background: var(--wf-surface);
+      border-right: 2px solid var(--wf-border-dark);
+      box-shadow: -4px 0 20px rgba(0,0,0,0.15);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+    }
+    .drawer-header {
+      padding: 16px;
+      background: var(--wf-grey-200);
+      border-bottom: 1px solid var(--wf-border-dark);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .drawer-body {
+      padding: 20px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .drawer-footer {
+      padding: 16px;
+      background: var(--wf-grey-100);
+      border-top: 1px solid var(--wf-border);
+      display: flex;
+      justify-content: space-between;
+    }
+    .action-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wf-banner">
+    <span>[واجهة سلكية تجريبية - Task 1.15] لوحة إجراءات وتفاصيل الموعد (DRW-B05)</span>
+    <a href="calendar-day.html">← العودة للجدول</a>
+  </div>
+
+  <!-- Background Dimmed Context -->
+  <div style="opacity: 0.3; pointer-events: none; padding: 20px;">
+    <h1>جدول المواعيد اليومي - معاينة في الخلفية</h1>
+    <p>تم فتح درج الإجراءات للموعد المحدد #APT-2026-0982</p>
+  </div>
+
+  <!-- Slide-out Action Panel -->
+  <div class="drawer-container">
+    <div class="drawer-header">
+      <div>
+        <h2 style="font-size: 16px; font-weight: bold;">تفاصيل الموعد #APT-0982</h2>
+        <span class="badge" style="background: var(--wf-grey-800); color: #fff;">مجدول (Scheduled)</span>
+      </div>
+      <a href="reception-today.html" class="btn btn-sm">✕ إغلاق</a>
+    </div>
+
+    <div class="drawer-body">
+      <!-- Patient Card -->
+      <div class="card" style="margin-bottom: 16px; padding: 12px; border-right: 4px solid var(--wf-grey-800);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div>
+            <div style="font-weight: bold; font-size: 15px;">أحمد مصطفى كامل</div>
+            <div style="font-size: 12px; color: var(--wf-text-muted);">كود: MAS-00104 · 34 سنة · ذكر</div>
+            <div style="font-size: 12px; margin-top: 2px;">هاتف: <strong>01012345678</strong></div>
+          </div>
+          <a href="patient-profile.html" class="btn btn-sm">الملف الإداري</a>
+        </div>
+        <div style="margin-top: 8px; font-size: 11px; background: var(--wf-grey-200); padding: 4px 8px; border-radius: 3px;">
+          ⚠️ تنبيه طبي: ارتفاع ضغط الدم (Hypertension)
+        </div>
+      </div>
+
+      <!-- Appointment Core Details -->
+      <div class="card" style="margin-bottom: 16px; padding: 12px;">
+        <table style="width: 100%; font-size: 12px; line-height: 1.8;">
+          <tr>
+            <td style="color: var(--wf-text-muted); width: 100px;">التاريخ والوقت:</td>
+            <td><strong>اليوم، 25 أكتوبر 2026 (09:30 ص - 10:30 ص)</strong></td>
+          </tr>
+          <tr>
+            <td style="color: var(--wf-text-muted);">نوع الجلسة:</td>
+            <td>جلسة علاج طبيعي (Physiotherapy) - 60 دقيقة</td>
+          </tr>
+          <tr>
+            <td style="color: var(--wf-text-muted);">الأخصائي المعالج:</td>
+            <td>د. كريم حسني</td>
+          </tr>
+          <tr>
+            <td style="color: var(--wf-text-muted);">المكان والسرير:</td>
+            <td>غرفة 1 — سرير 2</td>
+          </tr>
+          <tr>
+            <td style="color: var(--wf-text-muted);">حالة التغطية:</td>
+            <td>باقة علاج طبيعي 12 جلسة (الجلسة 4 من 12)</td>
+          </tr>
+          <tr>
+            <td style="color: var(--wf-text-muted);">السعر والمستحق:</td>
+            <td>450.00 ج.م <span class="badge" style="background: var(--wf-grey-300);">مغطى بالباقة بالكامل</span></td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Status Progression Actions -->
+      <div style="font-weight: bold; font-size: 13px; margin-bottom: 8px;">إجراءات تحديث الحالة (R-5.5):</div>
+      <div class="action-grid">
+        <button class="btn btn-primary" onclick="alert('تم تسجيل حضور المريض (R-5.5-3)');">
+          ✅ تسجيل حضور (Check-in)
+        </button>
+        <button class="btn" onclick="alert('تم التراجع عن تسجيل الحضور مع ذكر السبب (R-5.5-3)');">
+          ↩️ تراجع عن الحضور
+        </button>
+        <button class="btn" onclick="alert('تم تحويل الموعد لقائمة الانتظار: تحرير السرير مع حجز جلسة الباقة (R-5.5-4, DEC-008)');">
+          ⏳ تحويل لقائمة الانتظار
+        </button>
+        <button class="btn" onclick="alert('تم تسجيل غياب المريض No-show (R-5.5-7)');">
+          ❌ تسجيل غياب (No-show)
+        </button>
+      </div>
+
+      <!-- Reschedule & Cancel Section -->
+      <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--wf-border);">
+        <div style="font-weight: bold; font-size: 13px; margin-bottom: 8px;">إلغاء الموعد أو إعادة الجدولة (R-5.2):</div>
+        <div class="form-group">
+          <label class="form-label">سبب الإلغاء الإلزامي (R-5.5-10):</label>
+          <select class="form-control" style="font-size: 12px;">
+            <option>ظرف طارئ للمريض (مرض / سفر)</option>
+            <option>اعتذار الطبيب المعالج</option>
+            <option>طلب المريض تأجيل الموعد</option>
+            <option>عدم الرد على التذكير</option>
+          </select>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn" style="color: #000; border-color: #000;" onclick="alert('تم إلغاء الموعد وتسجيل السبب في سجل الرقابة (R-5.5-10)');">إلغاء الموعد</button>
+          <a href="calendar-day.html" class="btn">إعادة جدولة (Reschedule)</a>
+        </div>
+      </div>
+
+      <!-- Quick WhatsApp & Payment -->
+      <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--wf-border);">
+        <div style="font-weight: bold; font-size: 13px; margin-bottom: 8px;">التواصل والتحصيل:</div>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn" onclick="alert('تم فتح رابط الواتساب التذكيري: https://wa.me/201012345678 (R-6-2)');">
+            💬 إرسال تذكير واتساب
+          </button>
+          <a href="collect-payment.html" class="btn">💳 تحصيل دفعة مالية</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="drawer-footer">
+      <span style="font-size: 11px; color: var(--wf-text-muted);">تم الإنشاء بواسطة سارة إبراهيم في 2026-10-24 11:20 ص</span>
+      <a href="reception-today.html" class="btn btn-sm">إغلاق اللوحة</a>
+    </div>
+  </div>
+</body>
+</html>

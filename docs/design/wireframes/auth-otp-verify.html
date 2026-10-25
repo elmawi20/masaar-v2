@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>التحقق من الهوية (2FA Challenge) — عيادة مسار</title>
+  <link rel="stylesheet" href="wireframe.css">
+  <style>
+    .auth-container {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+    }
+    .auth-box {
+      width: 100%;
+      max-width: 420px;
+      background: var(--wf-surface);
+      border: 1px solid var(--wf-border-dark);
+      border-radius: 6px;
+      padding: 28px;
+      text-align: center;
+    }
+    .otp-inputs {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      direction: ltr;
+      margin: 20px 0;
+    }
+    .otp-digit {
+      width: 44px;
+      height: 48px;
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+      border: 1px solid var(--wf-border-dark);
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wf-banner">
+    <span>[واجهة سلكية تجريبية - Task 1.15] شاشة التحقق بخطوتين (SCR-A03)</span>
+    <a href="index.html">← فهرس جميع الواجهات</a>
+  </div>
+
+  <div class="auth-container">
+    <div class="auth-box">
+      <div style="font-size: 32px; margin-bottom: 8px;">🔒</div>
+      <h2 style="font-size: 18px; margin-bottom: 6px;">التحقق من الهوية (خطوة ثانية)</h2>
+      <p style="font-size: 12px; color: var(--wf-text-muted);">
+        أدخل الرمز المكون من 6 أرقام من تطبيق المصادقة الخاص بك
+      </p>
+
+      <div style="background: var(--wf-grey-100); border: 1px solid var(--wf-border); padding: 8px; border-radius: 4px; font-size: 12px; margin: 12px 0;">
+        الحساب: <strong>reception@masaarclinic.com</strong>
+      </div>
+
+      <form onsubmit="event.preventDefault(); window.location.href='reception-today.html';">
+        <div class="otp-inputs">
+          <input type="text" maxlength="1" class="otp-digit" value="7" autofocus>
+          <input type="text" maxlength="1" class="otp-digit" value="3">
+          <input type="text" maxlength="1" class="otp-digit" value="1">
+          <input type="text" maxlength="1" class="otp-digit" value="9">
+          <input type="text" maxlength="1" class="otp-digit" value="4">
+          <input type="text" maxlength="1" class="otp-digit" value="0">
+        </div>
+
+        <div class="form-group" style="text-align: right; margin-bottom: 16px;">
+          <label class="form-check">
+            <input type="checkbox" id="trust-device" checked>
+            <span style="font-size: 12px;">تذكر هذا الجهاز الموثوق لمدة 30 يوماً (R-15.2-4)</span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 10px;">
+          تحقق ودخول
+        </button>
+      </form>
+
+      <div style="margin-top: 20px; font-size: 12px;">
+        <a href="#" onclick="alert('قم بإدخال أحد الرموز الثمانية المخصصة للطوارئ المكون من 8 أرقام');" style="color: var(--wf-grey-700); text-decoration: underline;">
+          فقدت هاتفك؟ استخدم رمز النسخ الاحتياطي (Emergency Backup Code)
+        </a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

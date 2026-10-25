@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>واجهة تسجيل الدخول — عيادة مسار</title>
+  <link rel="stylesheet" href="wireframe.css">
+  <style>
+    .auth-container {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .auth-box {
+      width: 100%;
+      max-width: 400px;
+      background: var(--wf-surface);
+      border: 1px solid var(--wf-border-dark);
+      border-radius: 6px;
+      padding: 28px;
+    }
+    .auth-logo {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .auth-logo h1 {
+      font-size: 20px;
+      font-weight: bold;
+    }
+    .auth-logo p {
+      font-size: 12px;
+      color: var(--wf-text-muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="wf-banner">
+    <span>[واجهة سلكية تجريبية - Task 1.15] شاشة تسجيل الدخول (SCR-A01)</span>
+    <a href="index.html">← فهرس جميع الواجهات</a>
+  </div>
+
+  <div class="auth-container">
+    <div class="auth-box">
+      <div class="auth-logo">
+        <div style="width: 48px; height: 48px; background: var(--wf-grey-300); border: 2px solid var(--wf-border-dark); margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+          مسار
+        </div>
+        <h1>عيادة مسار — فرع المعادي</h1>
+        <p>نظام الإدارة والتشغيل والملف الطبي الموحد</p>
+      </div>
+
+      <form onsubmit="event.preventDefault(); window.location.href='auth-otp-verify.html';">
+        <div class="form-group">
+          <label class="form-label" for="email">البريد الإلكتروني للعمل</label>
+          <input type="email" id="email" class="form-control" placeholder="staff@masaarclinic.com" value="reception@masaarclinic.com" required>
+        </div>
+
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <label class="form-label" for="password" style="margin-bottom: 0;">كلمة المرور</label>
+            <a href="auth-forgot-password.html" style="font-size: 11px; color: var(--wf-grey-700);">نسيت كلمة المرور؟</a>
+          </div>
+          <input type="password" id="password" class="form-control" value="••••••••••••" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-check">
+            <input type="checkbox" id="trust-device" checked>
+            <span style="font-size: 12px;">تذكر هذا الجهاز الموثوق لمدة 30 يوماً (R-15.2-4)</span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 10px; margin-top: 8px;">
+          تسجيل الدخول ومتابعة التحقق
+        </button>
+      </form>
+
+      <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--wf-border); text-align: center; font-size: 11px; color: var(--wf-text-muted);">
+        حساب تجريبي أول مرة؟ <a href="auth-otp-setup.html" style="color: var(--wf-grey-800); text-decoration: underline;">محاكاة إعداد المصادقة الثنائية (TOTP Setup)</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

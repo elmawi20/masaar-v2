@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>إعداد المصادقة الثنائية (TOTP Setup) — عيادة مسار</title>
+  <link rel="stylesheet" href="wireframe.css">
+  <style>
+    .auth-container {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+    }
+    .setup-box {
+      width: 100%;
+      max-width: 520px;
+      background: var(--wf-surface);
+      border: 1px solid var(--wf-border-dark);
+      border-radius: 6px;
+      padding: 28px;
+    }
+    .qr-placeholder {
+      width: 160px;
+      height: 160px;
+      margin: 16px auto;
+      background: var(--wf-grey-200);
+      border: 2px dashed var(--wf-border-dark);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: var(--wf-text-muted);
+      text-align: center;
+      padding: 8px;
+    }
+    .backup-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      background: var(--wf-grey-100);
+      border: 1px solid var(--wf-border);
+      padding: 12px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 13px;
+      direction: ltr;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .otp-inputs {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      direction: ltr;
+      margin: 16px 0;
+    }
+    .otp-digit {
+      width: 44px;
+      height: 48px;
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+      border: 1px solid var(--wf-border-dark);
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wf-banner">
+    <span>[واجهة سلكية تجريبية - Task 1.15] إعداد المصادقة الثنائية لأول مرة (SCR-A02)</span>
+    <a href="index.html">← فهرس جميع الواجهات</a>
+  </div>
+
+  <div class="auth-container">
+    <div class="setup-box">
+      <h2 style="font-size: 18px; margin-bottom: 8px;">تأمين الحساب — المصادقة الثنائية (TOTP)</h2>
+      <p style="font-size: 12px; color: var(--wf-text-muted); margin-bottom: 16px;">
+        وفقاً لسياسة أمان عيادة مسار (R-15.2-1)، يجب ربط تطبيق المصادقة (Google Authenticator أو 1Password) بحسابك.
+      </p>
+
+      <div class="card" style="margin-bottom: 16px; padding: 14px;">
+        <div style="font-weight: bold; font-size: 13px;">الخطوة 1: امسح رمز الاستجابة السريعة (QR Code)</div>
+        <div class="qr-placeholder">
+          <div style="font-weight: bold; margin-bottom: 4px;">[ QR CODE ]</div>
+          <div>otpauth://totp/Masaar:reception...</div>
+        </div>
+        <div style="text-align: center; font-size: 11px;">
+          المفتاح السري للإدخال اليدوي:
+          <code style="background: var(--wf-grey-300); padding: 2px 6px; font-weight: bold; direction: ltr; display: inline-block;">JBSWY3DPEHPK3PXP</code>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: 16px; padding: 14px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <div style="font-weight: bold; font-size: 13px;">الخطوة 2: رموز النسخ الاحتياطي للطوارئ (8 رموز)</div>
+          <button type="button" class="btn btn-sm" onclick="alert('تم نسخ الرموز إلى الحافظة');">نسخ الرموز</button>
+        </div>
+        <p style="font-size: 11px; color: var(--wf-text-muted); margin-bottom: 8px;">
+          احفظ هذه الرموز في مكان آمن. يُستخدم كل رمز لمرة واحدة فقط للدخول إذا فقدت هاتفك (R-15.2-2):
+        </p>
+        <div class="backup-grid">
+          <div>8392-1048</div>
+          <div>9182-4412</div>
+          <div>5501-9238</div>
+          <div>7162-8831</div>
+          <div>3302-6194</div>
+          <div>4819-2041</div>
+          <div>6291-7730</div>
+          <div>1184-9052</div>
+        </div>
+        <label class="form-check">
+          <input type="checkbox" id="confirm-save" required>
+          <span style="font-size: 12px; font-weight: bold;">أؤكد أنني قمت بنسخ وحفظ رموز الطوارئ في مكان آمن</span>
+        </label>
+      </div>
+
+      <form onsubmit="event.preventDefault(); window.location.href='reception-today.html';">
+        <div class="form-group" style="text-align: center;">
+          <label class="form-label">الخطوة 3: أدخل الرمز المكون من 6 أرقام الظاهر في هاتفك</label>
+          <div class="otp-inputs">
+            <input type="text" maxlength="1" class="otp-digit" value="4">
+            <input type="text" maxlength="1" class="otp-digit" value="8">
+            <input type="text" maxlength="1" class="otp-digit" value="2">
+            <input type="text" maxlength="1" class="otp-digit" value="9">
+            <input type="text" maxlength="1" class="otp-digit" value="1">
+            <input type="text" maxlength="1" class="otp-digit" value="5">
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 10px;">
+          تأكيد التفعيل والدخول للنظام
+        </button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

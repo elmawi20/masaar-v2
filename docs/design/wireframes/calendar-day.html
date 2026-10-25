@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>جدول المواعيد والأسِرّة — اليوم | عيادة مسار</title>
+  <link rel="stylesheet" href="wireframe.css">
+  <style>
+    .cal-grid {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+    .cal-grid th, .cal-grid td {
+      border: 1px solid var(--wf-border);
+      padding: 4px;
+      font-size: 11px;
+    }
+    .cal-time-col {
+      width: 80px;
+      background: var(--wf-grey-200);
+      text-align: center;
+      font-weight: bold;
+    }
+    .cal-cell {
+      height: 38px;
+      background: #fff;
+      vertical-align: top;
+      cursor: pointer;
+      position: relative;
+    }
+    .cal-cell:hover {
+      background: var(--wf-grey-100);
+    }
+    .cal-booking-block {
+      background: var(--wf-grey-200);
+      border: 1px solid var(--wf-border-dark);
+      border-right: 4px solid var(--wf-grey-800);
+      border-radius: 3px;
+      padding: 4px 6px;
+      font-size: 11px;
+      height: 100%;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .cal-booking-block.status-arrived {
+      border-right-color: var(--wf-grey-600);
+      background: var(--wf-grey-300);
+    }
+    .cal-booking-block.status-completed {
+      border-right-color: var(--wf-grey-900);
+      background: var(--wf-grey-200);
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="wf-banner">
+    <span>[واجهة سلكية تجريبية - Task 1.15] جدول الأسِرّة اليومي — شبكة الـ 15 دقيقة (SCR-B02)</span>
+    <a href="index.html">← فهرس جميع الواجهات</a>
+  </div>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-logo">عيادة مسار — المعادي</div>
+      <div class="nav-group">
+        <span class="nav-label">الاستقبال والتشغيل</span>
+        <a href="reception-today.html" class="nav-item">📅 اليوم (Today)</a>
+        <a href="calendar-day.html" class="nav-item active">🗓️ جدول الأسرة والمواعيد</a>
+        <a href="patient-profile.html" class="nav-item">👥 دليل المرضى</a>
+        <a href="patient-registration.html" class="nav-item">➕ مريض جديد</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-label">تصفية العرض</span>
+        <div style="padding: 0 12px;">
+          <label class="form-label" style="font-size: 11px;">عرض الغرف والأسرة:</label>
+          <select class="form-control" style="font-size: 11px; margin-bottom: 8px;">
+            <option>جميع الأسرة (1 - 5)</option>
+            <option>غرفة 1 (أسرة 1، 2، 3)</option>
+            <option>غرفة 2 (أسرة 4، 5)</option>
+          </select>
+
+          <label class="form-label" style="font-size: 11px;">تصفية بالمعالج:</label>
+          <select class="form-control" style="font-size: 11px; margin-bottom: 8px;">
+            <option>جميع الأطباء والأخصائيين</option>
+            <option>د. كريم حسني (علاج طبيعي)</option>
+            <option>د. سارة عادل (علاج طبيعي)</option>
+            <option>د. نورهان سعيد (تغذية)</option>
+          </select>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <div class="topbar">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <h1 style="font-size: 16px; font-weight: bold;">الأحد 25 أكتوبر 2026</h1>
+          <div style="display: flex; gap: 4px;">
+            <button class="btn btn-sm">اليوم</button>
+            <button class="btn btn-sm">‹ السابق</button>
+            <button class="btn btn-sm">التالي ›</button>
+          </div>
+          <span style="font-size: 12px; color: var(--wf-text-muted);">(ساعات العمل: 09:00 ص - 09:00 م)</span>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <div style="display: flex; border: 1px solid var(--wf-border-dark); border-radius: 4px; overflow: hidden;">
+            <button class="btn btn-sm btn-primary" style="border-radius: 0;">يوم (Day)</button>
+            <button class="btn btn-sm" style="border-radius: 0; border: none;">أسبوع (Week)</button>
+            <button class="btn btn-sm" style="border-radius: 0; border: none;">شهر (Month)</button>
+          </div>
+          <a href="booking-form.html" class="btn btn-primary btn-sm">➕ حجز موعد جديد</a>
+        </div>
+      </div>
+
+      <!-- Calendar 15-min Grid -->
+      <div class="card" style="padding: 0; overflow-x: auto;">
+        <table class="cal-grid">
+          <thead>
+            <tr style="background: var(--wf-grey-300);">
+              <th class="cal-time-col">الوقت</th>
+              <th>غرفة 1 - سرير 1<br><small>(علاج طبيعي)</small></th>
+              <th>غرفة 1 - سرير 2<br><small>(علاج طبيعي)</small></th>
+              <th>غرفة 1 - سرير 3<br><small>(علاج طبيعي)</small></th>
+              <th>غرفة 2 - سرير 4<br><small>(علاج طبيعي/تأهيل)</small></th>
+              <th>غرفة 2 - سرير 5<br><small>(كشف واستشارة)</small></th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- 09:00 AM -->
+            <tr>
+              <td class="cal-time-col">09:00 ص</td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+              <td class="cal-cell" rowspan="4" style="padding: 2px;">
+                <div class="cal-booking-block status-completed" onclick="window.location.href='appointment-action-panel.html';">
+                  <div style="display: flex; justify-content: space-between;">
+                    <strong>أحمد مصطفى كامل</strong>
+                    <span class="badge" style="font-size: 9px;">مكتمل</span>
+                  </div>
+                  <div>د. كريم حسني (علاج طبيعي - باقة 4/12)</div>
+                  <div style="font-size: 10px; color: var(--wf-text-muted);">09:00 ص - 10:00 ص (60 د)</div>
+                </div>
+              </td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+              <td class="cal-cell" rowspan="3" style="padding: 2px;">
+                <div class="cal-booking-block status-completed" onclick="window.location.href='appointment-action-panel.html';">
+                  <div style="display: flex; justify-content: space-between;">
+                    <strong>منى محمود إبراهيم</strong>
+                    <span class="badge" style="font-size: 9px;">مكتمل</span>
+                  </div>
+                  <div>د. نورهان سعيد (استشارة تغذية)</div>
+                  <div style="font-size: 10px; color: var(--wf-text-muted);">09:00 ص - 09:45 ص (45 د)</div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="cal-time-col">09:15 ص</td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+            </tr>
+            <tr>
+              <td class="cal-time-col">09:30 ص</td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+            </tr>
+            <tr>
+              <td class="cal-time-col">09:45 ص</td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+            </tr>
+
+            <!-- 10:00 AM -->
+            <tr>
+              <td class="cal-time-col">10:00 ص</td>
+              <td class="cal-cell" rowspan="3" style="padding: 2px;">
+                <div class="cal-booking-block status-arrived" onclick="window.location.href='appointment-action-panel.html';">
+                  <div style="display: flex; justify-content: space-between;">
+                    <strong>محمود عبد الله</strong>
+                    <span class="badge" style="font-size: 9px;">حضر بالانتظار</span>
+                  </div>
+                  <div>د. سارة عادل (علاج طبيعي)</div>
+                  <div style="font-size: 10px; color: var(--wf-text-muted);">10:00 ص - 10:45 ص (45 د)</div>
+                </div>
+              </td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+            </tr>
+            <tr>
+              <td class="cal-time-col">10:15 ص</td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+            </tr>
+            <tr>
+              <td class="cal-time-col">10:30 ص</td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+            </tr>
+            <tr>
+              <td class="cal-time-col">10:45 ص</td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+            </tr>
+
+            <!-- 11:00 AM -->
+            <tr>
+              <td class="cal-time-col">11:00 ص</td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+              <td class="cal-cell" rowspan="4" style="padding: 2px;">
+                <div class="cal-booking-block" onclick="window.location.href='appointment-action-panel.html';">
+                  <div style="display: flex; justify-content: space-between;">
+                    <strong>طارق عبد الرحمن</strong>
+                    <span class="badge" style="font-size: 9px;">مجدول</span>
+                  </div>
+                  <div>د. كريم حسني (علاج طبيعي - كشف أول)</div>
+                  <div style="font-size: 10px; color: var(--wf-text-muted);">11:00 ص - 12:00 م (60 د)</div>
+                </div>
+              </td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+            </tr>
+            <tr>
+              <td class="cal-time-col">11:15 ص</td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+              <td class="cal-cell" onclick="window.location.href='booking-form.html';"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

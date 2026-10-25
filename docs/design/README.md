@@ -26,7 +26,7 @@ This directory contains all approved Stage 1 design specifications, matrices, di
 | **1.12** | [`data-model.md`](file:///F:/Claude%20CRM/docs/design/data-model.md) (Slice E)<br>[`prisma/schema.prisma`](file:///F:/Claude%20CRM/prisma/schema.prisma) | DB Slice E: Clinical, nutrition & back office | **Done** | 2026-10-25 |
 | **1.13** | [`constraints.md`](file:///F:/Claude%20CRM/docs/design/constraints.md)<br>[`prisma/schema.prisma`](file:///F:/Claude%20CRM/prisma/schema.prisma) | DB consolidation, complete ERD & constraints | **Done** | 2026-10-25 |
 | **1.14** | [`screens.md`](file:///F:/Claude%20CRM/docs/design/screens.md) | Screen catalog & navigation map by role | **Done** | 2026-10-25 |
-| **1.15** | `wireframes/` (Auth & Front Desk) | Low-fidelity HTML wireframes: Auth & Front desk | Pending | — |
+| **1.15** | [`wireframes/`](file:///F:/Claude%20CRM/docs/design/wireframes/index.html) (Auth & Front Desk) | Low-fidelity HTML wireframes: Auth & Front desk | **Done** | 2026-10-25 |
 | **1.16** | `wireframes/` (Patients & Money) | Low-fidelity HTML wireframes: Patients & Billing | Pending | — |
 | **1.17** | `wireframes/` (Clinical & Admin) | Low-fidelity HTML wireframes: Clinical & Admin | Pending | — |
 | **1.18** | `actions.md` | Server actions catalog with validation & audit | Pending | — |
