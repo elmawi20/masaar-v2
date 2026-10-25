@@ -318,6 +318,108 @@ erDiagram
     }
 ```
 
+### 2.3 Slice C — Scheduling ERD
+
+```mermaid
+erDiagram
+    Appointment ||--o| AppointmentSeries : "belongs_to_series"
+    Appointment ||--o{ AppointmentStatusHistory : "has_status_history"
+    Appointment ||--o{ AppointmentReminder : "has_reminders"
+    Appointment ||--o{ InAppNotification : "triggers_notifications"
+
+    Patient ||--o{ Appointment : "booked_for"
+    Patient ||--o{ AppointmentSeries : "has_series"
+    Patient ||--o{ InAppNotification : "related_to"
+
+    SessionType ||--o{ Appointment : "classified_by"
+    SessionType ||--o{ AppointmentSeries : "specifies"
+
+    Room ||--o{ Appointment : "hosted_in"
+    Room ||--o{ AppointmentSeries : "assigned_room"
+
+    Bed ||--o{ Appointment : "reserved_bed"
+    Bed ||--o{ AppointmentSeries : "assigned_bed"
+
+    User ||--o{ Appointment : "conducted_by_clinician"
+    User ||--o{ AppointmentSeries : "clinician_roster"
+    User ||--o{ AppointmentStatusHistory : "transitioned_by"
+    User ||--o{ AppointmentReminder : "manually_triggered_by"
+    User ||--o{ InAppNotification : "receives_notification"
+
+    Appointment {
+        uuid id PK
+        uuid patient_id FK
+        uuid session_type_id FK
+        uuid clinician_id FK
+        uuid room_id FK
+        uuid bed_id FK
+        uuid series_id FK "nullable"
+        date appointment_date
+        string start_time
+        string end_time
+        datetime starts_at
+        datetime ends_at
+        int duration_minutes
+        int price_piasters "nullable"
+        enum status
+        int late_minutes "nullable"
+        datetime check_in_at
+        datetime completed_at
+        datetime cancelled_at
+        datetime no_show_at
+    }
+
+    AppointmentSeries {
+        uuid id PK
+        uuid patient_id FK
+        uuid session_type_id FK
+        uuid clinician_id FK
+        uuid room_id FK
+        uuid bed_id FK
+        array days_of_week
+        string start_time
+        int duration_minutes
+        int total_sessions
+        date start_date
+        date end_date
+        boolean is_active
+    }
+
+    AppointmentStatusHistory {
+        uuid id PK
+        uuid appointment_id FK
+        enum from_status
+        enum to_status
+        uuid changed_by_user_id FK
+        text reason
+        datetime transitioned_at
+    }
+
+    AppointmentReminder {
+        uuid id PK
+        uuid appointment_id FK
+        enum channel
+        string recipient_phone
+        datetime sent_at
+        enum status
+        string template_key
+    }
+
+    InAppNotification {
+        uuid id PK
+        uuid user_id FK
+        enum type
+        string title_ar
+        string title_en
+        text body_ar
+        text body_en
+        uuid appointment_id FK "nullable"
+        uuid patient_id FK "nullable"
+        boolean is_read
+        datetime created_at
+    }
+```
+
 ---
 
 ## 3. Database Table Dictionaries
@@ -911,6 +1013,175 @@ erDiagram
 
 ---
 
+### Slice C — Scheduling Tables
+
+### 3.23 `appointments`
+- **Purpose:** Core calendar booking record linking a patient, clinician, session type, room, bed, and time interval.
+- **Rule References:** `R-5.1-1`, `R-5.1-2`, `R-5.2-1` through `R-5.2-12`, `R-5.5-1` through `R-5.5-13`, `R-14-2`, `DEC-006`, `DEC-021`
+
+| Column | Type | Nullable | Default | Description (AR / EN) | Rule ID |
+|---|---|:---:|---|---|:---:|
+| `id` | `UUID` | No | `uuid()` | Primary Key (معرف الموعد) | `R-5.1-1` |
+| `patient_id` | `UUID` | No | — | FK to `patients.id` (معرف المريض) | `R-5.1-1` |
+| `session_type_id` | `UUID` | No | — | FK to `session_types.id` (نوع الجلسة) | `R-5.1-1`, `R-5.2-8` |
+| `clinician_id` | `UUID` | No | — | FK to `users.id` (المعالج المحدد) | `R-5.1-1`, `R-5.2-2` |
+| `room_id` | `UUID` | No | — | FK to `rooms.id` (غرفة العلاج) | `R-5.1-1` |
+| `bed_id` | `UUID` | No | — | FK to `beds.id` (سرير العلاج المحدد) | `R-5.1-1`, `R-5.2-4` |
+| `series_id` | `UUID` | Yes | `NULL` | FK to `appointment_series.id` if recurring (معرف سلسلة المواعيد المتكررة) | `R-5.3-1` |
+| `package_id` | `UUID` | Yes | `NULL` | FK to `packages.id` if covered by package (معرف الباقة المرتبطة) | `R-5.1-1`, `R-5.2-7` |
+| `appointment_date` | `DATE` | No | — | Clinic-local calendar date in Cairo time (تاريخ الموعد الفعلي) | `R-0-5`, `R-5.1-1` |
+| `start_time` | `VARCHAR(5)` | No | — | Local time HH:mm 24h e.g. "09:30" (وقت البدء) | `R-5.1-1` |
+| `end_time` | `VARCHAR(5)` | No | — | Local time HH:mm 24h e.g. "10:15" (وقت الانتهاء) | `R-5.1-1` |
+| `starts_at` | `TIMESTAMPTZ` | No | — | Exact UTC start timestamp for btree_gist range (بداية الموعد بالتوقيت الموحد) | `R-0-5`, `R-5.2-12` |
+| `ends_at` | `TIMESTAMPTZ` | No | — | Exact UTC end timestamp for btree_gist range (نهاية الموعد بالتوقيت الموحد) | `R-0-5`, `R-5.2-12` |
+| `duration_minutes` | `INTEGER` | No | `45` | Duration in minutes (15..180, steps of 15) (مدة الجلسة بالدقائق) | `R-5.1-1` |
+| `price_piasters` | `INTEGER` | Yes | `NULL` | Price in integer piasters; NULL when covered by package (سعر الجلسة بالقروش) | `R-0-4`, `R-5.1-1` |
+| `status` | `VARCHAR(20)` | No | `'SCHEDULED'` | Status: `SCHEDULED`, `ARRIVED`, `COMPLETED`, `CANCELLED`, `NO_SHOW`, `WAITLISTED` (حالة الموعد) | `R-5.5-1` |
+| `notes_for_reception` | `TEXT` | Yes | `NULL` | Operational notes for front desk staff (ملاحظات الاستقبال) | `R-5.1-1` |
+| `check_in_at` | `TIMESTAMPTZ` | Yes | `NULL` | Physical arrival timestamp at clinic desk (وقت تسجيل الحضور) | `R-5.5-3`, `R-6-2` |
+| `late_minutes` | `INTEGER` | Yes | `NULL` | Arrival delay in minutes; recorded upon check-in (دقائق التأخير عند الحضور) | `R-14-2`, `DEC-018` |
+| `completedAt` | `TIMESTAMPTZ` | Yes | `NULL` | Session form submission timestamp (وقت إتمام الجلسة سريرياً) | `R-5.5-5`, `R-9.1-7` |
+| `cancelled_at` | `TIMESTAMPTZ` | Yes | `NULL` | Cancellation timestamp (وقت الإلغاء) | `R-5.5-6` |
+| `cancellation_reason` | `TEXT` | Yes | `NULL` | Mandatory reason recorded for cancellation (سبب الإلغاء الإلزامي) | `R-5.5-6` |
+| `no_show_at` | `TIMESTAMPTZ` | Yes | `NULL` | Timestamp marked as no-show (وقت تسجيل عدم الحضور) | `R-5.5-7` |
+| `no_show_reason` | `TEXT` | Yes | `NULL` | Optional reason/notes for no-show (سبب عدم الحضور) | `R-5.5-7` |
+| `created_by_user_id` | `UUID` | Yes | `NULL` | FK to `users.id` who booked (حجز بواسطة) | `R-0-2` |
+| `updated_by_user_id` | `UUID` | Yes | `NULL` | FK to `users.id` who last modified (آخر تعديل بواسطة) | `R-0-2` |
+| `created_at` | `TIMESTAMPTZ` | No | `now()` | Record creation timestamp | `R-0-5` |
+| `updated_at` | `TIMESTAMPTZ` | No | `now()` | Record update timestamp | `R-0-5` |
+
+- **Foreign Keys:**
+  - `patient_id REFERENCES patients(id) ON DELETE RESTRICT`
+  - `session_type_id REFERENCES session_types(id) ON DELETE RESTRICT`
+  - `clinician_id REFERENCES users(id) ON DELETE RESTRICT`
+  - `room_id REFERENCES rooms(id) ON DELETE RESTRICT`
+  - `bed_id REFERENCES beds(id) ON DELETE RESTRICT`
+  - `series_id REFERENCES appointment_series(id) ON DELETE SET NULL`
+  - `created_by_user_id REFERENCES users(id) ON DELETE SET NULL`
+  - `updated_by_user_id REFERENCES users(id) ON DELETE SET NULL`
+- **Indexes:**
+  - `CREATE INDEX idx_appointments_patient_date ON appointments (patient_id, appointment_date)`
+  - `CREATE INDEX idx_appointments_clinician_time ON appointments (clinician_id, starts_at, ends_at)`
+  - `CREATE INDEX idx_appointments_bed_time ON appointments (bed_id, starts_at, ends_at)`
+  - `CREATE INDEX idx_appointments_date_status ON appointments (appointment_date, status)`
+  - `CREATE INDEX idx_appointments_series ON appointments (series_id)`
+
+---
+
+### 3.24 `appointment_series`
+- **Purpose:** Recurring booking series definition generating linked appointments across regular weekly schedule patterns.
+- **Rule References:** `R-5.3-1`
+
+| Column | Type | Nullable | Default | Description (AR / EN) | Rule ID |
+|---|---|:---:|---|---|:---:|
+| `id` | `UUID` | No | `uuid()` | Primary Key (معرف السلسلة) | `R-5.3-1` |
+| `patient_id` | `UUID` | No | — | FK to `patients.id` (معرف المريض) | `R-5.3-1` |
+| `session_type_id` | `UUID` | No | — | FK to `session_types.id` (نوع الجلسات بالسلسلة) | `R-5.3-1` |
+| `clinician_id` | `UUID` | No | — | FK to `users.id` (المعالج المحدد) | `R-5.3-1` |
+| `room_id` | `UUID` | No | — | FK to `rooms.id` (الغرفة) | `R-5.3-1` |
+| `bed_id` | `UUID` | No | — | FK to `beds.id` (السرير المخصص) | `R-5.3-1` |
+| `days_of_week` | `INTEGER[]` | No | — | Days of week array e.g. `[0, 2, 4]` for Sat, Mon, Wed (أيام الأسبوع المحددة) | `R-5.3-1` |
+| `start_time` | `VARCHAR(5)` | No | — | Slot start time HH:mm (وقت البدء الموحد) | `R-5.3-1` |
+| `duration_minutes` | `INTEGER` | No | `45` | Duration per appointment in minutes (مدة كل جلسة) | `R-5.3-1` |
+| `total_sessions` | `INTEGER` | No | — | Total appointment count planned in series (إجمالي جلسات السلسلة) | `R-5.3-1` |
+| `start_date` | `DATE` | No | — | First appointment date of series (تاريخ أول جلسة) | `R-5.3-1` |
+| `end_date` | `DATE` | Yes | `NULL` | Estimated series end date (تاريخ نهاية السلسلة) | `R-5.3-1` |
+| `is_active` | `BOOLEAN` | No | `true` | Active status toggle for series (حالة فاعلية السلسلة) | `R-0-3` |
+| `created_by_user_id` | `UUID` | Yes | `NULL` | FK to `users.id` who generated series (أنشئت بواسطة) | `R-0-2` |
+| `created_at` | `TIMESTAMPTZ` | No | `now()` | Series creation timestamp | `R-0-5` |
+| `updated_at` | `TIMESTAMPTZ` | No | `now()` | Series update timestamp | `R-0-5` |
+
+- **Foreign Keys:**
+  - `patient_id REFERENCES patients(id) ON DELETE CASCADE`
+  - `session_type_id REFERENCES session_types(id) ON DELETE RESTRICT`
+  - `clinician_id REFERENCES users(id) ON DELETE RESTRICT`
+  - `room_id REFERENCES rooms(id) ON DELETE RESTRICT`
+  - `bed_id REFERENCES beds(id) ON DELETE RESTRICT`
+  - `created_by_user_id REFERENCES users(id) ON DELETE SET NULL`
+- **Indexes:**
+  - `CREATE INDEX idx_appointment_series_patient ON appointment_series (patient_id)`
+  - `CREATE INDEX idx_appointment_series_clinician ON appointment_series (clinician_id)`
+
+---
+
+### 3.25 `appointment_status_history`
+- **Purpose:** Immutable audit table recording every status transition of an appointment with author and mandatory reason.
+- **Rule References:** `R-0-2`, `R-5.5-1` through `R-5.5-13`, `R-13-1`
+
+| Column | Type | Nullable | Default | Description (AR / EN) | Rule ID |
+|---|---|:---:|---|---|:---:|
+| `id` | `UUID` | No | `uuid()` | Primary Key (معرف سجل التغيير) | `R-13-1` |
+| `appointment_id` | `UUID` | No | — | FK to `appointments.id` (معرف الموعد) | `R-13-1` |
+| `from_status` | `VARCHAR(20)` | Yes | `NULL` | Pre-transition status (الحالة السابقة) | `R-5.5-1` |
+| `to_status` | `VARCHAR(20)` | No | — | New transitioned status (الحالة الجديدة) | `R-5.5-1` |
+| `changed_by_user_id` | `UUID` | Yes | `NULL` | FK to `users.id` who triggered change (المستخدم المغيّر) | `R-0-2` |
+| `reason` | `TEXT` | Yes | `NULL` | Mandatory reason for cancellations, overrides, no-shows (السبب المسجل) | `R-5.5-6`, `R-5.5-7` |
+| `transitioned_at` | `TIMESTAMPTZ` | No | `now()` | Exact UTC timestamp of transition (وقت وتاريخ التغيير) | `R-0-5` |
+| `ip_address` | `VARCHAR(45)` | Yes | `NULL` | Client IP address | `R-13-2` |
+| `user_agent` | `TEXT` | Yes | `NULL` | Client User-Agent | `R-13-2` |
+
+- **Foreign Keys:**
+  - `appointment_id REFERENCES appointments(id) ON DELETE CASCADE`
+  - `changed_by_user_id REFERENCES users(id) ON DELETE SET NULL`
+- **Indexes:**
+  - `CREATE INDEX idx_appointment_status_history_appt ON appointment_status_history (appointment_id, transitioned_at)`
+  - `CREATE INDEX idx_appointment_status_history_user ON appointment_status_history (changed_by_user_id, transitioned_at)`
+
+---
+
+### 3.26 `appointment_reminders`
+- **Purpose:** Audit tracking for WhatsApp and SMS appointment reminder messages dispatched to patients.
+- **Rule References:** `R-4.1-21`, `R-14-1`, `R-14-6`, `R-6-1`
+
+| Column | Type | Nullable | Default | Description (AR / EN) | Rule ID |
+|---|---|:---:|---|---|:---:|
+| `id` | `UUID` | No | `uuid()` | Primary Key (معرف سجل التذكير) | `R-14-1` |
+| `appointment_id` | `UUID` | No | — | FK to `appointments.id` (معرف الموعد) | `R-14-1` |
+| `channel` | `VARCHAR(20)` | No | `'WHATSAPP'` | Delivery channel: `WHATSAPP`, `SMS`, `MANUAL_CALL` (قناة الإرسال) | `R-14-1` |
+| `recipient_phone` | `VARCHAR(30)` | No | — | Phone number message was dispatched to (رقم الهاتف المستلم) | `R-4.1-2`, `R-4.1-6` |
+| `sent_at` | `TIMESTAMPTZ` | No | `now()` | Dispatch timestamp (وقت الإرسال) | `R-0-5` |
+| `status` | `VARCHAR(20)` | No | `'PENDING'` | Status: `PENDING`, `SENT`, `FAILED`, `DELIVERED`, `READ` (حالة التسليم) | `R-14-1` |
+| `error_message` | `TEXT` | Yes | `NULL` | Provider error message upon delivery failure (رسالة الخطأ إن وجدت) | `R-14-1` |
+| `template_key` | `VARCHAR(50)` | Yes | `NULL` | Key of message template dispatched (رمز قالب الرسالة) | `R-14-1` |
+| `sent_by_user_id` | `UUID` | Yes | `NULL` | FK to `users.id` if triggered manually by reception (أرسل بواسطة) | `R-0-2` |
+
+- **Foreign Keys:**
+  - `appointment_id REFERENCES appointments(id) ON DELETE CASCADE`
+  - `sent_by_user_id REFERENCES users(id) ON DELETE SET NULL`
+- **Indexes:**
+  - `CREATE INDEX idx_appointment_reminders_appt_sent ON appointment_reminders (appointment_id, sent_at)`
+  - `CREATE INDEX idx_appointment_reminders_status ON appointment_reminders (status)`
+
+---
+
+### 3.27 `in_app_notifications`
+- **Purpose:** Real-time in-app notification alerts for staff dashboard and clinician workspace (check-ins, late arrivals, cancellations).
+- **Rule References:** `R-14-1` through `R-14-6`
+
+| Column | Type | Nullable | Default | Description (AR / EN) | Rule ID |
+|---|---|:---:|---|---|:---:|
+| `id` | `UUID` | No | `uuid()` | Primary Key (معرف الإشعار) | `R-14-1` |
+| `user_id` | `UUID` | No | — | FK to `users.id` (recipient clinician or staff) (المستخدم المستلم) | `R-14-1` |
+| `type` | `VARCHAR(50)` | No | — | Type: `PATIENT_CHECKED_IN`, `PATIENT_LATE_ARRIVAL`, `APPOINTMENT_CANCELLED`, `APPOINTMENT_RESCHEDULED`, `PACKAGE_LOW_SESSIONS`, `PACKAGE_EXPIRING_SOON`, `SYSTEM_ALERT` (نوع الإشعار) | `R-14-1`–`R-14-5` |
+| `title_ar` | `VARCHAR(150)` | No | — | Arabic alert headline (عنوان التنبيه بالعربية) | `R-14-1` |
+| `title_en` | `VARCHAR(150)` | No | — | English alert headline (عنوان التنبيه بالإنجليزية) | `R-14-1` |
+| `body_ar` | `TEXT` | No | — | Arabic alert message body (تفاصيل التنبيه بالعربية) | `R-14-1` |
+| `body_en` | `TEXT` | No | — | English alert message body (تفاصيل التنبيه بالإنجليزية) | `R-14-1` |
+| `appointment_id` | `UUID` | Yes | `NULL` | FK to `appointments.id` associated with alert (معرف الموعد المرتبط) | `R-14-1` |
+| `patient_id` | `UUID` | Yes | `NULL` | FK to `patients.id` associated with alert (معرف المريض المرتبط) | `R-14-1` |
+| `is_read` | `BOOLEAN` | No | `false` | True once user marks alert read (تمت القراءة) | `R-14-6` |
+| `read_at` | `TIMESTAMPTZ` | Yes | `NULL` | Timestamp notification was read (تاريخ ووقت القراءة) | `R-14-6` |
+| `created_at` | `TIMESTAMPTZ` | No | `now()` | Timestamp notification was generated (تاريخ ووقت التنبيه) | `R-0-5` |
+
+- **Foreign Keys:**
+  - `user_id REFERENCES users(id) ON DELETE CASCADE`
+  - `appointment_id REFERENCES appointments(id) ON DELETE SET NULL`
+  - `patient_id REFERENCES patients(id) ON DELETE SET NULL`
+- **Indexes:**
+  - `CREATE INDEX idx_in_app_notifications_user_read ON in_app_notifications (user_id, is_read, created_at)`
+
+---
+
 ## 4. PostgreSQL Database Triggers & Check Constraints (Raw SQL)
 
 The following database triggers and constraints are written in raw SQL and will be packaged into Prisma migrations in Stage 2 to guarantee database-level enforcement of business rules:
@@ -1036,6 +1307,64 @@ CREATE TRIGGER trg_covering_access_logs_immutability
 BEFORE UPDATE OR DELETE ON covering_access_logs
 FOR EACH ROW
 EXECUTE FUNCTION trg_block_covering_access_log_mutation();
+
+-- 9. PostgreSQL Exclusion Constraints (btree_gist) for Double-Booking Prevention (R-5.2-3, R-5.2-4, R-5.2-5, R-5.2-12)
+-- Requires btree_gist extension. Prevents overlapping active appointments for the same clinician, bed, or patient.
+-- Active statuses are: 'SCHEDULED', 'ARRIVED', 'COMPLETED' (R-5.2-9).
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+
+-- Clinician Overlap Exclusion Constraint (R-5.2-3, R-5.2-12)
+ALTER TABLE appointments 
+ADD CONSTRAINT exclude_clinician_time_overlap 
+EXCLUDE USING gist (
+    clinician_id WITH =,
+    tstzrange(starts_at, ends_at, '[)') WITH &&
+)
+WHERE (status IN ('SCHEDULED', 'ARRIVED', 'COMPLETED'));
+
+-- Bed Overlap Exclusion Constraint (R-5.2-4, R-5.2-12, DEC-006, DEC-021)
+ALTER TABLE appointments 
+ADD CONSTRAINT exclude_bed_time_overlap 
+EXCLUDE USING gist (
+    bed_id WITH =,
+    tstzrange(starts_at, ends_at, '[)') WITH &&
+)
+WHERE (status IN ('SCHEDULED', 'ARRIVED', 'COMPLETED'));
+
+-- Patient Overlap Exclusion Constraint (R-5.2-5)
+ALTER TABLE appointments 
+ADD CONSTRAINT exclude_patient_time_overlap 
+EXCLUDE USING gist (
+    patient_id WITH =,
+    tstzrange(starts_at, ends_at, '[)') WITH &&
+)
+WHERE (status IN ('SCHEDULED', 'ARRIVED', 'COMPLETED'));
+
+-- 10. Appointment Duration and Range Check Constraints (R-5.1-1)
+-- Enforces: Duration must be between 15 and 180 minutes in 15-minute steps.
+ALTER TABLE appointments 
+ADD CONSTRAINT chk_appointments_duration_step 
+CHECK (duration_minutes >= 15 AND duration_minutes <= 180 AND duration_minutes % 15 = 0);
+
+-- Enforces: starts_at must be strictly before ends_at.
+ALTER TABLE appointments 
+ADD CONSTRAINT chk_appointments_time_order 
+CHECK (starts_at < ends_at);
+
+-- 11. Appointment Status History Immutability Trigger (R-13-1, R-13-3)
+-- Completely blocks UPDATE and DELETE operations on appointment_status_history.
+CREATE OR REPLACE FUNCTION trg_block_appointment_status_history_mutation()
+RETURNS TRIGGER AS $$
+BEGIN
+    RAISE EXCEPTION 'Appointment status history is an immutable audit log. UPDATE and DELETE operations are prohibited.'
+        USING ERRCODE = 'integrity_constraint_violation';
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_appointment_status_history_immutability
+BEFORE UPDATE OR DELETE ON appointment_status_history
+FOR EACH ROW
+EXECUTE FUNCTION trg_block_appointment_status_history_mutation();
 ```
 
 ---
@@ -1056,3 +1385,7 @@ In strict accordance with **Rule R-0-6** and **DEC-005**, the following values a
 | **Adult vs Dependent Status** | [calculations.md §1.1](file:///F:/Claude%20CRM/docs/design/calculations.md#11-patient-age-calculation) | Evaluated dynamically: `is_adult = (age >= 18 AND is_dependent = false)` (`R-4.1-3`). |
 | **Patient Outstanding Balance** | [calculations.md §2.3](file:///F:/Claude%20CRM/docs/design/calculations.md#23-charge-balance-calculation) | Dynamically summed from unvoided charges minus non-voided payments plus refunds and write-offs (`R-0-6`, `R-8.1-1`). |
 | **Patient Active Package Remaining Sessions** | [calculations.md §2.1](file:///F:/Claude%20CRM/docs/design/calculations.md#21-package-remaining-sessions) | Dynamically calculated from package total sessions minus completed sessions (`R-7-1`). |
+| **Appointment Overlap Detection** | [calculations.md §3.1](file:///F:/Claude%20CRM/docs/design/calculations.md#31-appointment-overlap-detection) | Dynamically evaluated using interval intersection condition `new_start < existing_end AND new_end > existing_start` (`R-5.2-3`, `R-5.2-4`). |
+| **Patient Daily Session Type Count** | [calculations.md §3.1](file:///F:/Claude%20CRM/docs/design/calculations.md#31-appointment-overlap-detection) | Computed dynamically as count of active bookings for same patient + date + session type (max 1 per type per day per `R-5.2-6`). |
+| **Late Minutes Alert Trigger** | [calculations.md §1.2](file:///F:/Claude%20CRM/docs/design/calculations.md#12-late-arrival-minutes-calculation) | Evaluated dynamically: alert triggers if `now() > starts_at + 10 minutes` and status is still `SCHEDULED` (`R-14-2`). |
+| **Bed Reservation Persistence Window** | [calculations.md §3.1](file:///F:/Claude%20CRM/docs/design/calculations.md#31-appointment-overlap-detection) | Bed exclusion constraint holds until scheduled `ends_at` even if completed early (`DEC-021`, `R-5.2-10`). |

@@ -2,6 +2,7 @@
 // Specification Reference: docs/FEATURES-v2.2.md
 // Stage 1 Design — Database Slice A: Clinic, Staff & Auth
 // Stage 1 Design — Database Slice B: Patients & Documents
+// Stage 1 Design — Database Slice C: Scheduling
 
 datasource db {
   provider = "postgresql"
@@ -107,6 +108,43 @@ enum DocumentCategory {
 }
 
 // ============================================================================
+// Enums for Slice C (Scheduling)
+// ============================================================================
+
+enum AppointmentStatus {
+  SCHEDULED
+  ARRIVED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+  WAITLISTED
+}
+
+enum ReminderChannel {
+  WHATSAPP
+  SMS
+  MANUAL_CALL
+}
+
+enum ReminderStatus {
+  PENDING
+  SENT
+  FAILED
+  DELIVERED
+  READ
+}
+
+enum NotificationType {
+  PATIENT_CHECKED_IN
+  PATIENT_LATE_ARRIVAL
+  APPOINTMENT_CANCELLED
+  APPOINTMENT_RESCHEDULED
+  PACKAGE_LOW_SESSIONS
+  PACKAGE_EXPIRING_SOON
+  SYSTEM_ALERT
+}
+
+// ============================================================================
 // 1. Clinic Settings & Schedules
 // ============================================================================
 
@@ -175,7 +213,9 @@ model Room {
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
-  beds Bed[]
+  beds              Bed[]
+  appointments      Appointment[]
+  appointmentSeries AppointmentSeries[]
 
   @@map("rooms")
 }
@@ -190,6 +230,9 @@ model Bed {
   createdByUser   User?    @relation("BedCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
+
+  appointments      Appointment[]
+  appointmentSeries AppointmentSeries[]
 
   @@unique([roomId, name])
   @@map("beds")
@@ -208,6 +251,9 @@ model SessionType {
   createdByUser          User?           @relation("SessionTypeCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
   createdAt              DateTime        @default(now()) @map("created_at")
   updatedAt              DateTime        @updatedAt @map("updated_at")
+
+  appointments      Appointment[]
+  appointmentSeries AppointmentSeries[]
 
   @@map("session_types")
 }
@@ -277,6 +323,16 @@ model User {
   updatedDocuments          PatientDocument[]   @relation("PatientDocumentUpdatedBy")
   documentViews             DocumentViewLog[]   @relation("DocumentViewedBy")
   coveringAccessGrants      CoveringAccessLog[] @relation("CoveringAccessClinician")
+
+  // Scheduling Relations (Slice C)
+  clinicianAppointments Appointment[]              @relation("AppointmentClinician")
+  createdAppointments   Appointment[]              @relation("AppointmentCreatedBy")
+  updatedAppointments   Appointment[]              @relation("AppointmentUpdatedBy")
+  clinicianSeries       AppointmentSeries[]        @relation("SeriesClinician")
+  createdSeries         AppointmentSeries[]        @relation("SeriesCreatedBy")
+  statusChangesAuthored AppointmentStatusHistory[] @relation("StatusChangedBy")
+  remindersSent         AppointmentReminder[]      @relation("ReminderSentBy")
+  receivedNotifications InAppNotification[]        @relation("ReceivedNotifications")
 
   @@map("users")
 }
@@ -520,6 +576,11 @@ model Patient {
   documents          PatientDocument[]
   coveringAccessLogs CoveringAccessLog[]
 
+  // Slice C Relations
+  appointments      Appointment[]
+  appointmentSeries AppointmentSeries[]
+  notifications     InAppNotification[]
+
   @@index([fullName])
   @@index([mobilePhone])
   @@index([guardianPhone])
@@ -616,4 +677,146 @@ model CoveringAccessLog {
   @@index([clinicianId, patientId, grantedAt])
   @@index([sessionId])
   @@map("covering_access_logs")
+}
+
+// ============================================================================
+// 8. Scheduling (Slice C)
+// ============================================================================
+
+model Appointment {
+  id                 String             @id @default(uuid())
+  patientId          String             @map("patient_id")
+  patient            Patient            @relation(fields: [patientId], references: [id], onDelete: Restrict)
+  sessionTypeId      String             @map("session_type_id")
+  sessionType        SessionType        @relation(fields: [sessionTypeId], references: [id], onDelete: Restrict)
+  clinicianId        String             @map("clinician_id")
+  clinician          User               @relation("AppointmentClinician", fields: [clinicianId], references: [id], onDelete: Restrict)
+  roomId             String             @map("room_id")
+  room               Room               @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  bedId              String             @map("bed_id")
+  bed                Bed                @relation(fields: [bedId], references: [id], onDelete: Restrict)
+  seriesId           String?            @map("series_id")
+  series             AppointmentSeries? @relation(fields: [seriesId], references: [id], onDelete: SetNull)
+  packageId          String?            @map("package_id") // Relates to packages in Slice D
+  appointmentDate    DateTime           @map("appointment_date") @db.Date // Clinic-local calendar date (Africa/Cairo)
+  startTime          String             @map("start_time") @db.VarChar(5) // HH:mm (24h)
+  endTime            String             @map("end_time") @db.VarChar(5) // HH:mm (24h)
+  startsAt           DateTime           @map("starts_at") // UTC DateTime for calendar range & btree_gist
+  endsAt             DateTime           @map("ends_at") // UTC DateTime for calendar range & btree_gist
+  durationMinutes    Int                @default(45) @map("duration_minutes") // 15..180 steps of 15 (R-5.1-1)
+  pricePiasters      Int?               @map("price_piasters") // Money in integer piasters, nullable if covered by package (R-0-4, R-5.1-1)
+  status             AppointmentStatus  @default(SCHEDULED)
+  notesForReception  String?            @map("notes_for_reception") @db.Text
+  checkInAt          DateTime?          @map("check_in_at")
+  lateMinutes        Int?               @map("late_minutes") // Stored upon check-in if late (R-14-2)
+  completedAt        DateTime?          @map("completed_at")
+  cancelledAt        DateTime?          @map("cancelled_at")
+  cancellationReason String?            @map("cancellation_reason") @db.Text
+  noShowAt           DateTime?          @map("no_show_at")
+  noShowReason       String?            @map("no_show_reason") @db.Text
+  createdByUserId    String?            @map("created_by_user_id")
+  createdByUser      User?              @relation("AppointmentCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  updatedByUserId    String?            @map("updated_by_user_id")
+  updatedByUser      User?              @relation("AppointmentUpdatedBy", fields: [updatedByUserId], references: [id], onDelete: SetNull)
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+
+  statusHistory AppointmentStatusHistory[]
+  reminders     AppointmentReminder[]
+  notifications InAppNotification[]
+
+  @@index([patientId, appointmentDate])
+  @@index([clinicianId, startsAt, endsAt])
+  @@index([bedId, startsAt, endsAt])
+  @@index([appointmentDate, status])
+  @@index([seriesId])
+  @@map("appointments")
+}
+
+model AppointmentSeries {
+  id              String      @id @default(uuid())
+  patientId       String      @map("patient_id")
+  patient         Patient     @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  sessionTypeId   String      @map("session_type_id")
+  sessionType     SessionType @relation(fields: [sessionTypeId], references: [id], onDelete: Restrict)
+  clinicianId     String      @map("clinician_id")
+  clinician       User        @relation("SeriesClinician", fields: [clinicianId], references: [id], onDelete: Restrict)
+  roomId          String      @map("room_id")
+  room            Room        @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  bedId           String      @map("bed_id")
+  bed             Bed         @relation(fields: [bedId], references: [id], onDelete: Restrict)
+  daysOfWeek      Int[]       @map("days_of_week") // Array of integers 0..6 (0=Sat ... 6=Fri)
+  startTime       String      @map("start_time") @db.VarChar(5) // HH:mm (24h)
+  durationMinutes Int         @default(45) @map("duration_minutes")
+  totalSessions   Int         @map("total_sessions")
+  startDate       DateTime    @map("start_date") @db.Date
+  endDate         DateTime?   @map("end_date") @db.Date
+  isActive        Boolean     @default(true) @map("is_active")
+  createdByUserId String?     @map("created_by_user_id")
+  createdByUser   User?       @relation("SeriesCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+
+  appointments Appointment[]
+
+  @@index([patientId])
+  @@index([clinicianId])
+  @@map("appointment_series")
+}
+
+model AppointmentStatusHistory {
+  id              String             @id @default(uuid())
+  appointmentId   String             @map("appointment_id")
+  appointment     Appointment        @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  fromStatus      AppointmentStatus? @map("from_status")
+  toStatus        AppointmentStatus  @map("to_status")
+  changedByUserId String?            @map("changed_by_user_id")
+  changedByUser   User?              @relation("StatusChangedBy", fields: [changedByUserId], references: [id], onDelete: SetNull)
+  reason          String?            @db.Text
+  transitionedAt  DateTime           @default(now()) @map("transitioned_at")
+  ipAddress       String?            @map("ip_address") @db.VarChar(45)
+  userAgent       String?            @map("user_agent") @db.Text
+
+  @@index([appointmentId, transitionedAt])
+  @@index([changedByUserId, transitionedAt])
+  @@map("appointment_status_history")
+}
+
+model AppointmentReminder {
+  id             String          @id @default(uuid())
+  appointmentId  String          @map("appointment_id")
+  appointment    Appointment     @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  channel        ReminderChannel @default(WHATSAPP)
+  recipientPhone String          @map("recipient_phone") @db.VarChar(30)
+  sentAt         DateTime        @default(now()) @map("sent_at")
+  status         ReminderStatus  @default(PENDING)
+  errorMessage   String?         @map("error_message") @db.Text
+  templateKey    String?         @map("template_key") @db.VarChar(50)
+  sentByUserId   String?         @map("sent_by_user_id")
+  sentByUser     User?           @relation("ReminderSentBy", fields: [sentByUserId], references: [id], onDelete: SetNull)
+
+  @@index([appointmentId, sentAt])
+  @@index([status])
+  @@map("appointment_reminders")
+}
+
+model InAppNotification {
+  id            String           @id @default(uuid())
+  userId        String           @map("user_id")
+  user          User             @relation("ReceivedNotifications", fields: [userId], references: [id], onDelete: Cascade)
+  type          NotificationType
+  titleAr       String           @map("title_ar") @db.VarChar(150)
+  titleEn       String           @map("title_en") @db.VarChar(150)
+  bodyAr        String           @map("body_ar") @db.Text
+  bodyEn        String           @map("body_en") @db.Text
+  appointmentId String?          @map("appointment_id")
+  appointment   Appointment?     @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  patientId     String?          @map("patient_id")
+  patient       Patient?         @relation(fields: [patientId], references: [id], onDelete: SetNull)
+  isRead        Boolean          @default(false) @map("is_read")
+  readAt        DateTime?        @map("read_at")
+  createdAt     DateTime         @default(now()) @map("created_at")
+
+  @@index([userId, isRead, createdAt])
+  @@map("in_app_notifications")
 }
