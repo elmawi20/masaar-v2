@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>إغلاق الوردية النقدية وحساب الدرج — عيادة مسار</title>
+  <link rel="stylesheet" href="wireframe.css">
+  <style>
+    .closing-container {
+      max-width: 680px;
+      margin: 30px auto;
+      background: var(--wf-surface);
+      border: 1px solid var(--wf-border-dark);
+      border-radius: 6px;
+      padding: 24px;
+    }
+    .math-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--wf-border);
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wf-banner">
+    <span>[واجهة سلكية تجريبية - Task 1.16] شاشة إغلاق الوردية النقدية وحساب الدرج (SCR-D06)</span>
+    <a href="reception-today.html">← العودة للوحة الاستقبال</a>
+  </div>
+
+  <div class="closing-container">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--wf-border-dark); padding-bottom: 12px; margin-bottom: 20px;">
+      <div>
+        <h1 style="font-size: 18px; font-weight: bold;">إغلاق الوردية النقدية (Cash Shift Closing)</h1>
+        <p style="font-size: 12px; color: var(--wf-text-muted);">
+          الموظف: <strong>سارة إبراهيم (موظف استقبال)</strong> · الوردية بدأت: <strong>09:00 ص</strong> (الأحد 25 أكتوبر 2026)
+        </p>
+      </div>
+      <span class="badge" style="background: var(--wf-grey-300); font-size: 12px;">وردية مفتوحة</span>
+    </div>
+
+    <!-- Shift Financial Reconciliation (R-8.4-1, DEC-011) -->
+    <div class="card" style="margin-bottom: 20px; padding: 0;">
+      <div style="background: var(--wf-grey-200); padding: 10px 14px; font-weight: bold; font-size: 14px; border-bottom: 1px solid var(--wf-border);">
+        حساب النقدية المتوقعة بالدرج (Expected Cash Calculation)
+      </div>
+
+      <div class="math-row">
+        <span>الرصيد الافتتاحي للدرج (Opening balance):</span>
+        <strong>0.00 ج.م</strong>
+      </div>
+
+      <div class="math-row">
+        <span>(+) إجمالي المقبوضات النقدية المسددة في الوردية (Cash payments):</span>
+        <strong style="direction: ltr;">+ 3,450.00 ج.م</strong>
+      </div>
+
+      <div class="math-row">
+        <span>(-) إجمالي المردودات النقدية المنصرفة من الدرج (Cash refunds DEC-015):</span>
+        <strong style="direction: ltr;">- 200.00 ج.م</strong>
+      </div>
+
+      <div class="math-row">
+        <span>(-) إجمالي المصروفات النقدية المسددة من الدرج (Cash expenses):</span>
+        <strong style="direction: ltr;">- 150.00 ج.م</strong>
+      </div>
+
+      <div class="math-row" style="background: var(--wf-grey-100); border-top: 2px solid var(--wf-border-dark); font-size: 15px; font-weight: bold;">
+        <span>النقدية المتوقعة بالدرج (Expected Cash):</span>
+        <span style="font-size: 18px;">3,100.00 ج.م</span>
+      </div>
+    </div>
+
+    <!-- Actual Cash Count & Variance Form -->
+    <form onsubmit="event.preventDefault(); alert('تم تسجيل إغلاق الوردية وحفظ الفارق وقفل المصروفات بنجاح (DEC-020)'); window.location.href='auth-login.html';">
+      <div class="card" style="background: var(--wf-grey-100); border: 2px solid var(--wf-border-dark); margin-bottom: 20px; padding: 16px;">
+        <div class="form-group">
+          <label class="form-label" style="font-size: 14px;">المبلغ الفعلي الموجود بالدرج بعد العد اليدوي (Actual Counted Cash R-8.4-1):</label>
+          <input type="text" id="actual-cash" class="form-control" value="3,100.00 ج.م" required style="font-size: 20px; font-weight: bold; text-align: left; direction: ltr;" oninput="updateVariance(this.value)">
+        </div>
+
+        <div id="variance-box" style="display: flex; justify-content: space-between; align-items: center; background: #fff; border: 1px solid var(--wf-border); padding: 10px 14px; border-radius: 4px; margin-top: 10px;">
+          <span style="font-size: 13px; font-weight: bold;">الفارق المالي (Variance):</span>
+          <span id="variance-val" class="badge" style="font-size: 14px; background: var(--wf-grey-300);">0.00 ج.م (مطابق تماماً)</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">ملاحظات إغلاق الوردية وتبرير أي فارق (إن وجد):</label>
+        <textarea class="form-control" rows="2" placeholder="تم تسليم الدرج والمطابقة كاملة دون عجز أو زيادة..."></textarea>
+      </div>
+
+      <!-- Lock Notice Alert (DEC-020) -->
+      <div class="alert" style="border-right: 4px solid var(--wf-grey-800); font-size: 11px;">
+        🔒 <strong>تنبيه قفل المصروفات (DEC-020):</strong>
+        عند تأكيد إغلاق الوردية، سيتم تجميد وقفل كافة سندات الصرف والمصروفات المسجلة خلال هذه الوردية، ولن يتمكن موظف الاستقبال من تعديلها أو إلغائها لاحقاً.
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <a href="reception-today.html" class="btn">إلغاء والعودة للوحة</a>
+        <button type="submit" class="btn btn-primary" style="padding: 10px 24px; font-size: 14px;">
+          تأكيد إغلاق الوردية وتسليم النقدية
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    function updateVariance(val) {
+      const numericVal = parseFloat(val.replace(/[^0-9.]/g, '')) || 0;
+      const expected = 3100.00;
+      const diff = numericVal - expected;
+      const varEl = document.getElementById('variance-val');
+      if (diff === 0) {
+        varEl.textContent = '0.00 ج.م (مطابق تماماً)';
+      } else if (diff > 0) {
+        varEl.textContent = '+ ' + diff.toFixed(2) + ' ج.م (فائض / زيادة بالدرج)';
+      } else {
+        varEl.textContent = diff.toFixed(2) + ' ج.م (عجز بالدرج)';
+      }
+    }
+  </script>
+</body>
+</html>

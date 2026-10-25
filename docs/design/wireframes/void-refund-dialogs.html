@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>حوارات الإلغاء والاسترداد المالي — عيادة مسار</title>
+  <link rel="stylesheet" href="wireframe.css">
+  <style>
+    .dialogs-container {
+      max-width: 840px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wf-banner">
+    <span>[واجهة سلكية تجريبية - Task 1.16] حوارات إلغاء الإيصالات واسترداد المبالغ (MDL-D04 & MDL-D05)</span>
+    <a href="patient-profile.html">← العودة لملف المريض</a>
+  </div>
+
+  <div class="dialogs-container">
+    <div style="margin-bottom: 24px; border-bottom: 2px solid var(--wf-border-dark); padding-bottom: 12px;">
+      <h1 style="font-size: 20px; font-weight: bold;">حوارات الرقابة المالية: الإلغاء (Void) والاسترداد (Refund)</h1>
+      <p style="font-size: 12px; color: var(--wf-text-muted);">
+        عمليات مالية حساسة تخضع لصلاحيات <strong>المالك والمدير فقط (R-1.1-12)</strong> مع تسجيل تدقيق إلزامي غير قابل للتعديل.
+      </p>
+    </div>
+
+    <!-- Dialog 1: Void Receipt -->
+    <div class="card" style="margin-bottom: 30px; border: 2px solid var(--wf-border-dark);">
+      <div class="card-header" style="background: var(--wf-grey-200); padding: 12px 16px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 16px;">🚫</span>
+          <h2 style="font-size: 16px; font-weight: bold;">حوار إلغاء إيصال قبض مالي (Void Receipt — R-8.3-1)</h2>
+        </div>
+        <span class="badge" style="background: var(--wf-grey-800); color: #fff;">صلاحية: مالك أو مدير</span>
+      </div>
+
+      <div style="padding: 16px;">
+        <div class="alert" style="background: var(--wf-grey-100); border: 1px dashed var(--wf-border-dark);">
+          <strong>تنبيه الرقابة المالية (R-0-3):</strong>
+          إلغاء الإيصال لن يحذف السجل نهائياً من قاعدة البيانات. سيتم وسم الإيصال كملغي (Voided)، وشطبه من الفاتورة، وإعادة حساب رصيد المريض فوراً، وعكس أثر المبلغ من الوردية النقدية إذا كان نقداً.
+        </div>
+
+        <div style="background: var(--wf-grey-200); border: 1px solid var(--wf-border); padding: 12px; border-radius: 4px; margin-bottom: 16px; font-size: 12px;">
+          <div style="display: flex; justify-content: space-between;">
+            <div>رقم الإيصال: <strong style="text-decoration: line-through;">INV-2026-00184</strong></div>
+            <div>المريض: <strong>أحمد مصطفى كامل (MAS-00104)</strong></div>
+            <div>القيمة: <strong style="text-decoration: line-through;">1,200.00 ج.م</strong></div>
+            <div>طريقة الدفع: <strong>إنستاباي (مرجع: 98471204)</strong></div>
+          </div>
+        </div>
+
+        <form onsubmit="event.preventDefault(); alert('تم إلغاء الإيصال وشطبه وإعادة احتساب رصيد المريض بنجاح (R-8.3-1)');">
+          <div class="form-group">
+            <label class="form-label">سبب الإلغاء الإلزامي (يسجل بسجل الرقابة R-13-1):</label>
+            <select class="form-control" required>
+              <option selected>إدخال محاسبي مكرر (Duplicate entry)</option>
+              <option>خطأ في تحديد المريض المستفيد</option>
+              <option>خطأ في المبلغ المدفوع المسجل</option>
+              <option>إلغاء المعاملة البنكية / فشل التحويل</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">تفاصيل ومبررات الإلغاء (إلزامية):</label>
+            <textarea class="form-control" rows="2" required placeholder="توضيح سبب الخطأ وموافقة المدير على الإلغاء..."></textarea>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 8px;">
+            <button type="button" class="btn">إغلاق الحوار</button>
+            <button type="submit" class="btn btn-primary" style="background: #000;">
+              تأكيد إلغاء وشطب الإيصال (Confirm Void)
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Dialog 2: Issue Refund -->
+    <div class="card" style="border: 2px solid var(--wf-border-dark);">
+      <div class="card-header" style="background: var(--wf-grey-200); padding: 12px 16px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 16px;">💸</span>
+          <h2 style="font-size: 16px; font-weight: bold;">حوار استرداد مالي للمريض (Issue Refund — R-8.3-2, DEC-015)</h2>
+        </div>
+        <span class="badge" style="background: var(--wf-grey-800); color: #fff;">صلاحية: مالك أو مدير</span>
+      </div>
+
+      <div style="padding: 16px;">
+        <div style="background: var(--wf-grey-100); border: 1px solid var(--wf-border); padding: 12px; border-radius: 4px; margin-bottom: 16px; font-size: 12px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <div>إجمالي المدفوعات المسددة للباقة: <strong>3,600.00 ج.م</strong></div>
+            <div>قيمة الجلسات المستهلكة (3 جلسات × 300 ج.م): <strong>900.00 ج.م</strong></div>
+          </div>
+          <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--wf-border); padding-top: 6px; font-weight: bold;">
+            <div>الحد الأقصى المتاح للاسترداد (R-8.3-2):</div>
+            <div style="font-size: 15px;">2,700.00 ج.م</div>
+          </div>
+        </div>
+
+        <form onsubmit="event.preventDefault(); alert('تم تسجيل الاسترداد وخصم المبلغ من درج المستخدم النقدي (DEC-015)');">
+          <div class="form-row">
+            <div class="form-col form-group">
+              <label class="form-label">المبلغ المراد استرداده للمريض (ج.م):</label>
+              <input type="text" class="form-control" value="2,700.00 ج.م" required style="font-weight: bold; font-size: 15px;">
+            </div>
+            <div class="form-col form-group">
+              <label class="form-label">طريقة صرف الاسترداد (DEC-015):</label>
+              <select class="form-control" required>
+                <option selected>نقداً من الدرج (يخصم من وردية المستخدم الحالي)</option>
+                <option>تحويل بنكي / إنستاباي من حساب العيادة</option>
+                <option>إلغاء عملية البطاقة (POS Reversal)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">سبب استرداد المبلغ:</label>
+            <select class="form-control" required>
+              <option selected>إلغاء الباقة وظروف سفر المريض</option>
+              <option>عدم ملائمة البرنامج العلاجي طبياً</option>
+              <option>انقطاع المريض لظروف قهرية</option>
+              <option>أخرى</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">ملاحظات ومرفقات موافقة الاسترداد:</label>
+            <input type="text" class="form-control" placeholder="موافقة المدير العام على استرداد باقي الباقة...">
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 8px;">
+            <button type="button" class="btn">إغلاق الحوار</button>
+            <button type="submit" class="btn btn-primary" style="background: var(--wf-grey-800);">
+              اعتماد وصرف الاسترداد
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

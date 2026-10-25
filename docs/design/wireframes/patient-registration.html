@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تسجيل مريض جديد — عيادة مسار</title>
+  <link rel="stylesheet" href="wireframe.css">
+  <style>
+    .reg-container {
+      max-width: 760px;
+      margin: 30px auto;
+      background: var(--wf-surface);
+      border: 1px solid var(--wf-border-dark);
+      border-radius: 6px;
+      padding: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wf-banner">
+    <span>[واجهة سلكية تجريبية - Task 1.16] نموذج تسجيل مريض جديد وفحص تكرار الهاتف (SCR-C02)</span>
+    <a href="index.html">← فهرس جميع الواجهات</a>
+  </div>
+
+  <div class="reg-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--wf-border-dark); padding-bottom: 12px; margin-bottom: 20px;">
+      <div>
+        <h1 style="font-size: 18px; font-weight: bold;">تسجيل مريض جديد (فتح ملف إداري)</h1>
+        <p style="font-size: 12px; color: var(--wf-text-muted);">تسجيل البيانات الشخصية والإدارية والتحقق من رقم الهاتف المصري (R-4.1, R-4.2)</p>
+      </div>
+      <a href="reception-today.html" class="btn btn-sm">إلغاء والعودة</a>
+    </div>
+
+    <!-- Duplicate Phone Alert Banner (Simulation) -->
+    <div class="alert" id="dup-alert" style="border-right: 4px solid var(--wf-grey-900); background: var(--wf-grey-300);">
+      <strong>⚠️ تنبيه فحص تكرار رقم الهاتف (Duplicate Phone Detection R-4.2):</strong>
+      <div style="margin-top: 4px; font-size: 11px;">
+        تم العثور على مريض مسجل مسبقاً بنفس رقم الهاتف: <strong>أحمد مصطفى كامل (MAS-00104)</strong>.
+        إذا كان المريض الجديد فرداً من العائلة (طفل أو مسن)، يرجى تفعيل خيار <em>"المريض تابع ويستخدم هاتف ولي الأمر"</em> أدناه لربطه برقم هاتف العائلة دون تعارض.
+      </div>
+      <div style="margin-top: 6px;">
+        <a href="patient-profile.html" class="btn btn-sm btn-primary">فتح الملف المسجل مسبقاً</a>
+      </div>
+    </div>
+
+    <form onsubmit="event.preventDefault(); alert('تم التحقق من صحة البيانات وحفظ المريض وتوليد كود: MAS-00162 بنجاح'); window.location.href='patient-profile.html';">
+      <!-- Section 1: Demographics -->
+      <div class="card" style="margin-bottom: 16px;">
+        <div class="card-header" style="padding-bottom: 8px; margin-bottom: 12px;">
+          <div class="card-title" style="font-size: 14px;">1. البيانات الشخصية الأساسية</div>
+        </div>
+        <div class="form-row">
+          <div class="form-col form-group" style="flex: 2;">
+            <label class="form-label">الاسم الكامل بالعربية (ثلاثي على الأقل R-4.1-1):</label>
+            <input type="text" class="form-control" value="يوسف أحمد إبراهيم" required>
+          </div>
+          <div class="form-col form-group">
+            <label class="form-label">النوع (الجنس):</label>
+            <select class="form-control" required>
+              <option selected>ذكر</option>
+              <option>أنثى</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-col form-group">
+            <label class="form-label">تاريخ الميلاد:</label>
+            <input type="date" class="form-control" value="2016-05-14">
+          </div>
+          <div class="form-col form-group">
+            <label class="form-label">العمر التقريبي (سنة):</label>
+            <input type="number" class="form-control" value="10">
+          </div>
+          <div class="form-col form-group">
+            <label class="form-label">الرقم القومي (اختياري 14 رقم):</label>
+            <input type="text" class="form-control" placeholder="2950101XXXXXXXX">
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2: Phone & Dependents (DEC-014) -->
+      <div class="card" style="margin-bottom: 16px;">
+        <div class="card-header" style="padding-bottom: 8px; margin-bottom: 12px;">
+          <div class="card-title" style="font-size: 14px;">2. أرقام التواصل وهاتف ولي الأمر (Phone & Guardian Model)</div>
+        </div>
+
+        <div class="form-group" style="background: var(--wf-grey-100); padding: 10px; border-radius: 4px; border: 1px solid var(--wf-border);">
+          <label class="form-check">
+            <input type="checkbox" id="is-dependent" checked>
+            <span style="font-weight: bold; font-size: 13px;">المريض تابع (طفل / مسن) ويستخدم هاتف ولي الأمر (DEC-014)</span>
+          </label>
+          <div style="font-size: 11px; color: var(--wf-text-muted); margin-right: 22px; margin-top: 2px;">
+            عند تفعيل هذا الخيار، يُترك هاتف المريض فارغاً ويُسجل هاتف ولي الأمر. يمكن تكرار هاتف ولي الأمر لأكثر من فرد في نفس الأسرة.
+          </div>
+        </div>
+
+        <div class="form-row" id="guardian-fields">
+          <div class="form-col form-group">
+            <label class="form-label">اسم ولي الأمر الكامل:</label>
+            <input type="text" class="form-control" value="أحمد إبراهيم كامل" required>
+          </div>
+          <div class="form-col form-group">
+            <label class="form-label">صلة القرابة:</label>
+            <select class="form-control" required>
+              <option selected>الأب (Father)</option>
+              <option>الأم (Mother)</option>
+              <option>الابن / الابنة (Child)</option>
+              <option>الزوج / الزوجة (Spouse)</option>
+              <option>أخرى (Other)</option>
+            </select>
+          </div>
+          <div class="form-col form-group">
+            <label class="form-label">هاتف ولي الأمر (موبايل مصري 01XXXXXXXXX):</label>
+            <input type="text" class="form-control" value="01012345678" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">العنوان / المنطقة السكنية:</label>
+          <input type="text" class="form-control" value="المعادي الجديدة، شارع النصر، القاهرة">
+        </div>
+      </div>
+
+      <!-- Section 3: Clinic Assignment & Referral -->
+      <div class="card" style="margin-bottom: 16px;">
+        <div class="card-header" style="padding-bottom: 8px; margin-bottom: 12px;">
+          <div class="card-title" style="font-size: 14px;">3. الإحالة وتخصيص الأطباء المتابعين</div>
+        </div>
+        <div class="form-row">
+          <div class="form-col form-group">
+            <label class="form-label">أخصائي العلاج الطبيعي المخصص:</label>
+            <select class="form-control">
+              <option selected>د. كريم حسني</option>
+              <option>د. سارة عادل</option>
+              <option>بدون تخصيص حالياً</option>
+            </select>
+          </div>
+          <div class="form-col form-group">
+            <label class="form-label">أخصائي التغذية العلاجية المخصص:</label>
+            <select class="form-control">
+              <option>د. نورهان سعيد</option>
+              <option selected>بدون تخصيص حالياً</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-col form-group">
+            <label class="form-label">مصدر الإحالة والتعرف على العيادة (R-4.1-12):</label>
+            <select class="form-control">
+              <option>تحويل من طبيب عظام / جراحة</option>
+              <option selected>ترشيح من صديق أو مريض سابق</option>
+              <option>فيسبوك / منصات التواصل الاجتماعي</option>
+              <option>مرور مباشر بالعيادة (Walk-in)</option>
+            </select>
+          </div>
+          <div class="form-col form-group">
+            <label class="form-label">لغة التواصل المفضلة:</label>
+            <select class="form-control">
+              <option selected>العربية (Arabic - RTL)</option>
+              <option>الإنجليزية (English - LTR)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 4: Medical Alerts -->
+      <div class="card" style="margin-bottom: 16px;">
+        <div class="card-header" style="padding-bottom: 8px; margin-bottom: 12px;">
+          <div class="card-title" style="font-size: 14px;">4. التنبيهات والمحاذير الطبية الأولية (R-4.1-13)</div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; font-size: 12px;">
+          <label class="form-check"><input type="checkbox"> ارتفاع ضغط الدم</label>
+          <label class="form-check"><input type="checkbox"> السكري</label>
+          <label class="form-check"><input type="checkbox"> أمراض القلب وجهاز التنظيم</label>
+          <label class="form-check"><input type="checkbox"> سيولة الدم وتناول مضادات التجلط</label>
+          <label class="form-check"><input type="checkbox"> حمل (للسيدات)</label>
+          <label class="form-check"><input type="checkbox"> جراحة حديثة أو مسامير وشرائح</label>
+        </div>
+        <div class="form-group" style="margin-top: 10px; margin-bottom: 0;">
+          <label class="form-label">ملاحظات التنبيه الطبي (تظهر بملصق بارز للاستقبال والمعالج):</label>
+          <input type="text" class="form-control" placeholder="مثل: كسر قديم ملتئم في الساعد الأيسر">
+        </div>
+      </div>
+
+      <!-- Section 5: Consents (R-4.1-15, DEC-022) -->
+      <div class="card" style="background: var(--wf-grey-100); padding: 14px; margin-bottom: 20px;">
+        <div class="form-group">
+          <label class="form-check">
+            <input type="checkbox" id="data-consent" required checked>
+            <span style="font-weight: bold; font-size: 12px;">
+              [إلزامي R-4.1-15] موافقة المريض / ولي الأمر على معالجة البيانات الشخصية والطبية بالعيادة
+            </span>
+          </label>
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-check">
+            <input type="checkbox" id="whatsapp-consent" checked>
+            <span style="font-size: 12px;">
+              [اختياري DEC-022] موافقة المريض على استقبال رسائل التذكير بالمواعيد وتحديثات العلاج عبر WhatsApp
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 8px;">
+        <a href="reception-today.html" class="btn">إلغاء</a>
+        <button type="submit" class="btn btn-primary" style="padding: 10px 24px;">حفظ وفتح ملف المريض</button>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

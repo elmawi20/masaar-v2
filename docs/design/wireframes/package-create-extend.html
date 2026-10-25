@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>إصدار وتمديد باقة علاجية — عيادة مسار</title>
+  <link rel="stylesheet" href="wireframe.css">
+  <style>
+    .package-container {
+      max-width: 780px;
+      margin: 30px auto;
+      background: var(--wf-surface);
+      border: 1px solid var(--wf-border-dark);
+      border-radius: 6px;
+      padding: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wf-banner">
+    <span>[واجهة سلكية تجريبية - Task 1.16] إصدار وتمديد الباقات العلاجية (MDL-D01)</span>
+    <a href="patient-profile.html">← العودة لملف المريض</a>
+  </div>
+
+  <div class="package-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--wf-border-dark); padding-bottom: 12px; margin-bottom: 20px;">
+      <div>
+        <h1 style="font-size: 18px; font-weight: bold;">إدارة الباقات العلاجية (Packages)</h1>
+        <p style="font-size: 12px; color: var(--wf-text-muted);">المريض: <strong>أحمد مصطفى كامل (كود: MAS-00104)</strong></p>
+      </div>
+      <a href="patient-profile.html" class="btn btn-sm">إلغاء والعودة</a>
+    </div>
+
+    <!-- Form 1: Create Package -->
+    <div class="card" style="margin-bottom: 24px; border-right: 4px solid var(--wf-grey-800);">
+      <div class="card-header">
+        <div class="card-title" style="font-size: 15px;">1. إصدار باقة علاجية جديدة (R-7-2)</div>
+        <span class="badge" style="background: var(--wf-grey-200);">استقبال · مدير · مالك</span>
+      </div>
+
+      <form onsubmit="event.preventDefault(); alert('تم إصدار الباقة وتوليد المطالبة المالية بنجاح (R-7-2)');">
+        <div class="form-row">
+          <div class="form-col form-group">
+            <label class="form-label">اختر نموذج الباقة من الدليل:</label>
+            <select class="form-control" required>
+              <option selected>باقة علاج طبيعي - 12 جلسة (خصم 20%)</option>
+              <option>باقة علاج طبيعي مكثف - 24 جلسة</option>
+              <option>باقة تغذية علاجية ومتابعة InBody - 8 جلسات</option>
+              <option>باقة مخصصة (إدخال يدوي)</option>
+            </select>
+          </div>
+          <div class="form-col form-group">
+            <label class="form-label">الخدمة المغطاة بالباقة (DEC-009):</label>
+            <select class="form-control" required>
+              <option selected>علاج طبيعي (Physiotherapy)</option>
+              <option>تغذية علاجية (Nutrition)</option>
+            </select>
+            <small style="font-size: 10px; color: var(--wf-text-muted);">* كشف الاستشاري لا يشمل في الباقات في الإصدار الأول</small>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-col form-group">
+            <label class="form-label">إجمالي عدد الجلسات:</label>
+            <input type="number" class="form-control" value="12" required min="1">
+          </div>
+          <div class="form-col form-group">
+            <label class="form-label">مدة الصلاحية (أيام):</label>
+            <input type="number" class="form-control" value="90" required min="1">
+          </div>
+          <div class="form-col form-group">
+            <label class="form-label">تاريخ انتهاء الصلاحية المتوقع:</label>
+            <input type="text" class="form-control" value="2027-01-23" readonly style="background: var(--wf-grey-200);">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-col form-group">
+            <label class="form-label">سعر الباقة الإجمالي (ج.م):</label>
+            <input type="text" class="form-control" value="3,600.00 ج.م" required style="font-weight: bold; font-size: 15px;">
+          </div>
+          <div class="form-col form-group" style="display: flex; align-items: flex-end; padding-bottom: 14px;">
+            <label class="form-check">
+              <input type="checkbox" id="immediate-pay" checked>
+              <span style="font-size: 12px; font-weight: bold;">تحصيل دفعة مالية فورية الآن</span>
+            </label>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end;">
+          <button type="submit" class="btn btn-primary">إصدار الباقة وحفظ المطالبة</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Form 2: Extend Package Validity -->
+    <div class="card" style="border-right: 4px solid var(--wf-grey-600); background: var(--wf-grey-100);">
+      <div class="card-header">
+        <div>
+          <div class="card-title" style="font-size: 15px;">2. تمديد صلاحية باقة قائمة (R-1.1-10, R-7-6)</div>
+          <p style="font-size: 11px; color: var(--wf-text-muted);">باقة: #PKG-2026-004 (تنتهي في: 15 يناير 2027 · متبقي 4 جلسات)</p>
+        </div>
+        <span class="badge" style="background: var(--wf-grey-800); color: #fff;">صلاحية: مدير أو مالك فقط</span>
+      </div>
+
+      <form onsubmit="event.preventDefault(); alert('تم تمديد صلاحية الباقة 30 يوماً وتوثيق السبب في سجل الرقابة (R-7-6)');">
+        <div class="form-row">
+          <div class="form-col form-group">
+            <label class="form-label">الأيام الإضافية المراد زيادتها:</label>
+            <select class="form-control" required>
+              <option selected>+30 يوماً إضافياً</option>
+              <option>+45 يوماً إضافياً</option>
+              <option>+60 يوماً إضافياً</option>
+              <option>+90 يوماً إضافياً</option>
+              <option>تحديد عدد أيام مخصص</option>
+            </select>
+          </div>
+          <div class="form-col form-group">
+            <label class="form-label">سبب التمديد الإلزامي (يسجل بسجل التدقيق R-7-6):</label>
+            <select class="form-control" required>
+              <option selected>ظرف صحي للمريض (إجراء عملية جراحية)</option>
+              <option>سفر خارج البلاد</option>
+              <option>ظروف طارئة خاصة بموافقة إدارة العيادة</option>
+              <option>عطلة رسمية وإغلاق العيادة</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">ملاحظات وتفاصيل التمديد:</label>
+          <input type="text" class="form-control" placeholder="موافقة المدير على تمديد الباقة نظراً لظرف السفر المثبت">
+        </div>
+
+        <div style="display: flex; justify-content: flex-end;">
+          <button type="submit" class="btn btn-primary" style="background: var(--wf-grey-700);">
+            اعتماد تمديد الصلاحية
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

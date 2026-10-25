@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>إيصال استلام نقدية A5 — عيادة مسار</title>
+  <link rel="stylesheet" href="wireframe.css">
+  <style>
+    .a5-page {
+      width: 210mm;
+      min-height: 148mm;
+      margin: 20px auto;
+      background: #fff;
+      border: 2px solid #333;
+      padding: 12mm 15mm;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    @media print {
+      body {
+        margin: 0;
+        background: #fff;
+      }
+      .a5-page {
+        border: none;
+        box-shadow: none;
+        margin: 0;
+        width: 100%;
+        min-height: 100%;
+        padding: 8mm;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wf-banner no-print">
+    <span>[واجهة سلكية تجريبية - Task 1.16] نموذج إيصال استلام مالي رسمي بحجم A5 (SCR-D03)</span>
+    <div style="display: flex; gap: 8px;">
+      <button class="btn btn-sm btn-primary" onclick="window.print();">🖨️ طباعة الإيصال (Print)</button>
+      <a href="patient-profile.html" class="btn btn-sm">← العودة لملف المريض</a>
+    </div>
+  </div>
+
+  <div class="a5-page">
+    <!-- Header -->
+    <div>
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #000; padding-bottom: 8px;">
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <div style="width: 48px; height: 48px; border: 2px solid #000; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px;">
+            مسار
+          </div>
+          <div>
+            <h1 style="font-size: 16px; font-weight: bold; margin: 0;">عيادة مسار للعلاج الطبيعي والتغذية</h1>
+            <div style="font-size: 11px; color: #444;">فرع المعادي: شارع النصر، المعادي الجديدة، القاهرة</div>
+            <div style="font-size: 10px; color: #666;">س.ت: 184920 · ب.ض: 582-910-334 · هاتف: 0225198000</div>
+          </div>
+        </div>
+
+        <div style="text-align: left; direction: ltr;">
+          <div style="font-size: 15px; font-weight: bold; border: 1px solid #000; padding: 2px 8px; display: inline-block;">
+            RECEIPT VOUCHER
+          </div>
+          <div style="font-size: 13px; font-weight: bold; margin-top: 4px;">رقم الإيصال: INV-2026-00184</div>
+          <div style="font-size: 11px; color: #555;">التاريخ: 25 أكتوبر 2026 - 02:45 م</div>
+        </div>
+      </div>
+
+      <!-- Patient & Meta Data -->
+      <div style="display: flex; justify-content: space-between; background: #f4f4f4; border: 1px solid #ccc; padding: 8px 12px; margin: 12px 0; font-size: 12px;">
+        <div>
+          استلمنا من السيد/ة: <strong>أحمد مصطفى كامل</strong>
+        </div>
+        <div>
+          كود المريض: <strong>MAS-00104</strong>
+        </div>
+        <div>
+          الموظف المستلم: <strong>سارة إبراهيم</strong>
+        </div>
+      </div>
+
+      <!-- Line Items Table -->
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 12px; text-align: right;">
+        <thead>
+          <tr style="background: #e9ecef; border: 1px solid #000;">
+            <th style="padding: 6px; border: 1px solid #000; width: 40px;">م</th>
+            <th style="padding: 6px; border: 1px solid #000;">البيان / تفاصيل الخدمة المسددة</th>
+            <th style="padding: 6px; border: 1px solid #000; width: 60px; text-align: center;">العدد</th>
+            <th style="padding: 6px; border: 1px solid #000; width: 120px; text-align: left;">القيمة</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #000;">1</td>
+            <td style="padding: 8px; border: 1px solid #000;">
+              <strong>دفعة سداد: باقة علاج طبيعي تأهيلي (12 جلسة)</strong><br>
+              <small style="color: #555;">رمز الباقة: #PKG-2026-004 · المعالج المعين: د. كريم حسني</small>
+            </td>
+            <td style="padding: 8px; border: 1px solid #000; text-align: center;">1</td>
+            <td style="padding: 8px; border: 1px solid #000; text-align: left; font-weight: bold;">1,200.00 ج.م</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Summary Box -->
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+        <div style="font-size: 11px; line-height: 1.6; max-width: 50%;">
+          <div>طريقة الدفع: <strong>إنستاباي (InstaPay)</strong></div>
+          <div>الرقم المرجعي للتحويل: <strong>98471204</strong></div>
+          <div style="color: #666; margin-top: 4px;">* المبلغ بالحروف: ألف ومائتا جنيه مصري لا غير.</div>
+        </div>
+
+        <div style="border: 1px solid #000; min-width: 200px; font-size: 12px;">
+          <div style="display: flex; justify-content: space-between; padding: 4px 8px; border-bottom: 1px solid #ccc;">
+            <span>إجمالي المدفوع:</span>
+            <strong>1,200.00 ج.م</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 4px 8px; background: #f8f9fa;">
+            <span>الرصيد المتبقي على الفاتورة:</span>
+            <strong>0.00 ج.م (خالص)</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Signatures -->
+    <div>
+      <div style="display: flex; justify-content: space-between; margin-top: 20px; padding-top: 10px; border-top: 1px dashed #666; font-size: 12px;">
+        <div style="text-align: center; width: 140px;">
+          <div>توقيع المستلم</div>
+          <div style="margin-top: 24px; border-bottom: 1px solid #000;"></div>
+        </div>
+
+        <div style="text-align: center; font-size: 11px; color: #555; align-self: center;">
+          نتمنى لكم الشفاء العاجل ودوام الصحة والعافية<br>
+          <small>يرجى إبراز هذا الإيصال عند كل زيارة للمراجعة</small>
+        </div>
+
+        <div style="text-align: center; width: 140px;">
+          <div>خاتم العيادة الرسمي</div>
+          <div style="margin-top: 24px; border-bottom: 1px solid #000;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

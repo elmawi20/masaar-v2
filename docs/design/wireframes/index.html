@@ -115,15 +115,75 @@
       </table>
     </div>
 
-    <!-- Task 1.16 Placeholder Section -->
+    <!-- Task 1.16 Section -->
     <div class="task-section" id="section-116">
       <div class="card-header" style="background: var(--wf-grey-200); padding: 10px 14px; border: 1px solid var(--wf-border-dark); border-radius: 4px;">
         <h2 style="font-size: 15px; font-weight: bold;">حزمة 1.16: المرضى والماليات (Patients & Money)</h2>
-        <span class="badge" style="background: var(--wf-grey-600); color: #fff;">قيد الإنجاز (Task 1.16)</span>
+        <span class="badge" style="background: var(--wf-grey-800); color: #fff;">✅ مكتمل (7 شاشات ونماذج)</span>
       </div>
-      <p style="font-size: 12px; color: var(--wf-text-muted); padding: 10px 0;">
-        سيتم إدراج شاشات تسجيل المرضى مع التحقق من هاتف ولي الأمر، الملف الإداري، إصدار وتمديد الباقات، تحصيل الدفعات، إيصال A5، وإلغاء/استرداد المبالغ، وإغلاق الوردية النقدية.
-      </p>
+
+      <table class="wf-table" style="margin-top: 10px;">
+        <thead>
+          <tr>
+            <th style="width: 200px;">الشاشة / النموذج</th>
+            <th>الكود والمسار</th>
+            <th>الوصف والقواعد المنفذة</th>
+            <th style="width: 140px;">الأدوار المصرح لها</th>
+            <th style="width: 100px;">معاينة</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>تسجيل مريض جديد</strong></td>
+            <td><code>SCR-C02</code> · <code>patient-registration.html</code></td>
+            <td>فحص تكرار الهاتف، نموذج هاتف ولي الأمر للأطفال/المسنين، والموافقات (R-4.1, DEC-014, DEC-022)</td>
+            <td>استقبال، مدير، مالك</td>
+            <td><a href="patient-registration.html" class="btn btn-sm btn-primary">فتح الشاشة</a></td>
+          </tr>
+          <tr>
+            <td><strong>ملف المريض الإداري الشامل</strong></td>
+            <td><code>SCR-C03</code> · <code>patient-profile.html</code></td>
+            <td>المواعيد، الباقات، الفواتير، المستندات الإدارية، وسجل WhatsApp مع حجب التشخيص الطبي</td>
+            <td>استقبال، مدير، مالك</td>
+            <td><a href="patient-profile.html" class="btn btn-sm btn-primary">فتح الشاشة</a></td>
+          </tr>
+          <tr>
+            <td><strong>إصدار وتمديد الباقات</strong></td>
+            <td><code>MDL-D01</code> · <code>package-create-extend.html</code></td>
+            <td>إصدار باقة وتوليد المطالبة، وتمديد الصلاحية للأيام الإضافية بسبب موثق (R-7-2, R-7-6)</td>
+            <td>إصدار (استقبال+) · تمديد (مدير/مالك)</td>
+            <td><a href="package-create-extend.html" class="btn btn-sm btn-primary">فتح الشاشة</a></td>
+          </tr>
+          <tr>
+            <td><strong>تحصيل دفعة مالية وسداد</strong></td>
+            <td><code>MDL-D02</code> · <code>collect-payment.html</code></td>
+            <td>سداد نقدي/إنستاباي/فيزا مع التحقق من عدم تجاوز الرصيد المتبقي (R-8.1-2)</td>
+            <td>استقبال، مدير، مالك</td>
+            <td><a href="collect-payment.html" class="btn btn-sm btn-primary">فتح الشاشة</a></td>
+          </tr>
+          <tr>
+            <td><strong>إيصال استلام رسمي (A5)</strong></td>
+            <td><code>SCR-D03</code> · <code>printable-receipt-a5.html</code></td>
+            <td>معاينة وطباعة إيصال مرقم تسلسلياً بحجم A5 مع تفاصيل التحصيل والختم والتوقيع (R-8.2-1)</td>
+            <td>استقبال، مدير، مالك</td>
+            <td><a href="printable-receipt-a5.html" class="btn btn-sm btn-primary">فتح الشاشة</a></td>
+          </tr>
+          <tr>
+            <td><strong>حوارات الإلغاء والاسترداد</strong></td>
+            <td><code>MDL-D04/05</code> · <code>void-refund-dialogs.html</code></td>
+            <td>إلغاء إيصال قبض وشطبه، واسترداد مبالغ للمريض وخصمها من الدرج النقدي (R-8.3-1, DEC-015)</td>
+            <td>مدير، مالك فقط</td>
+            <td><a href="void-refund-dialogs.html" class="btn btn-sm btn-primary">فتح الشاشة</a></td>
+          </tr>
+          <tr>
+            <td><strong>إغلاق الوردية النقدية</strong></td>
+            <td><code>SCR-D06</code> · <code>cash-closing.html</code></td>
+            <td>مطابقة الدرج، حساب النقدية المتوقعة، الفارق المالي، وقفل المصروفات (R-8.4-1, DEC-020)</td>
+            <td>استقبال، مدير، مالك</td>
+            <td><a href="cash-closing.html" class="btn btn-sm btn-primary">فتح الشاشة</a></td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <!-- Task 1.17 Placeholder Section -->

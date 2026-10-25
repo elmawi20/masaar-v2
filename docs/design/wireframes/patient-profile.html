@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ملف المريض الإداري — عيادة مسار</title>
+  <link rel="stylesheet" href="wireframe.css">
+  <style>
+    .tab-nav {
+      display: flex;
+      gap: 4px;
+      border-bottom: 2px solid var(--wf-border-dark);
+      margin-bottom: 20px;
+    }
+    .tab-btn {
+      padding: 10px 18px;
+      font-size: 13px;
+      font-weight: bold;
+      border: 1px solid var(--wf-border);
+      border-bottom: none;
+      background: var(--wf-grey-100);
+      border-radius: 4px 4px 0 0;
+      cursor: pointer;
+      text-decoration: none;
+      color: var(--wf-text-main);
+    }
+    .tab-btn.active {
+      background: var(--wf-surface);
+      border-color: var(--wf-border-dark);
+      border-bottom: 2px solid #fff;
+      margin-bottom: -2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wf-banner">
+    <span>[واجهة سلكية تجريبية - Task 1.16] الملف الإداري والمالي الشامل للمريض (SCR-C03)</span>
+    <a href="index.html">← فهرس جميع الواجهات</a>
+  </div>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-logo">عيادة مسار — المعادي</div>
+      <div class="nav-group">
+        <span class="nav-label">الاستقبال</span>
+        <a href="reception-today.html" class="nav-item">📅 اليوم (Today)</a>
+        <a href="calendar-day.html" class="nav-item">🗓️ جدول الأسرة والمواعيد</a>
+        <a href="patient-profile.html" class="nav-item active">👥 دليل المرضى</a>
+        <a href="patient-registration.html" class="nav-item">➕ مريض جديد</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-label">الماليات</span>
+        <a href="collect-payment.html" class="nav-item">💳 تحصيل دفعة</a>
+        <a href="cash-closing.html" class="nav-item">📥 إغلاق الوردية</a>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <!-- Patient Profile Header -->
+      <div class="card" style="border-right: 6px solid var(--wf-grey-800); margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <h1 style="font-size: 20px; font-weight: bold;">أحمد مصطفى كامل</h1>
+              <span class="badge" style="background: var(--wf-grey-800); color: #fff;">كود: MAS-00104</span>
+              <span class="badge" style="background: var(--wf-grey-300);">نشط (Active)</span>
+            </div>
+            <div style="font-size: 12px; color: var(--wf-text-muted); margin-top: 6px;">
+              34 سنة · ذكر · هاتف: <strong>01012345678</strong> (موافقة واتساب: نعم) · المعالج المتابع: <strong>د. كريم حسني</strong>
+            </div>
+            <div style="margin-top: 8px;">
+              <span class="badge" style="border-color: #000; font-weight: bold;">
+                ⚠️ تنبيه طبي: ارتفاع ضغط الدم (Hypertension)
+              </span>
+            </div>
+          </div>
+
+          <div style="text-align: left; display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+            <div style="background: var(--wf-grey-100); border: 1px solid var(--wf-border-dark); padding: 8px 14px; border-radius: 4px; text-align: center;">
+              <div style="font-size: 11px; color: var(--wf-text-muted);">الرصيد المالي المستحق (R-8.1):</div>
+              <div style="font-size: 18px; font-weight: bold;">450.00 ج.م</div>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <a href="booking-form.html" class="btn btn-sm btn-primary">➕ حجز موعد</a>
+              <a href="package-create-extend.html" class="btn btn-sm">📦 إصدار باقة</a>
+              <a href="collect-payment.html" class="btn btn-sm">💳 تحصيل دفعة</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs Navigation -->
+      <div class="tab-nav">
+        <a href="#tab-appts" class="tab-btn active" onclick="showTab('appts')">📅 المواعيد (Appointments)</a>
+        <a href="#tab-packages" class="tab-btn" onclick="showTab('packages')">📦 الباقات العلاجية (Packages)</a>
+        <a href="#tab-billing" class="tab-btn" onclick="showTab('billing')">💳 الفواتير والمدفوعات (Billing)</a>
+        <a href="#tab-docs" class="tab-btn" onclick="showTab('docs')">📁 المستندات الإدارية (Admin Docs)</a>
+        <a href="#tab-msgs" class="tab-btn" onclick="showTab('msgs')">💬 سجل WhatsApp</a>
+      </div>
+
+      <!-- Tab 1: Appointments -->
+      <div id="content-appts" class="tab-content card">
+        <div class="card-header">
+          <div class="card-title">سجل المواعيد والزيارات</div>
+          <a href="booking-form.html" class="btn btn-sm btn-primary">➕ موعد جديد</a>
+        </div>
+        <table class="wf-table">
+          <thead>
+            <tr>
+              <th>رقم الموعد</th>
+              <th>التاريخ والوقت</th>
+              <th>نوع الجلسة</th>
+              <th>المعالج</th>
+              <th>السرير</th>
+              <th>الحالة</th>
+              <th>السعر والتغطية</th>
+              <th>الإجراءات</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>#APT-0982</td>
+              <td>اليوم 25 أكتوبر 2026 - 09:30 ص</td>
+              <td>علاج طبيعي</td>
+              <td>د. كريم حسني</td>
+              <td>غرفة 1 - سرير 2</td>
+              <td><span class="badge">حضر بالانتظار</span></td>
+              <td>مغطى بباقة 12 جلسة</td>
+              <td><a href="appointment-action-panel.html" class="btn btn-sm">إدارة الموعد</a></td>
+            </tr>
+            <tr>
+              <td>#APT-0914</td>
+              <td>22 أكتوبر 2026 - 09:30 ص</td>
+              <td>علاج طبيعي</td>
+              <td>د. كريم حسني</td>
+              <td>غرفة 1 - سرير 2</td>
+              <td><span class="badge">مكتمل</span></td>
+              <td>مغطى بباقة 12 جلسة</td>
+              <td><a href="appointment-action-panel.html" class="btn btn-sm">عرض التفاصيل</a></td>
+            </tr>
+            <tr>
+              <td>#APT-0881</td>
+              <td>19 أكتوبر 2026 - 09:30 ص</td>
+              <td>علاج طبيعي</td>
+              <td>د. كريم حسني</td>
+              <td>غرفة 1 - سرير 2</td>
+              <td><span class="badge">مكتمل</span></td>
+              <td>مغطى بباقة 12 جلسة</td>
+              <td><a href="appointment-action-panel.html" class="btn btn-sm">عرض التفاصيل</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Tab 2: Packages -->
+      <div id="content-packages" class="tab-content card" style="display: none;">
+        <div class="card-header">
+          <div class="card-title">الباقات العلاجية المسجلة للمريض (R-7)</div>
+          <a href="package-create-extend.html" class="btn btn-sm btn-primary">➕ إصدار باقة جديدة</a>
+        </div>
+        <div class="card" style="background: var(--wf-grey-100); border: 1px solid var(--wf-border-dark); margin-bottom: 12px; padding: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <div style="font-weight: bold; font-size: 15px;">باقة علاج طبيعي تأهيلي (12 جلسة)</div>
+              <div style="font-size: 12px; color: var(--wf-text-muted);">كود الباقة: #PKG-2026-004 · تاريخ الإصدار: 15 أكتوبر 2026</div>
+            </div>
+            <span class="badge" style="background: var(--wf-grey-800); color: #fff;">نشطة (Active)</span>
+          </div>
+
+          <div class="kpi-grid" style="margin: 14px 0 10px;">
+            <div class="kpi-card">
+              <div class="kpi-value">12</div>
+              <div class="kpi-label">إجمالي الجلسات</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-value">3</div>
+              <div class="kpi-label">مكتملة ومستهلكة</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-value">5</div>
+              <div class="kpi-label">محجوزة قادمة</div>
+            </div>
+            <div class="kpi-card" style="border: 2px solid #000;">
+              <div class="kpi-value">4</div>
+              <div class="kpi-label">جلسات متبقية ومتاحة (R-5.2)</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-value">72 يوماً</div>
+              <div class="kpi-label">صلاحية حتى (15 يناير 2027)</div>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--wf-border); padding-top: 10px; font-size: 12px;">
+            <div>
+              السعر الإجمالي للباقة: <strong>3,600.00 ج.م</strong> · المسدد: <strong>3,600.00 ج.م</strong> · المتبقي: <strong>0.00 ج.م</strong>
+            </div>
+            <a href="package-create-extend.html" class="btn btn-sm">تمديد الصلاحية (+ أيام R-7-6)</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 3: Billing & Payments -->
+      <div id="content-billing" class="tab-content card" style="display: none;">
+        <div class="card-header">
+          <div class="card-title">الفواتير وإيصالات السداد المقبوضة (R-8)</div>
+          <div style="display: flex; gap: 6px;">
+            <a href="collect-payment.html" class="btn btn-sm btn-primary">💳 تحصيل دفعة</a>
+            <a href="void-refund-dialogs.html" class="btn btn-sm">إلغاء إيصال / استرداد</a>
+          </div>
+        </div>
+        <table class="wf-table">
+          <thead>
+            <tr>
+              <th>رقم الإيصال</th>
+              <th>التاريخ والوقت</th>
+              <th>البيان والخدمة</th>
+              <th>المبلغ المدفوع</th>
+              <th>طريقة الدفع</th>
+              <th>الموظف المستلم</th>
+              <th>الحالة</th>
+              <th>معاينة الإيصال</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>INV-2026-00184</strong></td>
+              <td>25 أكتوبر 2026 - 02:45 م</td>
+              <td>دفعة تحت حساب باقة علاج طبيعي</td>
+              <td><strong>1,200.00 ج.م</strong></td>
+              <td>إنستاباي (مرجع: 98471204)</td>
+              <td>سارة إبراهيم</td>
+              <td><span class="badge">معتمد (Paid)</span></td>
+              <td><a href="printable-receipt-a5.html" class="btn btn-sm">طباعة إيصال A5</a></td>
+            </tr>
+            <tr>
+              <td><strong>INV-2026-00104</strong></td>
+              <td>15 أكتوبر 2026 - 11:30 ص</td>
+              <td>دفعة أولى باقة علاج طبيعي</td>
+              <td><strong>2,400.00 ج.م</strong></td>
+              <td>نقدية (Cash)</td>
+              <td>سارة إبراهيم</td>
+              <td><span class="badge">معتمد (Paid)</span></td>
+              <td><a href="printable-receipt-a5.html" class="btn btn-sm">طباعة إيصال A5</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Tab 4: Admin Documents (Privacy Redaction R-1.1-3) -->
+      <div id="content-docs" class="tab-content card" style="display: none;">
+        <div class="card-header">
+          <div class="card-title">المستندات الإدارية المرفقة</div>
+          <button class="btn btn-sm btn-primary" onclick="alert('فتح نافذة رفع مستند إداري (بطاقة هوية أو إيصال تحويل)');">📎 رفع مستند إداري</button>
+        </div>
+        <div class="alert" style="font-size: 11px;">
+          🔒 <strong>تنبيه الخصوصية الطبية (R-1.1-3):</strong> تقتصر رؤية موظف الاستقبال والمدير على المرفقات الإدارية (الهوية الوطنية، كارنيه التأمين، إيصالات التحويل). المستندات الطبية (أشعة X-Ray، رنين مغناطيسي MRI، تحاليل مخبرية) محجوبة تماماً ولا تظهر إلا في الملف الطبي للمعالج المصرح له.
+        </div>
+        <table class="wf-table">
+          <thead>
+            <tr>
+              <th>اسم الملف</th>
+              <th>التصنيف</th>
+              <th>تاريخ الرفع</th>
+              <th>الحجم</th>
+              <th>الموظف</th>
+              <th>تحميل</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>National_ID_Front.pdf</td>
+              <td><span class="badge">بطاقة هوية إدارية</span></td>
+              <td>15 أكتوبر 2026</td>
+              <td>1.2 MB</td>
+              <td>سارة إبراهيم</td>
+              <td><button class="btn btn-sm">معاينة الملف</button></td>
+            </tr>
+            <tr>
+              <td>InstaPay_Deposit_Proof.jpg</td>
+              <td><span class="badge">إثبات سداد مالي</span></td>
+              <td>25 أكتوبر 2026</td>
+              <td>450 KB</td>
+              <td>سارة إبراهيم</td>
+              <td><button class="btn btn-sm">معاينة الملف</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Tab 5: WhatsApp Log -->
+      <div id="content-msgs" class="tab-content card" style="display: none;">
+        <div class="card-header">
+          <div class="card-title">سجل رسائل وتذكيرات WhatsApp (R-6)</div>
+        </div>
+        <table class="wf-table">
+          <thead>
+            <tr>
+              <th>تاريخ الإرسال</th>
+              <th>نوع الرسالة / القالب</th>
+              <th>رقم الهاتف المرسل إليه</th>
+              <th>نص الرسالة المرسل</th>
+              <th>الحالة</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>24 أكتوبر 2026 - 08:30 م</td>
+              <td>تذكير بموعد الغد</td>
+              <td>01012345678</td>
+              <td>عزيزي أحمد مصطفى، نذكركم بموعد جلسة العلاج الطبيعي غداً الأحد 25 أكتوبر الساعة 09:30 ص في عيادة مسار.</td>
+              <td><span class="badge">تم الإرسال (wa.me)</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function showTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById('content-' + tabName).style.display = 'block';
+      event.target.classList.add('active');
+    }
+  </script>
+</body>
+</html>

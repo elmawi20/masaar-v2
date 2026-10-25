@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تحصيل دفعة مالية — عيادة مسار</title>
+  <link rel="stylesheet" href="wireframe.css">
+  <style>
+    .pay-container {
+      max-width: 600px;
+      margin: 40px auto;
+      background: var(--wf-surface);
+      border: 1px solid var(--wf-border-dark);
+      border-radius: 6px;
+      padding: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wf-banner">
+    <span>[واجهة سلكية تجريبية - Task 1.16] نموذج تحصيل دفعة مالية وإصدار إيصال (MDL-D02)</span>
+    <a href="patient-profile.html">← العودة لملف المريض</a>
+  </div>
+
+  <div class="pay-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--wf-border-dark); padding-bottom: 12px; margin-bottom: 20px;">
+      <div>
+        <h1 style="font-size: 18px; font-weight: bold;">تحصيل دفعة مالية وسداد</h1>
+        <p style="font-size: 12px; color: var(--wf-text-muted);">المريض: <strong>أحمد مصطفى كامل (MAS-00104)</strong></p>
+      </div>
+      <a href="reception-today.html" class="btn btn-sm">إلغاء</a>
+    </div>
+
+    <form onsubmit="event.preventDefault(); window.location.href='printable-receipt-a5.html';">
+      <!-- Target Charge & Outstanding Balance -->
+      <div class="card" style="background: var(--wf-grey-100); padding: 14px; margin-bottom: 16px;">
+        <div class="form-group">
+          <label class="form-label">المطالبة / الفاتورة المراد السداد عليها (R-8.1):</label>
+          <select class="form-control" required>
+            <option selected>باقة علاج طبيعي 12 جلسة (#PKG-2026-004) — المتبقي: 1,200.00 ج.م</option>
+            <option>موعد جلسة فردية 25 أكتوبر (#APT-0982) — المتبقي: 450.00 ج.م</option>
+          </select>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; font-size: 13px; border-top: 1px solid var(--wf-border); padding-top: 10px;">
+          <div>إجمالي الفاتورة: <strong>3,600.00 ج.م</strong></div>
+          <div>سدد سابقاً: <strong>2,400.00 ج.م</strong></div>
+          <div>الرصيد المتبقي: <strong>1,200.00 ج.م</strong></div>
+        </div>
+      </div>
+
+      <!-- Payment Amount -->
+      <div class="form-group">
+        <label class="form-label">المبلغ المدفوع حالياً (ج.م - يجب ألا يتجاوز الرصيد المتبقي R-8.1-2):</label>
+        <input type="text" class="form-control" value="1,200.00 ج.م" required style="font-size: 18px; font-weight: bold; text-align: left; direction: ltr;">
+      </div>
+
+      <!-- Payment Method -->
+      <div class="form-group">
+        <label class="form-label">طريقة الدفع (Payment Method R-8.1):</label>
+        <select class="form-control" id="pay-method" required onchange="toggleRef(this.value)">
+          <option value="INSTAPAY" selected>إنستاباي (InstaPay)</option>
+          <option value="CASH">نقدية بالدرج (Cash - يضاف لوردية الموظف)</option>
+          <option value="VISA">بطاقة بنكية / فيزا (Visa / POS Card)</option>
+          <option value="VODAFONE_CASH">فودافون كاش / محفظة إلكترونية</option>
+        </select>
+      </div>
+
+      <!-- Transaction Reference -->
+      <div class="form-group" id="ref-group">
+        <label class="form-label">رقم المعاملة / مرجع التحويل (إلزامي لإنستاباي وفودافون كاش):</label>
+        <input type="text" class="form-control" value="98471204" required placeholder="أدخل رقم العملية المرجعي من التطبيق...">
+      </div>
+
+      <!-- Notes -->
+      <div class="form-group">
+        <label class="form-label">ملاحظات على السداد (اختياري):</label>
+        <input type="text" class="form-control" placeholder="سداد كامل الدفعة المتبقية من الباقة...">
+      </div>
+
+      <!-- Print Receipt Checkbox -->
+      <div class="form-group" style="background: var(--wf-grey-100); padding: 10px; border-radius: 4px;">
+        <label class="form-check">
+          <input type="checkbox" id="print-receipt" checked>
+          <span style="font-weight: bold; font-size: 12px;">طباعة إيصال استلام رسمي فوري للمريض (A5 Printable Receipt)</span>
+        </label>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 8px;">
+        <a href="reception-today.html" class="btn">إلغاء</a>
+        <button type="submit" class="btn btn-primary" style="padding: 10px 24px;">
+          تأكيد التحصيل وإصدار الإيصال (INV-2026-00184)
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    function toggleRef(val) {
+      const refGroup = document.getElementById('ref-group');
+      if (val === 'CASH') {
+        refGroup.style.display = 'none';
+      } else {
+        refGroup.style.display = 'block';
+      }
+    }
+  </script>
+</body>
+</html>
