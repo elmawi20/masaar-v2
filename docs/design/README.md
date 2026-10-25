@@ -14,7 +14,7 @@ This directory contains all approved Stage 1 design specifications, matrices, di
 |:---:|---|---|:---:|:---:|
 | **1.01** | [`README.md`](file:///F:/Claude%20CRM/docs/design/README.md)<br>[`decisions.md`](file:///F:/Claude%20CRM/docs/design/decisions.md)<br>[`open-questions.md`](file:///F:/Claude%20CRM/docs/design/open-questions.md) | Project docs setup & ambiguity scan | **Done** | 2026-10-25 |
 | **1.02** | [`FEATURES-v2.2.md`](file:///F:/Claude%20CRM/docs/FEATURES-v2.2.md)<br>[`decisions.md`](file:///F:/Claude%20CRM/docs/design/decisions.md) | Apply answers to spec & bump version | **Done** | 2026-10-25 |
-| **1.03** | `rules-index.md`<br>Spec with rule IDs | Unique rule IDs (R-section-n) index | Pending | — |
+| **1.03** | [`rules-index.md`](file:///F:/Claude%20CRM/docs/design/rules-index.md)<br>[`FEATURES-v2.2.md`](file:///F:/Claude%20CRM/docs/FEATURES-v2.2.md) | Unique rule IDs (R-section-n) index | **Done** | 2026-10-25 |
 | **1.04** | `glossary.md` | AR/EN business terms, DB & code naming | Pending | — |
 | **1.05** | `permissions.md`<br>`src/domain/permissions.ts` | Complete permission matrix & data tables | Pending | — |
 | **1.06** | `state-machines.md`<br>`src/domain/status/*.ts` | State machine definitions & forbidden transitions | Pending | — |
