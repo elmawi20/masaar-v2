@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ملف المريض — عيادة مسار (النمط المرئي المعتمد)</title>
+  <title>ملف المريض — عيادة مسار</title>
   <link rel="stylesheet" href="style.css">
   <style>
     .tab-bar {
@@ -52,27 +52,29 @@
     </div>
 
     <div style="display: flex; align-items: center; gap: 12px;">
-      <button class="theme-toggle-btn" onclick="toggleTheme()">
-        <span id="theme-icon">🌙</span>
-        <span id="theme-text">الوضع الداكن (Dark Mode)</span>
+      <button class="theme-toggle-btn" onclick="toggleTheme()" id="theme-btn">
+        <svg id="theme-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+        <span id="theme-text">الوضع الداكن</span>
       </button>
-      <a href="today.html" class="btn-clinical btn-clinical-sm">← العودة للاستقبال</a>
+      <a href="today.html" class="btn-clinical btn-clinical-sm">العودة للاستقبال</a>
     </div>
   </header>
 
   <div class="app-container">
     <aside class="app-sidebar">
       <div class="nav-section-title">ملف المريض</div>
-      <a href="#overview" class="app-nav-link active">👤 البيانات الإدارية</a>
-      <a href="#appts" class="app-nav-link">📅 جدول المواعيد</a>
-      <a href="#packages" class="app-nav-link">📦 الباقات والعقود</a>
-      <a href="#billing" class="app-nav-link">💳 الفواتير والسندات</a>
-      <a href="#docs" class="app-nav-link">📁 المستندات الإدارية</a>
+      <a href="#overview" class="app-nav-link active">البيانات الإدارية</a>
+      <a href="#appts" class="app-nav-link">جدول المواعيد</a>
+      <a href="#packages" class="app-nav-link">الباقات والعقود</a>
+      <a href="#billing" class="app-nav-link">الفواتير والسندات</a>
+      <a href="#docs" class="app-nav-link">المستندات الإدارية</a>
 
-      <div class="nav-section-title">الشاشات المعتمدة</div>
-      <a href="today.html" class="app-nav-link">📅 شاشة اليوم (Today)</a>
-      <a href="session-complete.html" class="app-nav-link">📝 استكمال الجلسة الطبي</a>
-      <a href="index.html" class="app-nav-link">🎨 دليل الهوية المرئية</a>
+      <div class="nav-section-title">شاشات العيادة</div>
+      <a href="today.html" class="app-nav-link">لوحة اليوم</a>
+      <a href="session-complete.html" class="app-nav-link">استكمال الجلسة الطبي</a>
+      <a href="index.html" class="app-nav-link">دليل الهوية المرئية</a>
     </aside>
 
     <main class="app-main">
@@ -94,7 +96,7 @@
 
             <div style="margin-top: 10px;">
               <span class="status-badge badge-arrived" style="border-color: var(--status-arrived-border); font-size: 11px;">
-                ⚠️ تنبيه طبي: ارتفاع ضغط الدم (Hypertension)
+                تنبيه طبي: ارتفاع ضغط الدم
               </span>
             </div>
           </div>
@@ -105,9 +107,9 @@
               <div style="font-size: 20px; font-weight: 700; color: var(--text-main);">450.00 ج.م</div>
             </div>
             <div style="display: flex; gap: 6px;">
-              <a href="../wireframes/booking-form.html" class="btn-clinical btn-clinical-primary btn-clinical-sm">➕ حجز موعد</a>
-              <a href="../wireframes/package-create-extend.html" class="btn-clinical btn-clinical-sm">📦 إصدار باقة</a>
-              <a href="../wireframes/collect-payment.html" class="btn-clinical btn-clinical-sm">💳 تحصيل دفعة</a>
+              <a href="../wireframes/booking-form.html" class="btn-clinical btn-clinical-primary btn-clinical-sm">حجز موعد</a>
+              <a href="../wireframes/package-create-extend.html" class="btn-clinical btn-clinical-sm">إصدار باقة</a>
+              <a href="../wireframes/collect-payment.html" class="btn-clinical btn-clinical-sm">تحصيل دفعة</a>
             </div>
           </div>
         </div>
@@ -115,17 +117,17 @@
 
       <!-- Navigation Tabs -->
       <div class="tab-bar">
-        <a class="tab-link active">📅 المواعيد والزيارات</a>
-        <a class="tab-link">📦 الباقات العلاجية (1)</a>
-        <a class="tab-link">💳 الفواتير والمقبوضات</a>
-        <a class="tab-link">📁 المرفقات الإدارية</a>
+        <a class="tab-link active">المواعيد والزيارات</a>
+        <a class="tab-link">الباقات العلاجية (1)</a>
+        <a class="tab-link">الفواتير والمقبوضات</a>
+        <a class="tab-link">المرفقات الإدارية</a>
       </div>
 
       <!-- Active Package Visual Progress -->
       <div class="ui-card">
         <div class="ui-card-header">
           <div>
-            <div class="ui-card-title">باقة علاج طبيعي تأهيلي (12 جلسة) — #PKG-2026-004</div>
+            <div class="ui-card-title">باقة علاج طبيعي تأهيلي (12 جلسة) — رقم الباقة PKG-2026-004</div>
             <div style="font-size: 11px; color: var(--text-muted);">صلاحية سارية حتى 15 يناير 2027 (متبقي 72 يوماً)</div>
           </div>
           <a href="../wireframes/package-create-extend.html" class="btn-clinical btn-clinical-sm">تمديد الصلاحية (+ أيام)</a>
@@ -167,7 +169,7 @@
       <div class="ui-card">
         <div class="ui-card-header">
           <div class="ui-card-title">سجل المواعيد والزيارات</div>
-          <a href="../wireframes/booking-form.html" class="btn-clinical btn-clinical-sm btn-clinical-primary">➕ موعد جديد</a>
+          <a href="../wireframes/booking-form.html" class="btn-clinical btn-clinical-sm btn-clinical-primary">موعد جديد</a>
         </div>
 
         <table class="clinical-table">
@@ -185,33 +187,33 @@
           </thead>
           <tbody>
             <tr>
-              <td><code>#APT-0982</code></td>
-              <td><strong>اليوم 25 أكتوبر 2026 - 09:30 ص</strong></td>
+              <td><code>APT-0982</code></td>
+              <td><strong>اليوم 25 أكتوبر 2026 - 9:30 ص</strong></td>
               <td>علاج طبيعي تأهيلي</td>
               <td>د. كريم حسني</td>
               <td>غرفة 1 - سرير 2</td>
               <td><span class="status-badge badge-arrived">حضر بالانتظار</span></td>
-              <td>مغطى بالباقة (#PKG-004)</td>
+              <td>مغطى بالباقة PKG-004</td>
               <td><a href="../wireframes/appointment-action-panel.html" class="btn-clinical btn-clinical-sm">إدارة الموعد</a></td>
             </tr>
             <tr>
-              <td><code>#APT-0914</code></td>
-              <td>22 أكتوبر 2026 - 09:30 ص</td>
+              <td><code>APT-0914</code></td>
+              <td>22 أكتوبر 2026 - 9:30 ص</td>
               <td>علاج طبيعي</td>
               <td>د. كريم حسني</td>
               <td>غرفة 1 - سرير 2</td>
               <td><span class="status-badge badge-completed">مكتمل</span></td>
-              <td>مغطى بالباقة (#PKG-004)</td>
+              <td>مغطى بالباقة PKG-004</td>
               <td><a href="../wireframes/appointment-action-panel.html" class="btn-clinical btn-clinical-sm">عرض التفاصيل</a></td>
             </tr>
             <tr>
-              <td><code>#APT-0881</code></td>
-              <td>19 أكتوبر 2026 - 09:30 ص</td>
+              <td><code>APT-0881</code></td>
+              <td>19 أكتوبر 2026 - 9:30 ص</td>
               <td>علاج طبيعي</td>
               <td>د. كريم حسني</td>
               <td>غرفة 1 - سرير 2</td>
               <td><span class="status-badge badge-completed">مكتمل</span></td>
-              <td>مغطى بالباقة (#PKG-004)</td>
+              <td>مغطى بالباقة PKG-004</td>
               <td><a href="../wireframes/appointment-action-panel.html" class="btn-clinical btn-clinical-sm">عرض التفاصيل</a></td>
             </tr>
           </tbody>
@@ -221,13 +223,16 @@
   </div>
 
   <script>
+    const moonSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
+    const sunSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
+
     function toggleTheme() {
       const html = document.documentElement;
       const current = html.getAttribute('data-theme');
       const next = current === 'dark' ? 'light' : 'dark';
       html.setAttribute('data-theme', next);
-      document.getElementById('theme-icon').textContent = next === 'dark' ? '☀️' : '🌙';
-      document.getElementById('theme-text').textContent = next === 'dark' ? 'الوضع النهاري (Light Mode)' : 'الوضع الداكن (Dark Mode)';
+      document.getElementById('theme-icon').outerHTML = next === 'dark' ? sunSvg : moonSvg;
+      document.getElementById('theme-text').textContent = next === 'dark' ? 'الوضع النهاري' : 'الوضع الداكن';
     }
   </script>
 </body>

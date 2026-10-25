@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>لوحة الاستقبال — اليوم | عيادة مسار (النمط المرئي المعتمد)</title>
+  <title>لوحة الاستقبال — عيادة مسار</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -18,13 +18,15 @@
     </div>
 
     <div style="display: flex; align-items: center; gap: 12px;">
-      <button class="theme-toggle-btn" onclick="toggleTheme()">
-        <span id="theme-icon">🌙</span>
-        <span id="theme-text">الوضع الداكن (Dark Mode)</span>
+      <button class="theme-toggle-btn" onclick="toggleTheme()" id="theme-btn">
+        <svg id="theme-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+        <span id="theme-text">الوضع الداكن</span>
       </button>
       <div style="font-size: 11px; text-align: left; color: var(--text-secondary);">
         الموظف: <strong>سارة إبراهيم</strong> (استقبال)<br>
-        <span style="color: var(--text-muted);">وردية: 09:00 ص - 05:00 م</span>
+        <span style="color: var(--text-muted);">وردية: 9:00 ص - 5:00 م</span>
       </div>
     </div>
   </header>
@@ -33,18 +35,18 @@
   <div class="app-container">
     <aside class="app-sidebar">
       <div class="nav-section-title">الاستقبال والتشغيل</div>
-      <a href="today.html" class="app-nav-link active">📅 لوحة اليوم (Today)</a>
-      <a href="../wireframes/calendar-day.html" class="app-nav-link">🗓️ جدول الأسرة والمواعيد</a>
-      <a href="patient-profile.html" class="app-nav-link">👥 ملف المريض</a>
-      <a href="../wireframes/patient-registration.html" class="app-nav-link">➕ تسجيل مريض جديد</a>
+      <a href="today.html" class="app-nav-link active">لوحة اليوم</a>
+      <a href="../wireframes/calendar-day.html" class="app-nav-link">جدول الأسرة والمواعيد</a>
+      <a href="patient-profile.html" class="app-nav-link">ملف المريض</a>
+      <a href="../wireframes/patient-registration.html" class="app-nav-link">تسجيل مريض جديد</a>
 
       <div class="nav-section-title">الماليات والدرج</div>
-      <a href="../wireframes/collect-payment.html" class="app-nav-link">💳 تحصيل دفعة / فواتير</a>
-      <a href="../wireframes/cash-closing.html" class="app-nav-link">📥 إغلاق الوردية النقدية</a>
+      <a href="../wireframes/collect-payment.html" class="app-nav-link">تحصيل دفعة وفواتير</a>
+      <a href="../wireframes/cash-closing.html" class="app-nav-link">إغلاق الوردية النقدية</a>
 
-      <div class="nav-section-title">التنقل السريع للشاشات</div>
-      <a href="session-complete.html" class="app-nav-link">📝 شاشة استكمال الجلسة</a>
-      <a href="index.html" class="app-nav-link">🎨 دليل الهوية المرئية</a>
+      <div class="nav-section-title">التنقل السريع</div>
+      <a href="session-complete.html" class="app-nav-link">استكمال الجلسة</a>
+      <a href="index.html" class="app-nav-link">دليل الهوية المرئية</a>
     </aside>
 
     <main class="app-main">
@@ -52,13 +54,13 @@
         <div>
           <h1 style="font-size: 18px; font-weight: 700;">لوحة الاستقبال — الأحد 25 أكتوبر 2026</h1>
           <p style="font-size: 12px; color: var(--text-muted);">
-            متابعة حركة المرضى وتسجيل الحضور المباشر وحسابات الدرج (R-6-2, R-14)
+            متابعة حركة المرضى وتسجيل الحضور المباشر وحسابات الدرج
           </p>
         </div>
         <div style="display: flex; gap: 8px;">
-          <a href="../wireframes/booking-form.html" class="btn-clinical btn-clinical-primary">➕ حجز موعد جديد</a>
-          <a href="../wireframes/patient-registration.html" class="btn-clinical">👤 مريض جديد</a>
-          <a href="../wireframes/cash-closing.html" class="btn-clinical">💵 إغلاق الوردية</a>
+          <a href="../wireframes/booking-form.html" class="btn-clinical btn-clinical-primary">حجز موعد جديد</a>
+          <a href="../wireframes/patient-registration.html" class="btn-clinical">مريض جديد</a>
+          <a href="../wireframes/cash-closing.html" class="btn-clinical">إغلاق الوردية</a>
         </div>
       </div>
 
@@ -82,7 +84,7 @@
         </div>
         <div class="kpi-box">
           <div class="kpi-num" style="color: var(--status-noshow-text);">2</div>
-          <div class="kpi-text">لم يحضر (No-show)</div>
+          <div class="kpi-text">لم يحضر</div>
         </div>
         <div class="kpi-box" style="border-right: 3px solid var(--primary-600);">
           <div class="kpi-num" style="font-size: 17px;">3,450.00 ج.م</div>
@@ -90,11 +92,11 @@
         </div>
       </div>
 
-      <!-- Late Arrival Alert Banner (> 10 min R-14) -->
+      <!-- Late Arrival Alert Banner (> 10 min) -->
       <div class="clinical-alert" style="border-right-color: var(--status-arrived-text); background: var(--status-arrived-bg); color: var(--status-arrived-text);">
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <div>
-            <strong>تنبيه تأخر مريض (> 10 دقائق):</strong> المريض <strong>عمر فاروق حسن</strong> موعده كان في <strong>05:30 م</strong> ولم يسجل حضوره حتى الآن (تأخير 18 دقيقة).
+            <strong>تنبيه تأخر مريض:</strong> المريض <strong>عمر فاروق حسن</strong> موعده كان في <strong>5:30 م</strong> ولم يسجل حضوره حتى الآن (تأخير 18 دقيقة).
           </div>
           <div style="display: flex; gap: 6px;">
             <button class="btn-clinical btn-clinical-sm" onclick="alert('اتصال بالمريض: 01019283741');">اتصال هاتفي</button>
@@ -106,7 +108,7 @@
       <!-- Stream Patient Table (Compact Front Desk) -->
       <div class="ui-card">
         <div class="ui-card-header">
-          <div class="ui-card-title">قائمة المرضى المتدفقة لليوم (Patient Stream)</div>
+          <div class="ui-card-title">قائمة المواعيد اليومية المجدولة</div>
           <div style="display: flex; gap: 8px;">
             <input type="text" class="form-input" placeholder="بحث بالاسم أو رقم الهاتف..." style="width: 220px;">
             <select class="form-input" style="width: 140px;">
@@ -127,7 +129,7 @@
               <th>رقم الهاتف</th>
               <th>نوع الجلسة</th>
               <th>المعالج المتابع</th>
-              <th>المكان / السرير</th>
+              <th>المكان والسرير</th>
               <th>حالة الموعد</th>
               <th>الحساب المالي</th>
               <th>إجراء سريع</th>
@@ -135,15 +137,15 @@
           </thead>
           <tbody>
             <tr>
-              <td><strong>09:30 ص</strong></td>
+              <td><strong>9:30 ص</strong></td>
               <td><code>MAS-00104</code></td>
               <td><strong>أحمد مصطفى كامل</strong></td>
               <td style="direction: ltr; text-align: right;">010 1234 5678</td>
               <td>علاج طبيعي تأهيلي</td>
               <td>د. كريم حسني</td>
               <td>غرفة 1 - سرير 2</td>
-              <td><span class="status-badge badge-arrived">حضر (منذ 15 د)</span></td>
-              <td><span style="font-weight: 700; color: var(--status-completed-text);">خالص (باقة 12)</span></td>
+              <td><span class="status-badge badge-arrived">حضر منذ 15 دقيقة</span></td>
+              <td><span style="font-weight: 700; color: var(--status-completed-text);">خالص - باقة 12 جلسة</span></td>
               <td>
                 <a href="../wireframes/appointment-action-panel.html" class="btn-clinical btn-clinical-sm">إدارة الموعد</a>
               </td>
@@ -157,27 +159,27 @@
               <td>د. سارة عادل</td>
               <td>غرفة 1 - سرير 1</td>
               <td><span class="status-badge badge-completed">مكتمل</span></td>
-              <td><span style="color: var(--text-secondary);">450.00 ج.م (مسدد)</span></td>
+              <td><span style="color: var(--text-secondary);">450.00 ج.م مسدد</span></td>
               <td>
                 <a href="../wireframes/printable-receipt-a5.html" class="btn-clinical btn-clinical-sm">عرض الإيصال</a>
               </td>
             </tr>
             <tr>
-              <td><strong>05:30 م</strong></td>
+              <td><strong>5:30 م</strong></td>
               <td><code>MAS-00142</code></td>
               <td><strong>عمر فاروق حسن</strong></td>
               <td style="direction: ltr; text-align: right;">010 1928 3741</td>
               <td>تغذية علاجية</td>
               <td>د. نورهان سعيد</td>
               <td>غرفة 2 - كشف</td>
-              <td><span class="status-badge badge-arrived" style="border-width: 2px;">متأخر (18 د)</span></td>
+              <td><span class="status-badge badge-arrived" style="border-width: 2px;">متأخر 18 دقيقة</span></td>
               <td><span style="color: var(--status-noshow-text); font-weight: 700;">متبقي 450.00 ج.م</span></td>
               <td>
-                <button class="btn-clinical btn-clinical-primary btn-clinical-sm" onclick="alert('تم تسجيل الحضور 05:48 م');">تسجيل حضور</button>
+                <button class="btn-clinical btn-clinical-primary btn-clinical-sm" onclick="alert('تم تسجيل الحضور 5:48 م');">تسجيل حضور</button>
               </td>
             </tr>
             <tr>
-              <td><strong>06:00 م</strong></td>
+              <td><strong>6:00 م</strong></td>
               <td><code>MAS-00155</code></td>
               <td><strong>يوسف أحمد إبراهيم</strong> <small style="color: var(--text-muted);">(طفل)</small></td>
               <td style="direction: ltr; text-align: right;">012 2334 4556</td>
@@ -191,7 +193,7 @@
               </td>
             </tr>
             <tr>
-              <td><strong>06:30 م</strong></td>
+              <td><strong>6:30 م</strong></td>
               <td><code>MAS-00160</code></td>
               <td><strong>ريهام عادل توفيق</strong></td>
               <td style="direction: ltr; text-align: right;">015 5566 7788</td>
@@ -199,13 +201,13 @@
               <td>د. سارة عادل</td>
               <td>غرفة 1 - سرير 2</td>
               <td><span class="status-badge badge-scheduled">مجدول</span></td>
-              <td><span style="color: var(--primary-600); font-weight: 600;">باقة (متبقي 3 جلسات)</span></td>
+              <td><span style="color: var(--primary-600); font-weight: 600;">باقة - متبقي 3 جلسات</span></td>
               <td>
                 <a href="../wireframes/appointment-action-panel.html" class="btn-clinical btn-clinical-sm">خيارات</a>
               </td>
             </tr>
             <tr>
-              <td><strong>07:15 م</strong></td>
+              <td><strong>7:15 م</strong></td>
               <td><code>MAS-00171</code></td>
               <td><strong>خالد عبد الفتاح</strong></td>
               <td style="direction: ltr; text-align: right;">010 3344 5566</td>
@@ -219,7 +221,7 @@
               </td>
             </tr>
             <tr>
-              <td><strong>08:00 م</strong></td>
+              <td><strong>8:00 م</strong></td>
               <td><code>MAS-00188</code></td>
               <td><strong>سمير حسن رضوان</strong></td>
               <td style="direction: ltr; text-align: right;">011 2233 4455</td>
@@ -239,13 +241,16 @@
   </div>
 
   <script>
+    const moonSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
+    const sunSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
+
     function toggleTheme() {
       const html = document.documentElement;
       const current = html.getAttribute('data-theme');
       const next = current === 'dark' ? 'light' : 'dark';
       html.setAttribute('data-theme', next);
-      document.getElementById('theme-icon').textContent = next === 'dark' ? '☀️' : '🌙';
-      document.getElementById('theme-text').textContent = next === 'dark' ? 'الوضع النهاري (Light Mode)' : 'الوضع الداكن (Dark Mode)';
+      document.getElementById('theme-icon').outerHTML = next === 'dark' ? sunSvg : moonSvg;
+      document.getElementById('theme-text').textContent = next === 'dark' ? 'الوضع النهاري' : 'الوضع الداكن';
     }
   </script>
 </body>

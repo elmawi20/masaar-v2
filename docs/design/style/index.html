@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>دليل الهوية البصرية والنماذج الملونة (Style System) — عيادة مسار</title>
+  <title>دليل الهوية البصرية والنماذج الملونة — عيادة مسار</title>
   <link rel="stylesheet" href="style.css">
   <style>
     .palette-grid {
@@ -49,42 +49,44 @@
     <div class="brand-badge">
       <div class="brand-logo-mark">مسار</div>
       <div>
-        <div style="font-weight: 700; font-size: 15px; color: var(--text-main);">نظام عيادة مسار — دليل النمط المرئي (Visual Style Guide)</div>
-        <div style="font-size: 11px; color: var(--text-muted);">Stage 1: Task 1.17b · الهوية البصرية والنماذج الملونة عالية الدقة</div>
+        <div style="font-weight: 700; font-size: 15px; color: var(--text-main);">نظام عيادة مسار — دليل النمط المرئي</div>
+        <div style="font-size: 11px; color: var(--text-muted);">الهوية البصرية والنماذج الملونة المعتمدة</div>
       </div>
     </div>
 
     <div style="display: flex; align-items: center; gap: 12px;">
-      <button class="theme-toggle-btn" onclick="toggleTheme()">
-        <span id="theme-icon">🌙</span>
-        <span id="theme-text">الوضع الداكن (Dark Mode)</span>
+      <button class="theme-toggle-btn" onclick="toggleTheme()" id="theme-btn">
+        <svg id="theme-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+        <span id="theme-text">الوضع الداكن</span>
       </button>
-      <a href="../wireframes/index.html" class="btn-clinical btn-clinical-sm">← فهرس النماذج السلكية (Wireframes)</a>
+      <a href="../wireframes/index.html" class="btn-clinical btn-clinical-sm">فهرس النماذج السلكية</a>
     </div>
   </header>
 
   <div style="max-width: 1040px; margin: 30px auto; padding: 0 20px;">
     <!-- Philosophy Banner -->
     <div class="ui-card" style="border-right: 6px solid var(--primary-600); background: var(--bg-surface);">
-      <h1 style="font-size: 20px; font-weight: 700; margin-bottom: 8px;">الهوية البصرية السريرية الرصينة (Calm Clinical Identity)</h1>
+      <h1 style="font-size: 20px; font-weight: 700; margin-bottom: 8px;">الهوية البصرية السريرية الرصينة</h1>
       <p style="font-size: 13px; line-height: 1.7; color: var(--text-secondary);">
-        تم تصميم نظام عيادة مسار بهوية طبية رصينة ومريحة للعين، <strong>خالية تماماً من المظاهر التوليدية (No "AI-look")</strong>: بدون تدرجات لونية هلامية، بدون تأثيرات زجاجية (No glassmorphism / blur)، بدون درجات النيون والبنفسجي، وبدون إيموجي زخرفي في عناصر النظام الأساسية.
-        تعتمد الهوية على لون أساسي واحد (<strong>Deep Teal كحلي-بترولي رصين #0E6251</strong>)، وخلفيات محايدة ناصعة، ودعم كامل للوضع الداكن (Dark Mode) المريح لأعين الطاقم الطبي.
+        تم تصميم نظام عيادة مسار بهوية طبية رصينة ومريحة للعين، <strong>خالية تماماً من المظاهر التوليدية والإيموجي</strong>: بدون تدرجات لونية، بدون تأثيرات زجاجية، بدون درجات النيون والبنفسجي، وبدون إيموجي في عناصر النظام الأساسية.
+        تعتمد الهوية على لون أساسي واحد (<strong>كحلي بترولي رصين #0E6251</strong>)، وخلفيات محايدة، وخطوط مستضافة ذاتياً بالكامل، مع قاعدة لغوية صارمة: <strong>الشاشات الحقيقية تعرض لغة واحدة فقط في نفس الوقت</strong> (بدون خلط أو مصطلحات إنجليزية بين قوسين)، ودعم كامل للوضع الداكن.
       </p>
     </div>
 
     <!-- 1. Color Palette Tokens -->
     <div class="ui-card">
       <div class="ui-card-header">
-        <div class="ui-card-title">1. لوحة الألوان الأساسية ورموز النظام (Color Tokens)</div>
-        <span style="font-size: 12px; color: var(--text-muted);">Deep Teal & Neutral Slates</span>
+        <div class="ui-card-title">1. لوحة الألوان الأساسية ورموز النظام</div>
+        <span style="font-size: 12px; color: var(--text-muted);">الألوان المعتمدة والدرجات المحايدة</span>
       </div>
 
       <div class="palette-grid">
         <div class="swatch-card">
           <div class="swatch-preview" style="background: var(--primary-600);"></div>
           <div class="swatch-body">
-            <strong>Deep Teal (الأساسي)</strong><br>
+            <strong>اللون الأساسي (كحلي بترولي)</strong><br>
             <code>var(--primary-600)</code>
           </div>
         </div>
@@ -92,7 +94,7 @@
         <div class="swatch-card">
           <div class="swatch-preview" style="background: var(--primary-50); border-bottom: 1px solid var(--border-subtle);"></div>
           <div class="swatch-body">
-            <strong>Teal Tint (الهوفر والملصقات)</strong><br>
+            <strong>خلفية الملصقات الفاتحة</strong><br>
             <code>var(--primary-50)</code>
           </div>
         </div>
@@ -100,7 +102,7 @@
         <div class="swatch-card">
           <div class="swatch-preview" style="background: var(--bg-app); border-bottom: 1px solid var(--border-subtle);"></div>
           <div class="swatch-body">
-            <strong>Canvas Background</strong><br>
+            <strong>خلفية الشاشة العامة</strong><br>
             <code>var(--bg-app)</code>
           </div>
         </div>
@@ -108,7 +110,7 @@
         <div class="swatch-card">
           <div class="swatch-preview" style="background: var(--bg-surface); border-bottom: 1px solid var(--border-subtle);"></div>
           <div class="swatch-body">
-            <strong>Surface Card</strong><br>
+            <strong>خلفية البطاقات والجداول</strong><br>
             <code>var(--bg-surface)</code>
           </div>
         </div>
@@ -119,9 +121,9 @@
     <div class="ui-card">
       <div class="ui-card-header">
         <div>
-          <div class="ui-card-title">2. ملصقات الحالات الدلالية (Semantic Status Badges)</div>
+          <div class="ui-card-title">2. ملصقات الحالات الدلالية</div>
           <p style="font-size: 11px; color: var(--text-muted);">
-            قاعدة الأمان: كل حالة تقترن دائماً <strong>بنص عربي صريح</strong> ومحدد، ولا يعتمد أبداً على اللون بمفرده.
+            قاعدة الأمان: كل حالة تقترن دائماً <strong>بنص عربي صريح</strong> ومحدد، ولا يعتمد أبداً على اللون بمفرده، وبدون إيموجي.
           </p>
         </div>
       </div>
@@ -130,8 +132,8 @@
         <thead>
           <tr>
             <th>الحالة الوظيفية</th>
-            <th>المفتاح الإنجليزي</th>
-            <th>معاينة الملصق (Badge)</th>
+            <th>المفتاح البرمجي</th>
+            <th>معاينة الملصق</th>
             <th>القاعدة التشغيلية</th>
           </tr>
         </thead>
@@ -170,7 +172,7 @@
             <td><strong>قائمة انتظار</strong></td>
             <td><code>waitlisted</code></td>
             <td><span class="status-badge badge-waitlisted">قائمة انتظار</span></td>
-            <td>تحرير السرير بالجدول مع استمرار حجز جلسة الباقة (DEC-008) (رمادي داكن)</td>
+            <td>تحرير السرير بالجدول مع استمرار حجز جلسة الباقة (رمادي داكن)</td>
           </tr>
         </tbody>
       </table>
@@ -179,14 +181,14 @@
     <!-- 3. Typography & Formatting Rules -->
     <div class="ui-card">
       <div class="ui-card-header">
-        <div class="ui-card-title">3. الخطوط وتنسيقات الأرقام والمبالغ (Typography & Formatting)</div>
+        <div class="ui-card-title">3. الخطوط وتنسيقات الأرقام والمبالغ المستضافة محلياً</div>
       </div>
 
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; font-size: 13px;">
         <div style="background: var(--bg-app); border: 1px solid var(--border-subtle); padding: 14px; border-radius: 6px;">
-          <div style="font-weight: 700; color: var(--text-main); margin-bottom: 6px;">الخط الأساسي:</div>
-          <div style="font-size: 15px; font-family: 'IBM Plex Sans Arabic', sans-serif;">IBM Plex Sans Arabic (خط العرض والنصوص)</div>
-          <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">الخط البديل الاحتياطي: Cairo</div>
+          <div style="font-weight: 700; color: var(--text-main); margin-bottom: 6px;">الخطوط المستضافة ذاتياً:</div>
+          <div style="font-size: 14px; font-family: 'IBM Plex Sans Arabic', sans-serif;">IBM Plex Sans Arabic (خط العرض والنصوص)</div>
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">الخط البديل الاحتياطي: Cairo · ملفات woff2 محلية بالكامل</div>
         </div>
 
         <div style="background: var(--bg-app); border: 1px solid var(--border-subtle); padding: 14px; border-radius: 6px;">
@@ -196,9 +198,9 @@
         </div>
 
         <div style="background: var(--bg-app); border: 1px solid var(--border-subtle); padding: 14px; border-radius: 6px;">
-          <div style="font-weight: 700; color: var(--text-main); margin-bottom: 6px;">تنسيق الوقت المحلي (القاهرة):</div>
-          <div style="font-size: 18px; font-weight: 700;">09:30 ص · 05:30 م</div>
-          <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">توقيت محلي مصري Africa/Cairo بنظام 12 ساعة</div>
+          <div style="font-weight: 700; color: var(--text-main); margin-bottom: 6px;">تنسيق الوقت المحلي (بدون صفر بادئ):</div>
+          <div style="font-size: 18px; font-weight: 700;">9:30 ص · 5:30 م</div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">توقيت محلي مصري بنظام 12 ساعة بدون أصفار بادئة</div>
         </div>
       </div>
     </div>
@@ -207,9 +209,9 @@
     <div class="ui-card" style="border-right: 5px solid var(--primary-600);">
       <div class="ui-card-header">
         <div>
-          <div class="ui-card-title" style="font-size: 16px;">4. النماذج الملونة عالية الدقة المعتمدة (Colored Mockups Showcase)</div>
+          <div class="ui-card-title" style="font-size: 16px;">4. النماذج الملونة عالية الدقة المعتمدة</div>
           <p style="font-size: 12px; color: var(--text-muted);">
-            ثلاث شاشات رئيسية تطبق الهوية، درجات الكثافة المتباينة (مدمج للاستقبال وموسع للعيادة)، ودعم الوضع الداكن:
+            ثلاث شاشات رئيسية تطبق الهوية المعتمدة، درجات الكثافة المتباينة، وخالية تماماً من الإيموجي:
           </p>
         </div>
       </div>
@@ -218,10 +220,10 @@
         <!-- Mockup 1: Front Desk Today -->
         <div class="mockup-card">
           <div>
-            <span class="status-badge" style="background: var(--primary-50); color: var(--primary-600); margin-bottom: 8px;">كثافة مدمجة (Compact)</span>
-            <h2 style="font-size: 16px; font-weight: 700; margin-bottom: 6px;">1. لوحة الاستقبال اليومية (Today)</h2>
+            <span class="status-badge" style="background: var(--primary-50); color: var(--primary-600); margin-bottom: 8px;">كثافة مدمجة للاستقبال</span>
+            <h2 style="font-size: 16px; font-weight: 700; margin-bottom: 6px;">1. لوحة الاستقبال اليومية</h2>
             <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 12px;">
-              شاشة الاستقبال عالية الكثافة: بطاقات الإحصاء، تدفق المرضى، تنبيهات التأخر (>10 دقائق)، والتحصيل السريع بالدرج.
+              شاشة الاستقبال عالية الكثافة: بطاقات الإحصاء، تدفق المرضى، تنبيهات التأخر (أكثر من 10 دقائق)، والتحصيل السريع بالدرج.
             </p>
           </div>
           <a href="today.html" class="btn-clinical btn-clinical-primary" style="width: 100%; text-align: center;">
@@ -246,10 +248,10 @@
         <!-- Mockup 3: Session Complete Form -->
         <div class="mockup-card">
           <div>
-            <span class="status-badge" style="background: var(--primary-50); color: var(--primary-600); margin-bottom: 8px;">كثافة موسعة (Spacious)</span>
-            <h2 style="font-size: 16px; font-weight: 700; margin-bottom: 6px;">3. استكمال الجلسة الطبي (SOAP)</h2>
+            <span class="status-badge" style="background: var(--primary-50); color: var(--primary-600); margin-bottom: 8px;">كثافة سريرية موسعة</span>
+            <h2 style="font-size: 16px; font-weight: 700; margin-bottom: 6px;">3. استكمال الجلسة الطبي</h2>
             <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 12px;">
-              نموذج التوثيق السريري المريح: مقياس الألم التفاعلي 0-10، حقول SOAP الموسعة، قائمة الإجراءات العلاجية، وتنبيه قفل الـ 24 ساعة.
+              نموذج التوثيق السريري المريح: مقياس الألم التفاعلي 0-10، حقول التقرير الموسعة، قائمة الإجراءات العلاجية، وتنبيه قفل الـ 24 ساعة.
             </p>
           </div>
           <a href="session-complete.html" class="btn-clinical btn-clinical-primary" style="width: 100%; text-align: center;">
@@ -261,13 +263,16 @@
   </div>
 
   <script>
+    const moonSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
+    const sunSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
+
     function toggleTheme() {
       const html = document.documentElement;
       const current = html.getAttribute('data-theme');
       const next = current === 'dark' ? 'light' : 'dark';
       html.setAttribute('data-theme', next);
-      document.getElementById('theme-icon').textContent = next === 'dark' ? '☀️' : '🌙';
-      document.getElementById('theme-text').textContent = next === 'dark' ? 'الوضع النهاري (Light Mode)' : 'الوضع الداكن (Dark Mode)';
+      document.getElementById('theme-icon').outerHTML = next === 'dark' ? sunSvg : moonSvg;
+      document.getElementById('theme-text').textContent = next === 'dark' ? 'الوضع النهاري' : 'الوضع الداكن';
     }
   </script>
 </body>

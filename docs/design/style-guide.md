@@ -2,15 +2,37 @@
 
 This document establishes the official visual identity, color tokens, typography, layout density rules, component styles, and dark-mode specifications for the Masaar Clinic System.
 
-- **Design Philosophy:** Calm, trustworthy, and rigorously clinical. **NOT "AI-looking"** — strictly zero decorative gradients, zero glassmorphism / backdrop-blur gimmicks, zero neon purple accents, and zero emoji decorations in functional UI elements.
+- **Design Philosophy:** Calm, trustworthy, and rigorously clinical. **NOT "AI-looking"** — strictly zero decorative gradients, zero glassmorphism / backdrop-blur gimmicks, zero neon purple accents, and **zero emojis anywhere in the UI**. All interactive actions, theme switches, navigation links, and badges must use plain text, clear badges, or clean line-stroke SVG icons.
 - **Spec Reference:** [docs/FEATURES-v2.2.md §0.7](file:///F:/Claude%20CRM/docs/FEATURES-v2.2.md)
 - **Primary Locale:** Arabic RTL first (`dir="rtl"`, Egyptian medical clinic conventions) with English LTR mirrored.
 
 ---
 
-## 1. Color Palette & Token System
+## 1. Core Interface Rules (Mandatory)
 
-### 1.1 Primary Brand Color (Deep Teal)
+### 1.1 Strict Single-Language Rule (No Language Mixing)
+- **Real screens show only ONE language at a time.**
+- Mixing languages (e.g. `العربية (English)`, `اليوم (Today)`, `مجدول (Scheduled)`, or parenthetical foreign text) is **strictly forbidden on real screens**.
+- When the application is in Arabic mode (the primary default): every single label, button, navigation link, status badge, table header, modal title, and error message MUST be 100% Arabic.
+- When the application is switched to English mode: all text is 100% English.
+
+### 1.2 Zero Emojis in the User Interface
+- No emojis are permitted anywhere in the UI (e.g., no calendar icons as emoji, no sun/moon emoji in theme toggles, no plus emoji on buttons, no warning emoji in alerts).
+- All visual cues must be rendered using:
+  1. Semantic status colors paired with explicit Arabic text labels.
+  2. Clean, minimal, monochromatic line-stroke SVG icons where necessary (14px - 16px).
+  3. Clean text buttons and badges.
+
+### 1.3 100% Self-Hosted Fonts (Zero External Links)
+- All font files (`IBM Plex Sans Arabic` and `Cairo`) are self-hosted directly within the project under `docs/design/style/fonts/`.
+- Local `@font-face` rules are declared in `fonts.css` and imported locally.
+- Zero external font links, external CDNs, or Google Fonts URLs are permitted in stylesheets or HTML documents.
+
+---
+
+## 2. Color Palette & Token System
+
+### 2.1 Primary Brand Color (Deep Teal)
 The primary brand identity uses a single, authoritative **Deep Teal**, reflecting clinical calm, precision, and healthcare stability.
 
 | Token | Light Mode Hex | Dark Mode Hex | Usage |
@@ -22,7 +44,7 @@ The primary brand identity uses a single, authoritative **Deep Teal**, reflectin
 | `--color-primary-700` | `#0B5345` | `#2ECC71` | Primary button active/pressed state |
 | `--color-primary-900` | `#063228` | `#A3E4D7` | Deep header text in high contrast |
 
-### 1.2 Neutral Greys (Surfaces, Borders, & Typography)
+### 2.2 Neutral Greys (Surfaces, Borders, & Typography)
 Neutral slates ensure high legibility and zero visual fatigue over long 8-hour clinic shifts.
 
 | Token | Light Mode Hex | Dark Mode Hex | Purpose |
@@ -38,7 +60,7 @@ Neutral slates ensure high legibility and zero visual fatigue over long 8-hour c
 
 ---
 
-## 2. Status Colors (Always Paired with Explicit Text Labels)
+## 3. Status Colors (Always Paired with Explicit Text Labels)
 
 > **Accessibility Rule:** Color is never used as the sole indicator of status. Every badge, pill, and calendar block MUST display an explicit Arabic text label (`مجدول`, `حضر`, `مكتمل`, `ملغي`, `لم يحضر`, `قائمة انتظار`).
 
@@ -53,13 +75,14 @@ Neutral slates ensure high legibility and zero visual fatigue over long 8-hour c
 
 ---
 
-## 3. Typography & Formatting Rules
+## 4. Typography & Formatting Rules
 
-### 3.1 Typeface & Fonts
+### 4.1 Typeface & Fonts
 - **Primary Typeface:** `'IBM Plex Sans Arabic'`, with fallback to `'Cairo'`, `-apple-system`, `sans-serif`.
+- **Hosting:** 100% self-hosted locally in the repository under `docs/design/style/fonts/` with zero external requests.
 - **Characteristics:** Highly legible geometric sans designed specifically for Arabic digital interfaces with crisp baseline clarity and distinct letterforms.
 
-### 3.2 Type Scale
+### 4.2 Type Scale
 | Level | Font Size | Line Height | Weight | Usage |
 |---|---|---|---|---|
 | `H1` Page Title | 20px (1.25rem) | 28px | Bold (700) | Screen titles (`لوحة الاستقبال — اليوم`) |
@@ -70,13 +93,13 @@ Neutral slates ensure high legibility and zero visual fatigue over long 8-hour c
 | `Small / Caption` | 11px (0.6875rem) | 16px | Regular (400) | Help text, badges, secondary timestamps |
 | `Mono Numbers` | 13px - 18px | — | Bold (700) | Currency amounts, receipt numbers |
 
-### 3.3 Strict Formatting Standards
+### 4.3 Strict Formatting Standards
 1. **Egyptian Currency:** Formatted with Arabic abbreviation and two decimal places:
    - Correct: `450.00 ج.م` · `1,200.00 ج.م` · `3,600.00 ج.م`
    - Incorrect: `450 L.E.` or `EGP 450` or `450 جنيه`
-2. **Time of Day:** Egyptian 12-hour local time in Cairo timezone:
-   - Correct: `09:30 ص` · `05:30 م` · `10:15 م`
-   - Incorrect: `17:30` or `5:30 PM`
+2. **Time of Day (No Leading Zero):** Egyptian 12-hour local time in Cairo timezone, formatted **without a leading zero**:
+   - Correct: `9:30 ص` · `5:30 م` · `10:15 ص` · `11:00 ص` · `1:00 م` · `2:45 م` · `8:00 م`
+   - Incorrect: `09:30 ص` or `05:30 م` or `17:30` or `5:30 PM`
 3. **Dates:** Full Arabic Gregorian calendar date:
    - Correct: `25 أكتوبر 2026` · `الأحد 25 أكتوبر`
 4. **Phone Numbers:** Stored normalized `01XXXXXXXXX`, displayed with readability spacing:
@@ -84,11 +107,11 @@ Neutral slates ensure high legibility and zero visual fatigue over long 8-hour c
 
 ---
 
-## 4. Layout Densities: Compact vs Spacious
+## 5. Layout Densities: Compact vs Spacious
 
 To match the actual cognitive rhythm of a clinical setting, two distinct density profiles are applied:
 
-### 4.1 Compact Layout (Front Desk, Calendar, & Reports)
+### 5.1 Compact Layout (Front Desk, Calendar, & Reports)
 - **Target:** Receptionists and Practice Managers managing high patient volume.
 - **Rules:**
   - Table row height: `36px - 40px`
@@ -96,7 +119,7 @@ To match the actual cognitive rhythm of a clinical setting, two distinct density
   - Gap between elements: `8px - 12px`
   - Information-dense data grids to minimize vertical scrolling during rush hours.
 
-### 4.2 Spacious Layout (Clinical SOAP Notes & InBody Consultations)
+### 5.2 Spacious Layout (Clinical SOAP Notes & InBody Consultations)
 - **Target:** Treating Physiotherapists and Nutritionists documenting patient care.
 - **Rules:**
   - Form section padding: `16px 20px`
@@ -106,30 +129,33 @@ To match the actual cognitive rhythm of a clinical setting, two distinct density
 
 ---
 
-## 5. Component Style Specifications
+## 6. Component Style Specifications
 
-### 5.1 Buttons
+### 6.1 Buttons
 - **Primary Button:** Solid Deep Teal background (`#0E6251`), white text, crisp 4px border radius. Hover: `#117A65`. Active: `#0B5345`.
 - **Secondary / Outline Button:** Background transparent/white, 1px solid border (`#CBD5E1`), text main (`#0F172A`). Hover: `#F1F5F9`.
 - **Danger Button:** Muted crimson border and text (`#B91C1C`), white background. Hover: light pink `#FEE2E2`.
 
-### 5.2 Form Inputs & Controls
+### 6.2 Form Inputs & Controls
 - Clean border (`1px solid #CBD5E1`), solid white surface in light mode (`#1E293B` in dark mode).
 - Focus state: Deep teal outline (`2px solid #0E6251`) with zero offset.
 - Labels: Placed above inputs, 12px SemiBold with asterisk for required fields.
 
-### 5.3 Dark Mode Adaptation
+### 6.3 Dark Mode Adaptation
 - Handled cleanly via CSS Custom Properties on `[data-theme="dark"]`.
 - Background transitions smoothly without high-contrast neon glare.
 - Pure black (`#000000`) is avoided in favor of clinical deep navy (`#0B1120`) to prevent eye fatigue.
+- Theme toggle uses simple inline line-stroke SVG icons for Sun and Moon (zero emojis).
 
 ---
 
-## 6. Implementation Deliverables
+## 7. Implementation Deliverables
 
 The visual style is implemented across:
-1. `docs/design/style/style.css`: Unified stylesheet with full token definitions and light/dark theme support.
-2. `docs/design/style/index.html`: Visual style guide showcase & live tokens inspector.
-3. `docs/design/style/today.html`: Front Desk Today colored mockup (compact density).
-4. `docs/design/style/patient-profile.html`: Patient Profile colored mockup (admin & financial hub).
-5. `docs/design/style/session-complete.html`: Session Completion & SOAP Note colored mockup (spacious clinical density).
+1. `docs/design/style/fonts/`: Directory containing all self-hosted font files.
+2. `docs/design/style/fonts.css`: Local `@font-face` definitions.
+3. `docs/design/style/style.css`: Unified stylesheet with full token definitions and light/dark theme support.
+4. `docs/design/style/index.html`: Visual style guide showcase & live tokens inspector.
+5. `docs/design/style/today.html`: Front Desk Today colored mockup (compact density).
+6. `docs/design/style/patient-profile.html`: Patient Profile colored mockup (admin & financial hub).
+7. `docs/design/style/session-complete.html`: Session Completion & SOAP Note colored mockup (spacious clinical density).
