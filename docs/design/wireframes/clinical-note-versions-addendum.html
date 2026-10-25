@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تاريخ تعديلات التقرير الطبي والملحقات — عيادة مسار</title>
+  <link rel="stylesheet" href="wireframe.css">
+  <style>
+    .note-container {
+      max-width: 840px;
+      margin: 30px auto;
+      background: var(--wf-surface);
+      border: 1px solid var(--wf-border-dark);
+      border-radius: 6px;
+      padding: 24px;
+    }
+    .diff-box {
+      background: var(--wf-grey-100);
+      border: 1px solid var(--wf-border);
+      padding: 12px;
+      border-radius: 4px;
+      font-size: 13px;
+      line-height: 1.8;
+      margin-bottom: 16px;
+    }
+    .diff-added {
+      background: var(--wf-grey-300);
+      font-weight: bold;
+      text-decoration: underline;
+    }
+    .diff-removed {
+      text-decoration: line-through;
+      color: var(--wf-text-muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="wf-banner">
+    <span>[واجهة سلكية تجريبية - Task 1.17] تاريخ تعديلات التقرير الطبي وإضافة ملحق (MDL-E04)</span>
+    <a href="clinical-workspace-queue.html">← العودة لمساحة العمل</a>
+  </div>
+
+  <div class="note-container">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--wf-border-dark); padding-bottom: 12px; margin-bottom: 18px;">
+      <div>
+        <h1 style="font-size: 18px; font-weight: bold;">تاريخ التعديلات والملحقات — تقرير جلسة #APT-0982</h1>
+        <p style="font-size: 12px; color: var(--wf-text-muted);">
+          المريض: <strong>أحمد مصطفى كامل (MAS-00104)</strong> · المعالج الكاتب: <strong>د. كريم حسني</strong>
+        </p>
+      </div>
+      <a href="clinical-workspace-queue.html" class="btn btn-sm">إغلاق</a>
+    </div>
+
+    <!-- 24h Lock Status Notice (R-9.2-1, R-9.2-2) -->
+    <div class="alert" style="border-right: 4px solid var(--wf-grey-900); background: var(--wf-grey-200);">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <strong>🔒 حالة قفل السجل الطبي (Note Lock Status):</strong>
+          تم حفظ التقرير الأصلي في <strong>24 أكتوبر 2026 - 10:00 ص</strong>. مر أكثر من 24 ساعة على الحفظ؛ النص الأصلي أصبح <strong>مقفولاً ومحمياً بصفة نهائية</strong>.
+        </div>
+        <button class="btn btn-sm" onclick="alert('إعادة فتح تقرير مغلق مقتصر على المالك فقط ويتطلب سبباً تدقيقياً مفصلاً (R-1.1-8)');">
+          🔑 إعادة فتح الجلسة (مالك فقط)
+        </button>
+      </div>
+    </div>
+
+    <!-- Version History Comparison -->
+    <div class="card" style="margin-bottom: 20px;">
+      <div class="card-header">
+        <div class="card-title" style="font-size: 14px;">سجل الإصدارات وتعديلات الكاتب (Version History — R-9.2-1)</div>
+        <span class="badge" style="background: var(--wf-grey-300);">إصداران (v1 و v2)</span>
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+        <button class="btn btn-sm btn-primary">الإصدار 2 (الأحدث - 24 أكتوبر 02:30 م)</button>
+        <button class="btn btn-sm">الإصدار 1 (الأصلي - 24 أكتوبر 10:00 ص)</button>
+      </div>
+
+      <div class="diff-box">
+        <div style="font-size: 11px; color: var(--wf-text-muted); margin-bottom: 6px;">
+          مقارنة التغييرات بين الإصدارين:
+        </div>
+        <div>
+          <strong>S (الشكوى الذاتية):</strong> المريض يشير إلى تحسن ملحوظ في ألم أسفل الظهر مقارنة بالجلسة السابقة،
+          <span class="diff-removed">مع استمرار الألم الحاد</span>
+          <span class="diff-added">مع بقاء شعور بالتنميل الخفيف في الفخذ الأيمن فقط عند الجلوس لفترات طويلة.</span>
+        </div>
+        <div style="margin-top: 8px;">
+          <strong>O (الفحص الإكلينيكي):</strong> اختبار رفع الساق المستقيمة (SLR)
+          <span class="diff-removed">إيجابي عند 45 درجة</span>
+          <span class="diff-added">أصبح سلبياً عند 60 درجة في الطرفين.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Addendum Section (R-9.2-2) -->
+    <div class="card" style="border-right: 4px solid var(--wf-grey-800);">
+      <div class="card-header">
+        <div>
+          <div class="card-title" style="font-size: 14px;">إضافة ملحق تعقيبي للتقرير (Addendum Entry)</div>
+          <p style="font-size: 11px; color: var(--wf-text-muted);">
+            وفقاً لـ (R-9.2-2)، يُضاف الملحق كسجل تاريخي ملحق غير قابل للتعديل دون المساس بالنص الأصلي المقفول.
+          </p>
+        </div>
+        <span class="badge" style="background: var(--wf-grey-200);">ملحق غير قابل للحذف</span>
+      </div>
+
+      <!-- Existing Addenda -->
+      <div style="background: var(--wf-grey-100); border: 1px solid var(--wf-border); padding: 12px; border-radius: 4px; margin-bottom: 14px; font-size: 12px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+          <strong>ملحق رقم 1 — بواسطة د. كريم حسني</strong>
+          <span style="color: var(--wf-text-muted);">25 أكتوبر 2026 - 11:15 ص</span>
+        </div>
+        <div>
+          تواصل المريض هاتفياً بعد الجلسة وأفاد بعدم وجود أي انتكاسة أو ألم بعد أداء التمرينات المنزلية الموصوفة، وتم توجيهه للاستمرار في وضع كمادات باردة عند الشعور بأي إجهاد.
+        </div>
+      </div>
+
+      <!-- Add New Addendum Form -->
+      <form onsubmit="event.preventDefault(); alert('تم توثيق الملحق الجديد وختمه بالتاريخ وساعة الإدخال في سجل التقرير الطبي (R-9.2-2)');">
+        <div class="form-group">
+          <label class="form-label">نص الملحق الجديد:</label>
+          <textarea class="form-control" rows="3" required placeholder="أدخل تفاصيل التحديث أو الملاحظة الإضافية بعد القفل..."></textarea>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end;">
+          <button type="submit" class="btn btn-primary">
+            ➕ اعتماد وإلحاق الملحق بالتقرير
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

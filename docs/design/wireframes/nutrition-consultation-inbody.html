@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>كشف التغذية العلاجية وفحص InBody — عيادة مسار</title>
+  <link rel="stylesheet" href="wireframe.css">
+  <style>
+    .nut-container {
+      max-width: 860px;
+      margin: 30px auto;
+      background: var(--wf-surface);
+      border: 1px solid var(--wf-border-dark);
+      border-radius: 6px;
+      padding: 24px;
+    }
+    .chart-box {
+      height: 180px;
+      background: var(--wf-grey-100);
+      border: 1px dashed var(--wf-border-dark);
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 12px 0;
+      position: relative;
+    }
+  </style>
+</head>
+<body>
+  <div class="wf-banner">
+    <span>[واجهة سلكية تجريبية - Task 1.17] كشف التغذية العلاجية وفحص InBody والرسم البياني (SCR-E06)</span>
+    <a href="clinical-workspace-queue.html">← العودة لمساحة العمل</a>
+  </div>
+
+  <div class="nut-container">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--wf-border-dark); padding-bottom: 12px; margin-bottom: 18px;">
+      <div>
+        <h1 style="font-size: 18px; font-weight: bold;">كشف التغذية العلاجية وقياسات InBody</h1>
+        <p style="font-size: 12px; color: var(--wf-text-muted);">
+          المريض: <strong>منى محمود إبراهيم (MAS-00109)</strong> · 29 سنة · أنثى · الطبيب: <strong>د. نورهان سعيد</strong>
+        </p>
+      </div>
+      <a href="clinical-workspace-queue.html" class="btn btn-sm">إلغاء والعودة</a>
+    </div>
+
+    <form onsubmit="event.preventDefault(); alert('تم حفظ قياسات InBody والبرنامج الغذائي واحتساب التطور بنجاح (R-9.4-1)');">
+      <!-- 1. InBody Body Composition Metrics -->
+      <div class="card" style="margin-bottom: 18px; border-right: 4px solid var(--wf-grey-800);">
+        <div class="card-header" style="padding-bottom: 8px; margin-bottom: 12px;">
+          <div class="card-title" style="font-size: 14px;">1. قياسات تكوين الجسم (InBody Body Composition — R-9.4-1)</div>
+          <span class="badge" style="background: var(--wf-grey-200);">الجلسة 2 من 8</span>
+        </div>
+
+        <div class="form-row">
+          <div class="form-col form-group">
+            <label class="form-label">الطول (سم - يملأ تلقائياً وقابل للتعديل DEC-019):</label>
+            <input type="number" id="height" class="form-control" value="165" required oninput="calcBMI()">
+          </div>
+          <div class="form-col form-group">
+            <label class="form-label">الوزن الحالي (كجم):</label>
+            <input type="number" step="0.1" id="weight" class="form-control" value="78.4" required oninput="calcBMI()">
+          </div>
+          <div class="form-col form-group">
+            <label class="form-label">مؤشر كتلة الجسم المحسوب (BMI كجم/م²):</label>
+            <input type="text" id="bmi" class="form-control" value="28.8" readonly style="background: var(--wf-grey-200); font-weight: bold;">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-col form-group">
+            <label class="form-label">نسبة الدهون في الجسم (Body Fat %):</label>
+            <input type="number" step="0.1" class="form-control" value="32.5" required>
+          </div>
+          <div class="form-col form-group">
+            <label class="form-label">كتلة العضلات الهيكلية (Muscle SMM كجم):</label>
+            <input type="number" step="0.1" class="form-control" value="26.2" required>
+          </div>
+          <div class="form-col form-group">
+            <label class="form-label">معدل الحرق الأساسي (BMR سعرة):</label>
+            <input type="number" class="form-control" value="1420" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-col form-group">
+            <label class="form-label">الماء الكلي بالجسم (TBW لتر):</label>
+            <input type="number" step="0.1" class="form-control" value="36.8">
+          </div>
+          <div class="form-col form-group">
+            <label class="form-label">مستوى الدهون الحشوية (Visceral Fat 1-20):</label>
+            <input type="number" class="form-control" value="7">
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Progress Chart Placeholder -->
+      <div class="card" style="margin-bottom: 18px;">
+        <div class="card-header" style="padding-bottom: 8px; margin-bottom: 12px;">
+          <div class="card-title" style="font-size: 14px;">2. منحنى تطور الوزن ونسبة الدهون (Progress Chart)</div>
+          <span style="font-size: 11px; color: var(--wf-text-muted);">انخفاض: -2.1 كجم خلال أسبوعين</span>
+        </div>
+
+        <div class="chart-box">
+          <div style="font-weight: bold; font-size: 13px; margin-bottom: 4px;">[ رسم بياني تفاعلي: تتبع الوزن ونسبة الدهون ]</div>
+          <div style="font-size: 11px; color: var(--wf-text-muted);">
+            الزيارة 1 (11 أكتوبر): 80.5 كجم (دهون 34.0%) ➔ الزيارة 2 (25 أكتوبر): 78.4 كجم (دهون 32.5%)
+          </div>
+          <!-- Simple CSS Sparkline Simulation -->
+          <div style="display: flex; align-items: flex-end; gap: 40px; height: 70px; margin-top: 10px;">
+            <div style="text-align: center;">
+              <div style="font-size: 10px; font-weight: bold;">80.5 كجم</div>
+              <div style="width: 28px; height: 60px; background: var(--wf-grey-400); margin: 0 auto;"></div>
+              <div style="font-size: 10px;">11 أكتوبر</div>
+            </div>
+            <div style="text-align: center;">
+              <div style="font-size: 10px; font-weight: bold;">78.4 كجم</div>
+              <div style="width: 28px; height: 48px; background: var(--wf-grey-800); margin: 0 auto;"></div>
+              <div style="font-size: 10px;">25 أكتوبر</div>
+            </div>
+            <div style="text-align: center;">
+              <div style="font-size: 10px; color: var(--wf-text-muted);">المستهدف</div>
+              <div style="width: 28px; height: 35px; border: 1px dashed #000; margin: 0 auto;"></div>
+              <div style="font-size: 10px;">68.0 كجم</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Dietary Plan & Prescriptions -->
+      <div class="card" style="margin-bottom: 20px;">
+        <div class="card-header" style="padding-bottom: 8px; margin-bottom: 12px;">
+          <div class="card-title" style="font-size: 14px;">3. البرنامج الغذائي والسعرات المقررة (Dietary Plan)</div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-col form-group">
+            <label class="form-label">السعرات الحرارية اليومية المستهدفة:</label>
+            <input type="text" class="form-control" value="1,650 سعرة حرارية / يوم" required>
+          </div>
+          <div class="form-col form-group">
+            <label class="form-label">توزيع المغذيات الكبرى (Carbs / Protein / Fat):</label>
+            <input type="text" class="form-control" value="45% نشويات معقدة · 30% بروتين · 25% دهون صحية">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">تعليمات وجدول الوجبات والتوصيات:</label>
+          <textarea class="form-control" rows="3" required>وجبة الإفطار: 2 بيضة مسلوقة + رغيف خبز بلدي + خضار طازج. وجبة الغداء: 150 جم صدور دجاج مشوي + طبق سلطة خضراء كبير + 5 ملاعق أرز بسمتي. العشاء: كوب زبادي يوناني + ثمرة فاكهة. شرب 3 لتر ماء يومياً.</textarea>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 8px;">
+        <a href="clinical-workspace-queue.html" class="btn">إلغاء</a>
+        <button type="submit" class="btn btn-primary" style="padding: 10px 24px;">
+          حفظ التقرير واعتماد استشارة التغذية
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    function calcBMI() {
+      const h = parseFloat(document.getElementById('height').value) / 100;
+      const w = parseFloat(document.getElementById('weight').value);
+      if (h > 0 && w > 0) {
+        document.getElementById('bmi').value = (w / (h * h)).toFixed(1);
+      }
+    }
+  </script>
+</body>
+</html>

@@ -186,15 +186,82 @@
       </table>
     </div>
 
-    <!-- Task 1.17 Placeholder Section -->
+    <!-- Task 1.17 Section -->
     <div class="task-section" id="section-117">
       <div class="card-header" style="background: var(--wf-grey-200); padding: 10px 14px; border: 1px solid var(--wf-border-dark); border-radius: 4px;">
         <h2 style="font-size: 15px; font-weight: bold;">حزمة 1.17: الملفات الطبية والإدارة (Clinical & Admin)</h2>
-        <span class="badge" style="background: var(--wf-grey-600); color: #fff;">قيد الإنجاز (Task 1.17)</span>
+        <span class="badge" style="background: var(--wf-grey-800); color: #fff;">✅ مكتمل (8 شاشات ونماذج)</span>
       </div>
-      <p style="font-size: 12px; color: var(--wf-text-muted); padding: 10px 0;">
-        سيتم إدراج مساحة عمل المعالج، استكمال الجلسة وتقارير SOAP، تعديل الملاحظة والملحقات، استشارة التغذية و InBody، تقارير الإدارة، إعدادات العيادة، وجداول الموظفين، وسجل الرقابة.
-      </p>
+
+      <table class="wf-table" style="margin-top: 10px;">
+        <thead>
+          <tr>
+            <th style="width: 200px;">الشاشة / النموذج</th>
+            <th>الكود والمسار</th>
+            <th>الوصف والقواعد المنفذة</th>
+            <th style="width: 140px;">الأدوار المصرح لها</th>
+            <th style="width: 100px;">معاينة</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>مساحة عمل المعالج وقائمة اليوم</strong></td>
+            <td><code>SCR-E01</code> · <code>clinical-workspace-queue.html</code></td>
+            <td>قائمة انتظار المرضى الواصلين، بدء الجلسة، وتنبيهات الحالات (R-1.1-7)</td>
+            <td>معالج، مالك</td>
+            <td><a href="clinical-workspace-queue.html" class="btn btn-sm btn-primary">فتح الشاشة</a></td>
+          </tr>
+          <tr>
+            <td><strong>استكمال الجلسة وتوثيق SOAP</strong></td>
+            <td><code>SCR-E03</code> · <code>clinical-session-completion.html</code></td>
+            <td>مقياس الألم 0-10، فحص SOAP، الإجراءات المنفذة، والتمرينات المنزلية (R-9.1-1 إلى R-9.1-7)</td>
+            <td>معالج، مالك</td>
+            <td><a href="clinical-session-completion.html" class="btn btn-sm btn-primary">فتح الشاشة</a></td>
+          </tr>
+          <tr>
+            <td><strong>تاريخ التقارير والملحقات</strong></td>
+            <td><code>MDL-E04</code> · <code>clinical-note-versions-addendum.html</code></td>
+            <td>تعديلات الكاتب خلال 24 ساعة، إلحاق ملحق بعد القفل، وإعادة فتح الجلسة للمالك (R-9.2-1, R-9.2-2)</td>
+            <td>معالج، مالك</td>
+            <td><a href="clinical-note-versions-addendum.html" class="btn btn-sm btn-primary">فتح الشاشة</a></td>
+          </tr>
+          <tr>
+            <td><strong>كشف التغذية و InBody</strong></td>
+            <td><code>SCR-E06</code> · <code>nutrition-consultation-inbody.html</code></td>
+            <td>قياسات InBody، مؤشر BMI، الدهون الحشوية، البرنامج الغذائي، ورسم بياني للتطور (R-9.4-1, DEC-019)</td>
+            <td>أخصائي تغذية، مالك</td>
+            <td><a href="nutrition-consultation-inbody.html" class="btn btn-sm btn-primary">فتح الشاشة</a></td>
+          </tr>
+          <tr>
+            <td><strong>التقارير الإدارية والمالية</strong></td>
+            <td><code>SCR-G01</code> · <code>management-reports.html</code></td>
+            <td>الإيرادات، إنتاجية الأطباء، استهلاك الباقات، المديونيات المحجوبة طبياً، وصافي الربح (R-12)</td>
+            <td>مدير، مالك</td>
+            <td><a href="management-reports.html" class="btn btn-sm btn-primary">فتح الشاشة</a></td>
+          </tr>
+          <tr>
+            <td><strong>إعدادات العيادة وساعات العمل</strong></td>
+            <td><code>SCR-H03</code> · <code>clinic-settings.html</code></td>
+            <td>أوقات الفتح اليومية، العطلات، الغرف والأسرة، وقائمة الأسعار وقفل التقارير (R-2)</td>
+            <td>مالك (وإدارة الأسرة للمدير)</td>
+            <td><a href="clinic-settings.html" class="btn btn-sm btn-primary">فتح الشاشة</a></td>
+          </tr>
+          <tr>
+            <td><strong>الموظفون وجداول الورديات</strong></td>
+            <td><code>SCR-H01/02</code> · <code>staff-management-schedule.html</code></td>
+            <td>حسابات الموظفين، ورديتين باليوم، تسجيل الإجازات، وإعادة ضبط 2FA وكلمات المرور (R-3)</td>
+            <td>مالك (والجداول للمدير)</td>
+            <td><a href="staff-management-schedule.html" class="btn btn-sm btn-primary">فتح الشاشة</a></td>
+          </tr>
+          <tr>
+            <td><strong>سجل الرقابة وتدقيق العمليات</strong></td>
+            <td><code>SCR-H05/06</code> · <code>audit-log-viewer.html</code></td>
+            <td>سجل العمليات، محاكاة حجب البيانات الطبية للمدير، وسجل تغطية الوصول الطارئ (R-13, DEC-013)</td>
+            <td>مالك (والمدير محجوب طبياً)</td>
+            <td><a href="audit-log-viewer.html" class="btn btn-sm btn-primary">فتح الشاشة</a></td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </body>

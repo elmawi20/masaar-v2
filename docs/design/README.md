@@ -28,7 +28,7 @@ This directory contains all approved Stage 1 design specifications, matrices, di
 | **1.14** | [`screens.md`](file:///F:/Claude%20CRM/docs/design/screens.md) | Screen catalog & navigation map by role | **Done** | 2026-10-25 |
 | **1.15** | [`wireframes/`](file:///F:/Claude%20CRM/docs/design/wireframes/index.html) (Auth & Front Desk) | Low-fidelity HTML wireframes: Auth & Front desk | **Done** | 2026-10-25 |
 | **1.16** | [`wireframes/`](file:///F:/Claude%20CRM/docs/design/wireframes/index.html#section-116) (Patients & Money) | Low-fidelity HTML wireframes: Patients & Billing | **Done** | 2026-10-25 |
-| **1.17** | `wireframes/` (Clinical & Admin) | Low-fidelity HTML wireframes: Clinical & Admin | Pending | — |
+| **1.17** | [`wireframes/`](file:///F:/Claude%20CRM/docs/design/wireframes/index.html#section-117) (Clinical & Admin) | Low-fidelity HTML wireframes: Clinical & Admin | **Done** | 2026-10-25 |
 | **1.18** | `actions.md` | Server actions catalog with validation & audit | Pending | — |
 | **1.19** | `messages.md` | AR/EN translation keys & WhatsApp templates | Pending | — |
 | **1.20** | `test-plan.md` | 100% Rule ID traceability & test suites | Pending | — |

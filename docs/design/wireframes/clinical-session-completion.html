@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>استكمال وتوثيق الجلسة (SOAP) — عيادة مسار</title>
+  <link rel="stylesheet" href="wireframe.css">
+  <style>
+    .form-sheet {
+      max-width: 860px;
+      margin: 30px auto;
+      background: var(--wf-surface);
+      border: 1px solid var(--wf-border-dark);
+      border-radius: 6px;
+      padding: 24px;
+    }
+    .pain-scale {
+      display: flex;
+      gap: 6px;
+      margin: 10px 0;
+      justify-content: space-between;
+    }
+    .pain-btn {
+      flex: 1;
+      height: 44px;
+      border: 1px solid var(--wf-border-dark);
+      background: var(--wf-grey-100);
+      font-weight: bold;
+      font-size: 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .pain-btn.selected {
+      background: var(--wf-grey-900);
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="wf-banner">
+    <span>[واجهة سلكية تجريبية - Task 1.17] نموذج استكمال وتوثيق الجلسة الطبية (SCR-E03 / SOAP)</span>
+    <a href="clinical-workspace-queue.html">← العودة لقائمة الانتظار</a>
+  </div>
+
+  <div class="form-sheet">
+    <!-- Patient Header Banner -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--wf-border-dark); padding-bottom: 12px; margin-bottom: 18px;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <h1 style="font-size: 18px; font-weight: bold;">توثيق استكمال جلسة العلاج الطبيعي</h1>
+          <span class="badge" style="background: var(--wf-grey-800); color: #fff;">الجلسة 4 من 12</span>
+        </div>
+        <p style="font-size: 12px; color: var(--wf-text-muted); margin-top: 4px;">
+          المريض: <strong>أحمد مصطفى كامل (MAS-00104)</strong> · 34 سنة · المعالج: <strong>د. كريم حسني</strong> · موعد: <strong>09:30 ص</strong>
+        </p>
+      </div>
+      <a href="clinical-workspace-queue.html" class="btn btn-sm">إلغاء والعودة</a>
+    </div>
+
+    <form onsubmit="event.preventDefault(); alert('تم استكمال الجلسة وحفظ تقرير SOAP وخصم جلسة من الباقة وبدء مهلة التعديل 24 ساعة بنجاح (R-9.1, R-9.2)'); window.location.href='clinical-workspace-queue.html';">
+      <!-- 1. Pain Scale (0-10) R-9.1-2 -->
+      <div class="card" style="margin-bottom: 16px; border-right: 4px solid var(--wf-grey-800);">
+        <div class="card-header" style="padding-bottom: 8px; margin-bottom: 10px;">
+          <div class="card-title" style="font-size: 14px;">1. تقييم مقياس شدة الألم الحالي (Visual Numerical Pain Score 0-10)</div>
+          <span id="pain-label" style="font-weight: bold; font-size: 13px;">مستوى الألم: 4 / 10 (ألم متوسط)</span>
+        </div>
+        <div class="pain-scale">
+          <button type="button" class="pain-btn" onclick="selectPain(0, '0 / 10 (لا يوجد ألم)')">0<small style="font-size: 9px;">لا ألم</small></button>
+          <button type="button" class="pain-btn" onclick="selectPain(1, '1 / 10 (ألم خفيف)')">1</button>
+          <button type="button" class="pain-btn" onclick="selectPain(2, '2 / 10 (ألم خفيف)')">2</button>
+          <button type="button" class="pain-btn" onclick="selectPain(3, '3 / 10 (ألم خفيف)')">3</button>
+          <button type="button" class="pain-btn selected" onclick="selectPain(4, '4 / 10 (ألم متوسط)')">4<small style="font-size: 9px;">متوسط</small></button>
+          <button type="button" class="pain-btn" onclick="selectPain(5, '5 / 10 (ألم متوسط)')">5</button>
+          <button type="button" class="pain-btn" onclick="selectPain(6, '6 / 10 (ألم متوسط)')">6</button>
+          <button type="button" class="pain-btn" onclick="selectPain(7, '7 / 10 (ألم شديد)')">7<small style="font-size: 9px;">شديد</small></button>
+          <button type="button" class="pain-btn" onclick="selectPain(8, '8 / 10 (ألم شديد)')">8</button>
+          <button type="button" class="pain-btn" onclick="selectPain(9, '9 / 10 (ألم شديد جداً)')">9</button>
+          <button type="button" class="pain-btn" onclick="selectPain(10, '10 / 10 (ألم لا يطاق)')">10<small style="font-size: 9px;">أقصى ألم</small></button>
+        </div>
+      </div>
+
+      <!-- 2. SOAP Clinical Note Sections R-9.1-3 -->
+      <div class="card" style="margin-bottom: 16px;">
+        <div class="card-header" style="padding-bottom: 8px; margin-bottom: 12px;">
+          <div class="card-title" style="font-size: 14px;">2. التقرير الطبي وملاحظات الجلسة (SOAP Clinical Note)</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">S - الفحص الذاتي والشكوى (Subjective - ما يشكو منه المريض):</label>
+          <textarea class="form-control" rows="2" required>المريض يشير إلى تحسن ملحوظ في ألم أسفل الظهر مقارنة بالجلسة السابقة، مع بقاء شعور بالتنميل الخفيف في الفخذ الأيمن عند الجلوس لفترات أطول من 45 دقيقة.</textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">O - الفحص الإكلينيكي الموضوعي (Objective - ملاحظات وقياسات المعالج):</label>
+          <textarea class="form-control" rows="2" required>تحسن في مدى حركة الانحناء الأمامي (Flexion) بمقدار 15 درجة. اختبار رفع الساق المستقيمة (SLR) سلبي عند 60 درجة في الطرفين. تراجع ملحوظ في التشنج العضلي بمحاذاة الفقرات القطنية.</textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">A - التقييم وتطور الحالة (Assessment - تقييم المعالج للتعافي):</label>
+          <textarea class="form-control" rows="2" required>استجابة ممتازة لبروتوكول العلاج اليدوي والموجات التصادمية. انتقال المريض من المرحلة الحادة إلى مرحلة تقوية عضلات الجذع ودعم الثبات.</textarea>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label">P - الخطة والتوجيهات للجلسة القادمة (Plan - التوصيات وموعد المتابعة):</label>
+          <textarea class="form-control" rows="2" required>الاستمرار في الجلسات بمعدل 3 مرات أسبوعياً. زيادة شدة تمرينات الثبات الديناميكي للجذع في الجلسة القادمة يوم الأربعاء.</textarea>
+        </div>
+      </div>
+
+      <!-- 3. Treatment Modalities R-9.1-4 -->
+      <div class="card" style="margin-bottom: 16px;">
+        <div class="card-header" style="padding-bottom: 8px; margin-bottom: 12px;">
+          <div class="card-title" style="font-size: 14px;">3. الإجراءات العلاجية المنفذة خلال الجلسة (Treatments Applied)</div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; font-size: 13px;">
+          <label class="form-check"><input type="checkbox" checked> علاج يدوي (Manual Therapy)</label>
+          <label class="form-check"><input type="checkbox" checked> موجات فوق صوتية (Ultrasound)</label>
+          <label class="form-check"><input type="checkbox" checked> تيار كهربي TENS</label>
+          <label class="form-check"><input type="checkbox" checked> موجات تصادمية (Shockwave)</label>
+          <label class="form-check"><input type="checkbox"> شد فقرات قطنية (Traction)</label>
+          <label class="form-check"><input type="checkbox" checked> تمرينات علاجية (Therapeutic Ex)</label>
+          <label class="form-check"><input type="checkbox"> كمادات حرارية (Hot Pack)</label>
+          <label class="form-check"><input type="checkbox"> كمادات باردة (Cold Pack)</label>
+          <label class="form-check"><input type="checkbox"> تصريف ليمفاوي يدوي</label>
+        </div>
+      </div>
+
+      <!-- 4. Home Exercises Prescription R-9.1-5 -->
+      <div class="card" style="margin-bottom: 20px;">
+        <div class="card-header" style="padding-bottom: 8px; margin-bottom: 12px;">
+          <div class="card-title" style="font-size: 14px;">4. التمرينات والتوجيهات المنزلية (Home Exercises)</div>
+        </div>
+        <table class="wf-table" style="margin-bottom: 10px;">
+          <thead>
+            <tr>
+              <th>اسم التمرين المنزلي</th>
+              <th>المجموعات والتكرارات</th>
+              <th>ملاحظات الأداء</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>تمرين جسر الحوض (Pelvic Bridging)</strong></td>
+              <td>3 مجموعات × 12 تكرار (مرتين يومياً)</td>
+              <td>الحفاظ على استقامة الحوض مع الثبات 3 ثوانٍ في الأعلى</td>
+            </tr>
+            <tr>
+              <td><strong>إطالة عضلات الفخذ الخلفية (Hamstrings Stretch)</strong></td>
+              <td>3 تكرارات لكل ساق × 30 ثانية ثبات</td>
+              <td>التنفس المنتظم وتجنب تقوس أسفل الظهر</td>
+            </tr>
+          </tbody>
+        </table>
+        <input type="text" class="form-control" placeholder="➕ إضافة تمرين منزلي جديد...">
+      </div>
+
+      <!-- Submission Actions -->
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="font-size: 11px; color: var(--wf-text-muted);">
+          * عند النقر على اعتماد: يتم خصم جلسة 1 من الباقة، واحتساب عمولة الطبيب، وبدء مهلة الـ 24 ساعة لتعديل الملاحظة (R-9.2-1).
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <a href="clinical-workspace-queue.html" class="btn">إلغاء</a>
+          <button type="submit" class="btn btn-primary" style="padding: 10px 24px; font-size: 14px;">
+            ✅ اعتماد واستكمال الجلسة
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    function selectPain(val, label) {
+      document.querySelectorAll('.pain-btn').forEach(btn => btn.classList.remove('selected'));
+      event.target.closest('.pain-btn').classList.add('selected');
+      document.getElementById('pain-label').textContent = 'مستوى الألم: ' + label;
+    }
+  </script>
+</body>
+</html>

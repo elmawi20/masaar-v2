@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>الموظفون وجداول العمل والإجازات — عيادة مسار</title>
+  <link rel="stylesheet" href="wireframe.css">
+  <style>
+    .staff-container {
+      max-width: 920px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wf-banner">
+    <span>[واجهة سلكية تجريبية - Task 1.17] إدارة الموظفين وجداول العمل والإجازات (SCR-H01 & SCR-H02 / R-3)</span>
+    <a href="index.html">← فهرس جميع الواجهات</a>
+  </div>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-logo">عيادة مسار — الإدارة</div>
+      <div class="nav-group">
+        <span class="nav-label">التهيئة والإعدادات</span>
+        <a href="staff-management-schedule.html" class="nav-item active">👥 الموظفون وجداول العمل</a>
+        <a href="clinic-settings.html" class="nav-item">⚙️ إعدادات العيادة والأسرة</a>
+        <a href="management-reports.html" class="nav-item">📊 التقارير المالية</a>
+        <a href="audit-log-viewer.html" class="nav-item">🔍 سجل الرقابة (Audit)</a>
+      </div>
+    </aside>
+
+    <main class="main-content staff-container">
+      <div class="topbar">
+        <div>
+          <h1 style="font-size: 18px; font-weight: bold;">إدارة حسابات الموظفين والورديات (Staff & Schedules)</h1>
+          <p style="font-size: 12px; color: var(--wf-text-muted);">الأدوار، جداول الورديات (شفتين باليوم R-3-2)، الإجازات، وإعادة ضبط الأمان</p>
+        </div>
+        <button class="btn btn-primary" onclick="alert('فتح نافذة إضافة موظف جديد');">➕ إضافة موظف جديد</button>
+      </div>
+
+      <!-- Staff Accounts Directory -->
+      <div class="card" style="margin-bottom: 24px;">
+        <div class="card-header">
+          <div class="card-title">قائمة حسابات فريق العمل والأدوار (R-3-1)</div>
+          <span class="badge" style="background: var(--wf-grey-300);">5 حسابات نشطة</span>
+        </div>
+
+        <table class="wf-table">
+          <thead>
+            <tr>
+              <th>الاسم الكامل</th>
+              <th>الدور الوظيفي (Role)</th>
+              <th>البريد الإلكتروني</th>
+              <th>حالة الحساب</th>
+              <th>المصادقة (2FA)</th>
+              <th>إجراءات الحساب والأمان (R-3-4, R-15.2)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>د. كريم حسني</strong></td>
+              <td><span class="badge" style="background: var(--wf-grey-800); color: #fff;">أخصائي علاج طبيعي</span></td>
+              <td>karim.hosny@masaarclinic.com</td>
+              <td><span class="badge">نشط</span></td>
+              <td><span class="badge">مفعلة ✅</span></td>
+              <td>
+                <button class="btn btn-sm" onclick="alert('تم إرسال رابط إعادة تعيين كلمة المرور (R-3-4)');">إعادة تعيين المرور</button>
+                <button class="btn btn-sm" onclick="alert('تم إعادة ضبط مفتاح 2FA للمستخدم (R-15.2-6)');">إعادة ضبط 2FA</button>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>د. سارة عادل</strong></td>
+              <td><span class="badge" style="background: var(--wf-grey-800); color: #fff;">أخصائي علاج طبيعي</span></td>
+              <td>sara.adel@masaarclinic.com</td>
+              <td><span class="badge">نشط</span></td>
+              <td><span class="badge">مفعلة ✅</span></td>
+              <td>
+                <button class="btn btn-sm">إعادة تعيين المرور</button>
+                <button class="btn btn-sm">إعادة ضبط 2FA</button>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>د. نورهان سعيد</strong></td>
+              <td><span class="badge" style="background: var(--wf-grey-800); color: #fff;">أخصائي تغذية علاجية</span></td>
+              <td>nourhan.saeed@masaarclinic.com</td>
+              <td><span class="badge">نشط</span></td>
+              <td><span class="badge">مفعلة ✅</span></td>
+              <td>
+                <button class="btn btn-sm">إعادة تعيين المرور</button>
+                <button class="btn btn-sm">إعادة ضبط 2FA</button>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>سارة إبراهيم</strong></td>
+              <td><span class="badge">موظف استقبال (Receptionist)</span></td>
+              <td>reception@masaarclinic.com</td>
+              <td><span class="badge">نشط</span></td>
+              <td><span class="badge">مفعلة ✅</span></td>
+              <td>
+                <button class="btn btn-sm">إعادة تعيين المرور</button>
+                <button class="btn btn-sm">إعادة ضبط 2FA</button>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>أ. حازم ممدوح</strong></td>
+              <td><span class="badge">مدير التشغيل (Manager)</span></td>
+              <td>manager@masaarclinic.com</td>
+              <td><span class="badge">نشط</span></td>
+              <td><span class="badge">مفعلة ✅</span></td>
+              <td>
+                <button class="btn btn-sm">إعادة تعيين المرور</button>
+                <button class="btn btn-sm">إعادة ضبط 2FA</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Weekly Schedule Matrix (Up to 2 shifts per day R-3-2) -->
+      <div class="card" style="margin-bottom: 24px; border-right: 4px solid var(--wf-grey-800);">
+        <div class="card-header">
+          <div>
+            <div class="card-title">جدول الورديات الأسبوعي (د. كريم حسني - حتى ورديتين باليوم R-3-2)</div>
+            <p style="font-size: 11px; color: var(--wf-text-muted);">تحديد مواعيد الحضور والانصراف لاستقبال الحجوزات بدقة</p>
+          </div>
+          <button class="btn btn-sm btn-primary" onclick="alert('تم حفظ جدول الورديات المحدث');">حفظ التعديلات</button>
+        </div>
+
+        <table class="wf-table">
+          <thead>
+            <tr>
+              <th>اليوم</th>
+              <th>الوردية الأولى (Shift 1)</th>
+              <th>الوردية الثانية (Shift 2)</th>
+              <th>حالة التواجد</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>السبت</strong></td>
+              <td>09:00 ص - 01:00 م</td>
+              <td>05:00 م - 09:00 م</td>
+              <td><span class="badge" style="background: var(--wf-grey-300);">ورديتان (8 ساعات)</span></td>
+            </tr>
+            <tr>
+              <td><strong>الأحد</strong></td>
+              <td>09:00 ص - 01:00 م</td>
+              <td>05:00 م - 09:00 م</td>
+              <td><span class="badge" style="background: var(--wf-grey-300);">ورديتان (8 ساعات)</span></td>
+            </tr>
+            <tr>
+              <td><strong>الإثنين</strong></td>
+              <td>09:00 ص - 01:00 م</td>
+              <td>05:00 م - 09:00 م</td>
+              <td><span class="badge" style="background: var(--wf-grey-300);">ورديتان (8 ساعات)</span></td>
+            </tr>
+            <tr>
+              <td><strong>الثلاثاء</strong></td>
+              <td>09:00 ص - 01:00 م</td>
+              <td>05:00 م - 09:00 م</td>
+              <td><span class="badge" style="background: var(--wf-grey-300);">ورديتان (8 ساعات)</span></td>
+            </tr>
+            <tr>
+              <td><strong>الأربعاء</strong></td>
+              <td>09:00 ص - 01:00 م</td>
+              <td>05:00 م - 09:00 م</td>
+              <td><span class="badge" style="background: var(--wf-grey-300);">ورديتان (8 ساعات)</span></td>
+            </tr>
+            <tr>
+              <td><strong>الخميس</strong></td>
+              <td>09:00 ص - 03:00 م</td>
+              <td>—</td>
+              <td><span class="badge" style="background: var(--wf-grey-300);">وردية واحدة (6 ساعات)</span></td>
+            </tr>
+            <tr style="background: var(--wf-grey-200);">
+              <td><strong>الجمعة</strong></td>
+              <td>—</td>
+              <td>—</td>
+              <td><span class="badge">عطلة أسبوعية</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Staff Leave & Absence Management -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">تسجيل الإجازات والغياب (Staff Leave Tracker)</div>
+        </div>
+
+        <form onsubmit="event.preventDefault(); alert('تم التحقق من عدم تعارض الإجازة مع مواعيد محجوزة مسبقاً وحفظ الإجازة بنجاح (R-3-2)');">
+          <div class="form-row">
+            <div class="form-col form-group">
+              <label class="form-label">الموظف المعني:</label>
+              <select class="form-control" required>
+                <option>د. كريم حسني</option>
+                <option>د. سارة عادل</option>
+                <option>د. نورهان سعيد</option>
+              </select>
+            </div>
+            <div class="form-col form-group">
+              <label class="form-label">تاريخ بدء الإجازة:</label>
+              <input type="date" class="form-control" value="2026-11-05" required>
+            </div>
+            <div class="form-col form-group">
+              <label class="form-label">تاريخ نهاية الإجازة:</label>
+              <input type="date" class="form-control" value="2026-11-07" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">سبب الإجازة وملاحظات التغطية:</label>
+            <input type="text" class="form-control" placeholder="إجازة اعتيادية سنوية - سيتم تغطية الحالات مع د. سارة عادل...">
+          </div>
+
+          <div style="display: flex; justify-content: flex-end;">
+            <button type="submit" class="btn btn-primary">تسجيل الإجازة وفحص المواعيد</button>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

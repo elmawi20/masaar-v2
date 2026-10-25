@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>سجل الرقابة والعمليات (Audit Log) — عيادة مسار</title>
+  <link rel="stylesheet" href="wireframe.css">
+  <style>
+    .audit-container {
+      max-width: 960px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wf-banner">
+    <span>[واجهة سلكية تجريبية - Task 1.17] سجل الرقابة وعمليات النظام وتغطية الوصول (SCR-H05 & H06 / R-13)</span>
+    <a href="index.html">← فهرس جميع الواجهات</a>
+  </div>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-logo">عيادة مسار — الرقابة</div>
+      <div class="nav-group">
+        <span class="nav-label">التهيئة والإشراف</span>
+        <a href="audit-log-viewer.html" class="nav-item active">🔍 سجل الرقابة (Audit Log)</a>
+        <a href="management-reports.html" class="nav-item">📊 التقارير المالية</a>
+        <a href="staff-management-schedule.html" class="nav-item">👥 الموظفون والورديات</a>
+        <a href="clinic-settings.html" class="nav-item">⚙️ إعدادات العيادة</a>
+      </div>
+    </aside>
+
+    <main class="main-content audit-container">
+      <div class="topbar">
+        <div>
+          <h1 style="font-size: 18px; font-weight: bold;">سجل الرقابة وتدقيق العمليات (Audit Trail)</h1>
+          <p style="font-size: 12px; color: var(--wf-text-muted);">توثيق غير قابل للتعديل لكافة الإضافات والتعديلات والإلغاءات (R-0-2, R-13-1)</p>
+        </div>
+        <!-- Manager Privacy Redaction Simulator Toggle -->
+        <div style="display: flex; align-items: center; gap: 8px; background: var(--wf-grey-100); border: 1px solid var(--wf-border-dark); padding: 4px 10px; border-radius: 4px;">
+          <span style="font-size: 11px; font-weight: bold;">محاكاة دور الرؤية:</span>
+          <select class="form-control" style="font-size: 11px; padding: 2px 4px; width: 150px;" onchange="toggleMask(this.value)">
+            <option value="owner" selected>المالك (رؤية كاملة)</option>
+            <option value="manager">المدير (حجب البيانات الطبية R-13-3)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="card" style="margin-bottom: 16px; padding: 12px;">
+        <div class="form-row">
+          <div class="form-col">
+            <input type="text" class="form-control" placeholder="بحث بالمستخدم أو كود السجل..." style="font-size: 12px;">
+          </div>
+          <div class="form-col">
+            <select class="form-control" style="font-size: 12px;">
+              <option>جميع الإجراءات (All Actions)</option>
+              <option>VOID_RECEIPT (إلغاء إيصال)</option>
+              <option>COMPLETE_SESSION (استكمال جلسة)</option>
+              <option>UPDATE_PRICE (تعديل سعر)</option>
+              <option>EXTEND_PACKAGE (تمديد باقة)</option>
+            </select>
+          </div>
+          <div class="form-col">
+            <input type="date" class="form-control" value="2026-10-25" style="font-size: 12px;">
+          </div>
+          <div style="display: flex; align-items: center;">
+            <button class="btn btn-sm btn-primary">تصفية</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Audit Log Events Table -->
+      <div class="card" style="margin-bottom: 24px;">
+        <div class="card-header">
+          <div class="card-title">أحدث العمليات المسجلة بالسجل اليوم (25 أكتوبر 2026)</div>
+          <span class="badge" style="background: var(--wf-grey-300);">سجل غير قابل للحذف (Immutable)</span>
+        </div>
+
+        <table class="wf-table">
+          <thead>
+            <tr>
+              <th style="width: 130px;">الوقت (القاهرة)</th>
+              <th>الموظف والدور</th>
+              <th>نوع العملية</th>
+              <th>الجدول والسجل</th>
+              <th>تفاصيل التغيير والسبب المدون</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>02:45:12 م</strong></td>
+              <td>سارة إبراهيم<br><small>(استقبال)</small></td>
+              <td><span class="badge" style="background: var(--wf-grey-800); color: #fff;">RECORD_PAYMENT</span></td>
+              <td>payments<br><small>INV-2026-00184</small></td>
+              <td>تحصيل مبلغ 1,200.00 ج.م عبر InstaPay (مرجع: 98471204) لباقة #PKG-2026-004</td>
+            </tr>
+            <tr>
+              <td><strong>10:14:08 ص</strong></td>
+              <td>د. كريم حسني<br><small>(معالج)</small></td>
+              <td><span class="badge" style="background: var(--wf-grey-800); color: #fff;">COMPLETE_SESSION</span></td>
+              <td>appointments<br><small>#APT-0982</small></td>
+              <td class="clinical-payload">
+                استكمال جلسة علاج طبيعي 4/12 · مقياس ألم 4/10 · تقرير SOAP: تحسن في مدى حركة الانحناء
+              </td>
+            </tr>
+            <tr>
+              <td><strong>09:32:44 ص</strong></td>
+              <td>سارة إبراهيم<br><small>(استقبال)</small></td>
+              <td><span class="badge">UPDATE_PRICE</span></td>
+              <td>appointments<br><small>#APT-0982</small></td>
+              <td>تعديل السعر المبدئي من 450.00 ج.م إلى 400.00 ج.م · السبب: خصم ترويجي متفق عليه (DEC-012)</td>
+            </tr>
+            <tr>
+              <td><strong>09:00:05 ص</strong></td>
+              <td>سارة إبراهيم<br><small>(استقبال)</small></td>
+              <td><span class="badge">LOGIN_SUCCESS</span></td>
+              <td>users<br><small>ID: 4</small></td>
+              <td>تسجيل دخول ناجح مع إدخال رمز التحقق الثنائي TOTP بنجاح (الجهاز موثوق)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Covering-Access Emergency Log (Owner Only SCR-H06 / DEC-013) -->
+      <div class="card" style="border-right: 4px solid var(--wf-grey-900); background: var(--wf-grey-100);">
+        <div class="card-header">
+          <div>
+            <div class="card-title">سجل أذونات الوصول للتغطية الطبية (Covering-Access Audit Trail)</div>
+            <p style="font-size: 11px; color: var(--wf-text-muted);">
+              توثيق فتح المعالج لملف مريض غير مخصص له لأغراض التغطية الطبية الطارئة (R-1.1-21, DEC-013)
+            </p>
+          </div>
+          <span class="badge" style="background: var(--wf-grey-800); color: #fff;">خاص بالمالك فقط</span>
+        </div>
+
+        <table class="wf-table">
+          <thead>
+            <tr>
+              <th>وقت المنح</th>
+              <th>المعالج الطالب</th>
+              <th>المريض المستهدف</th>
+              <th>المعالج الأساسي</th>
+              <th>سبب طلب التغطية الإلزامي</th>
+              <th>حالة الصلاحية</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>25 أكتوبر 10:05 ص</td>
+              <td><strong>د. سارة عادل</strong></td>
+              <td>أحمد مصطفى كامل (MAS-00104)</td>
+              <td>د. كريم حسني</td>
+              <td>متابعة طارئة لحالة المريض نظراً لانشغال الطبيب المعالج في جلسة مكثفة</td>
+              <td><span class="badge" style="background: var(--wf-grey-300);">نشط (حتى انتهاء الجلسة أو 12 ساعة)</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function toggleMask(role) {
+      const cells = document.querySelectorAll('.clinical-payload');
+      if (role === 'manager') {
+        cells.forEach(c => {
+          c.dataset.original = c.textContent;
+          c.innerHTML = '<span class="badge" style="background: var(--wf-grey-400); font-weight: bold; font-family: monospace;">[بيانات طبية محجوبة - CLINICAL DATA REDACTED R-13-3]</span>';
+        });
+      } else {
+        cells.forEach(c => {
+          c.innerHTML = 'استكمال جلسة علاج طبيعي 4/12 · مقياس ألم 4/10 · تقرير SOAP: تحسن في مدى حركة الانحناء';
+        });
+      }
+    }
+  </script>
+</body>
+</html>

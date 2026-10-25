@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>إعدادات العيادة وساعات العمل — عيادة مسار</title>
+  <link rel="stylesheet" href="wireframe.css">
+  <style>
+    .settings-container {
+      max-width: 900px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wf-banner">
+    <span>[واجهة سلكية تجريبية - Task 1.17] إعدادات العيادة وساعات العمل والأسرة (SCR-H03 / R-2)</span>
+    <a href="index.html">← فهرس جميع الواجهات</a>
+  </div>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-logo">عيادة مسار — الإدارة</div>
+      <div class="nav-group">
+        <span class="nav-label">التهيئة والإعدادات</span>
+        <a href="clinic-settings.html" class="nav-item active">⚙️ إعدادات العيادة والأسرة</a>
+        <a href="staff-management-schedule.html" class="nav-item">👥 الموظفون وجداول العمل</a>
+        <a href="management-reports.html" class="nav-item">📊 التقارير المالية</a>
+        <a href="audit-log-viewer.html" class="nav-item">🔍 سجل الرقابة (Audit)</a>
+      </div>
+    </aside>
+
+    <main class="main-content settings-container">
+      <div class="topbar">
+        <div>
+          <h1 style="font-size: 18px; font-weight: bold;">إعدادات العيادة وساعات العمل (Clinic Settings)</h1>
+          <p style="font-size: 12px; color: var(--wf-text-muted);">تهيئة المواعيد الرسمية، الغرف والأسرة، وقائمة الأسعار (R-2)</p>
+        </div>
+        <span class="badge" style="background: var(--wf-grey-800); color: #fff;">صلاحية: المالك فقط</span>
+      </div>
+
+      <!-- 1. Weekly Operating Hours R-2-2 -->
+      <div class="card" style="margin-bottom: 20px;">
+        <div class="card-header">
+          <div class="card-title">1. ساعات العمل الأسبوعية للعيادة (Operating Hours)</div>
+          <button class="btn btn-sm btn-primary" onclick="alert('تم حفظ ساعات العمل الرسمية');">حفظ الساعات</button>
+        </div>
+
+        <table class="wf-table">
+          <thead>
+            <tr>
+              <th>اليوم</th>
+              <th>الحالة</th>
+              <th>وقت الفتح</th>
+              <th>وقت الإغلاق</th>
+              <th>إجمالي ساعات التشغيل</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>السبت</strong></td>
+              <td><span class="badge" style="background: var(--wf-grey-300);">يوم عمل</span></td>
+              <td><input type="time" class="form-control" value="09:00" style="width: 120px;"></td>
+              <td><input type="time" class="form-control" value="21:00" style="width: 120px;"></td>
+              <td>12 ساعة عمل</td>
+            </tr>
+            <tr>
+              <td><strong>الأحد</strong></td>
+              <td><span class="badge" style="background: var(--wf-grey-300);">يوم عمل</span></td>
+              <td><input type="time" class="form-control" value="09:00" style="width: 120px;"></td>
+              <td><input type="time" class="form-control" value="21:00" style="width: 120px;"></td>
+              <td>12 ساعة عمل</td>
+            </tr>
+            <tr>
+              <td><strong>الإثنين</strong></td>
+              <td><span class="badge" style="background: var(--wf-grey-300);">يوم عمل</span></td>
+              <td><input type="time" class="form-control" value="09:00" style="width: 120px;"></td>
+              <td><input type="time" class="form-control" value="21:00" style="width: 120px;"></td>
+              <td>12 ساعة عمل</td>
+            </tr>
+            <tr>
+              <td><strong>الثلاثاء</strong></td>
+              <td><span class="badge" style="background: var(--wf-grey-300);">يوم عمل</span></td>
+              <td><input type="time" class="form-control" value="09:00" style="width: 120px;"></td>
+              <td><input type="time" class="form-control" value="21:00" style="width: 120px;"></td>
+              <td>12 ساعة عمل</td>
+            </tr>
+            <tr>
+              <td><strong>الأربعاء</strong></td>
+              <td><span class="badge" style="background: var(--wf-grey-300);">يوم عمل</span></td>
+              <td><input type="time" class="form-control" value="09:00" style="width: 120px;"></td>
+              <td><input type="time" class="form-control" value="21:00" style="width: 120px;"></td>
+              <td>12 ساعة عمل</td>
+            </tr>
+            <tr>
+              <td><strong>الخميس</strong></td>
+              <td><span class="badge" style="background: var(--wf-grey-300);">يوم عمل</span></td>
+              <td><input type="time" class="form-control" value="09:00" style="width: 120px;"></td>
+              <td><input type="time" class="form-control" value="21:00" style="width: 120px;"></td>
+              <td>12 ساعة عمل</td>
+            </tr>
+            <tr style="background: var(--wf-grey-200);">
+              <td><strong>الجمعة</strong></td>
+              <td><span class="badge">عطلة أسبوعية</span></td>
+              <td>—</td>
+              <td>—</td>
+              <td>مغلق (Weekend)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 2. Treatment Rooms & Beds R-2-4 -->
+      <div class="card" style="margin-bottom: 20px;">
+        <div class="card-header">
+          <div class="card-title">2. الغرف والأسِرّة العلاجية (Rooms & Beds)</div>
+          <button class="btn btn-sm btn-primary" onclick="alert('إضافة سرير جديد');">➕ إضافة سرير</button>
+        </div>
+
+        <table class="wf-table">
+          <thead>
+            <tr>
+              <th>الغرفة</th>
+              <th>اسم السرير / المعرف</th>
+              <th>نوع الخدمة المخصصة</th>
+              <th>الحالة</th>
+              <th>إجراءات</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>غرفة 1 (علاج طبيعي رجالي/عام)</td>
+              <td><strong>سرير 1</strong></td>
+              <td>علاج طبيعي</td>
+              <td><span class="badge" style="background: var(--wf-grey-300);">متاح للتشغيل</span></td>
+              <td><button class="btn btn-sm">تعديل</button></td>
+            </tr>
+            <tr>
+              <td>غرفة 1 (علاج طبيعي رجالي/عام)</td>
+              <td><strong>سرير 2</strong></td>
+              <td>علاج طبيعي وتأهيل</td>
+              <td><span class="badge" style="background: var(--wf-grey-300);">متاح للتشغيل</span></td>
+              <td><button class="btn btn-sm">تعديل</button></td>
+            </tr>
+            <tr>
+              <td>غرفة 1 (علاج طبيعي رجالي/عام)</td>
+              <td><strong>سرير 3</strong></td>
+              <td>علاج طبيعي أطفال</td>
+              <td><span class="badge" style="background: var(--wf-grey-300);">متاح للتشغيل</span></td>
+              <td><button class="btn btn-sm">تعديل</button></td>
+            </tr>
+            <tr>
+              <td>غرفة 2 (استشارات وتغذية)</td>
+              <td><strong>سرير 4</strong></td>
+              <td>تأهيل حركي وتغذية</td>
+              <td><span class="badge" style="background: var(--wf-grey-300);">متاح للتشغيل</span></td>
+              <td><button class="btn btn-sm">تعديل</button></td>
+            </tr>
+            <tr>
+              <td>غرفة 2 (استشارات وتغذية)</td>
+              <td><strong>سرير 5</strong></td>
+              <td>كشف استشاري وفحص InBody</td>
+              <td><span class="badge" style="background: var(--wf-grey-300);">متاح للتشغيل</span></td>
+              <td><button class="btn btn-sm">تعديل</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 3. Session Types Catalog & Lock Window R-2-5, R-2-8 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">3. دليل الخدمات والأسعار وقفل التقارير (Catalog & Lock Window)</div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-col form-group">
+            <label class="form-label">علاج طبيعي (Physiotherapy) - السعر المقترح:</label>
+            <input type="text" class="form-control" value="450.00 ج.م" style="font-weight: bold;">
+          </div>
+          <div class="form-col form-group">
+            <label class="form-label">تغذية علاجية (Nutrition) - السعر المقترح:</label>
+            <input type="text" class="form-control" value="450.00 ج.م" style="font-weight: bold;">
+          </div>
+          <div class="form-col form-group">
+            <label class="form-label">كشف استشاري (Consultant) - السعر المقترح:</label>
+            <input type="text" class="form-control" value="750.00 ج.م" style="font-weight: bold;">
+          </div>
+        </div>
+
+        <div class="form-group" style="background: var(--wf-grey-100); padding: 12px; border-radius: 4px; border: 1px solid var(--wf-border); margin-top: 10px;">
+          <label class="form-label">مهلة قفل السجلات الطبية التلقائي (Clinical Note Lock Window R-2-8):</label>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <input type="number" class="form-control" value="24" style="width: 100px; font-weight: bold;">
+            <span style="font-size: 13px;">ساعة من تاريخ ووقت اعتماد الجلسة لأول مرة (DEC-016)</span>
+          </div>
+          <small style="font-size: 11px; color: var(--wf-text-muted);">* بعد انقضاء الـ 24 ساعة، يقفل التقرير نهائياً ولا يمكن إضافة سوى ملحق (Addendum).</small>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>
