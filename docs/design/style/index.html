@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>دليل الهوية البصرية والنماذج الملونة (Style System) — عيادة مسار</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .palette-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin: 14px 0 24px;
+    }
+    .swatch-card {
+      border: 1px solid var(--border-strong);
+      border-radius: 6px;
+      overflow: hidden;
+      background: var(--bg-surface);
+    }
+    .swatch-preview {
+      height: 48px;
+    }
+    .swatch-body {
+      padding: 8px 12px;
+      font-size: 11px;
+    }
+    .mockup-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 14px;
+    }
+    .mockup-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      border-radius: 6px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-right: 4px solid var(--primary-600);
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="style-header">
+    <div class="brand-badge">
+      <div class="brand-logo-mark">مسار</div>
+      <div>
+        <div style="font-weight: 700; font-size: 15px; color: var(--text-main);">نظام عيادة مسار — دليل النمط المرئي (Visual Style Guide)</div>
+        <div style="font-size: 11px; color: var(--text-muted);">Stage 1: Task 1.17b · الهوية البصرية والنماذج الملونة عالية الدقة</div>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <button class="theme-toggle-btn" onclick="toggleTheme()">
+        <span id="theme-icon">🌙</span>
+        <span id="theme-text">الوضع الداكن (Dark Mode)</span>
+      </button>
+      <a href="../wireframes/index.html" class="btn-clinical btn-clinical-sm">← فهرس النماذج السلكية (Wireframes)</a>
+    </div>
+  </header>
+
+  <div style="max-width: 1040px; margin: 30px auto; padding: 0 20px;">
+    <!-- Philosophy Banner -->
+    <div class="ui-card" style="border-right: 6px solid var(--primary-600); background: var(--bg-surface);">
+      <h1 style="font-size: 20px; font-weight: 700; margin-bottom: 8px;">الهوية البصرية السريرية الرصينة (Calm Clinical Identity)</h1>
+      <p style="font-size: 13px; line-height: 1.7; color: var(--text-secondary);">
+        تم تصميم نظام عيادة مسار بهوية طبية رصينة ومريحة للعين، <strong>خالية تماماً من المظاهر التوليدية (No "AI-look")</strong>: بدون تدرجات لونية هلامية، بدون تأثيرات زجاجية (No glassmorphism / blur)، بدون درجات النيون والبنفسجي، وبدون إيموجي زخرفي في عناصر النظام الأساسية.
+        تعتمد الهوية على لون أساسي واحد (<strong>Deep Teal كحلي-بترولي رصين #0E6251</strong>)، وخلفيات محايدة ناصعة، ودعم كامل للوضع الداكن (Dark Mode) المريح لأعين الطاقم الطبي.
+      </p>
+    </div>
+
+    <!-- 1. Color Palette Tokens -->
+    <div class="ui-card">
+      <div class="ui-card-header">
+        <div class="ui-card-title">1. لوحة الألوان الأساسية ورموز النظام (Color Tokens)</div>
+        <span style="font-size: 12px; color: var(--text-muted);">Deep Teal & Neutral Slates</span>
+      </div>
+
+      <div class="palette-grid">
+        <div class="swatch-card">
+          <div class="swatch-preview" style="background: var(--primary-600);"></div>
+          <div class="swatch-body">
+            <strong>Deep Teal (الأساسي)</strong><br>
+            <code>var(--primary-600)</code>
+          </div>
+        </div>
+
+        <div class="swatch-card">
+          <div class="swatch-preview" style="background: var(--primary-50); border-bottom: 1px solid var(--border-subtle);"></div>
+          <div class="swatch-body">
+            <strong>Teal Tint (الهوفر والملصقات)</strong><br>
+            <code>var(--primary-50)</code>
+          </div>
+        </div>
+
+        <div class="swatch-card">
+          <div class="swatch-preview" style="background: var(--bg-app); border-bottom: 1px solid var(--border-subtle);"></div>
+          <div class="swatch-body">
+            <strong>Canvas Background</strong><br>
+            <code>var(--bg-app)</code>
+          </div>
+        </div>
+
+        <div class="swatch-card">
+          <div class="swatch-preview" style="background: var(--bg-surface); border-bottom: 1px solid var(--border-subtle);"></div>
+          <div class="swatch-body">
+            <strong>Surface Card</strong><br>
+            <code>var(--bg-surface)</code>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Status Colors Palette -->
+    <div class="ui-card">
+      <div class="ui-card-header">
+        <div>
+          <div class="ui-card-title">2. ملصقات الحالات الدلالية (Semantic Status Badges)</div>
+          <p style="font-size: 11px; color: var(--text-muted);">
+            قاعدة الأمان: كل حالة تقترن دائماً <strong>بنص عربي صريح</strong> ومحدد، ولا يعتمد أبداً على اللون بمفرده.
+          </p>
+        </div>
+      </div>
+
+      <table class="clinical-table">
+        <thead>
+          <tr>
+            <th>الحالة الوظيفية</th>
+            <th>المفتاح الإنجليزي</th>
+            <th>معاينة الملصق (Badge)</th>
+            <th>القاعدة التشغيلية</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>مجدول</strong></td>
+            <td><code>scheduled</code></td>
+            <td><span class="status-badge badge-scheduled">مجدول</span></td>
+            <td>حجز مؤكد في الجدول (أزرق رصين)</td>
+          </tr>
+          <tr>
+            <td><strong>حضر</strong></td>
+            <td><code>arrived</code></td>
+            <td><span class="status-badge badge-arrived">حضر</span></td>
+            <td>سجل وصوله بالاستقبال وينتظر الدخول (كهرماني تنبيهي)</td>
+          </tr>
+          <tr>
+            <td><strong>مكتمل</strong></td>
+            <td><code>completed</code></td>
+            <td><span class="status-badge badge-completed">مكتمل</span></td>
+            <td>أتم الجلسة واعتمد التقرير الطبي وخصمت الجلسة (أخضر سريري)</td>
+          </tr>
+          <tr>
+            <td><strong>ملغي</strong></td>
+            <td><code>cancelled</code></td>
+            <td><span class="status-badge badge-cancelled">ملغي</span></td>
+            <td>ألغي بسبب موثق مع تحرير السرير وجلسة الباقة (رمادي محايد)</td>
+          </tr>
+          <tr>
+            <td><strong>لم يحضر</strong></td>
+            <td><code>no_show</code></td>
+            <td><span class="status-badge badge-noshow">لم يحضر</span></td>
+            <td>تجاوز وقت الموعد دون حضور مسجل في نفس اليوم (أحمر سريري)</td>
+          </tr>
+          <tr>
+            <td><strong>قائمة انتظار</strong></td>
+            <td><code>waitlisted</code></td>
+            <td><span class="status-badge badge-waitlisted">قائمة انتظار</span></td>
+            <td>تحرير السرير بالجدول مع استمرار حجز جلسة الباقة (DEC-008) (رمادي داكن)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 3. Typography & Formatting Rules -->
+    <div class="ui-card">
+      <div class="ui-card-header">
+        <div class="ui-card-title">3. الخطوط وتنسيقات الأرقام والمبالغ (Typography & Formatting)</div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; font-size: 13px;">
+        <div style="background: var(--bg-app); border: 1px solid var(--border-subtle); padding: 14px; border-radius: 6px;">
+          <div style="font-weight: 700; color: var(--text-main); margin-bottom: 6px;">الخط الأساسي:</div>
+          <div style="font-size: 15px; font-family: 'IBM Plex Sans Arabic', sans-serif;">IBM Plex Sans Arabic (خط العرض والنصوص)</div>
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">الخط البديل الاحتياطي: Cairo</div>
+        </div>
+
+        <div style="background: var(--bg-app); border: 1px solid var(--border-subtle); padding: 14px; border-radius: 6px;">
+          <div style="font-weight: 700; color: var(--text-main); margin-bottom: 6px;">تنسيق العملة المصرية:</div>
+          <div style="font-size: 18px; font-weight: 700; color: var(--primary-600);">450.00 ج.م · 1,200.00 ج.م</div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">تخزن كقروش صحيحة (45000) وتعرض بالجنيه</div>
+        </div>
+
+        <div style="background: var(--bg-app); border: 1px solid var(--border-subtle); padding: 14px; border-radius: 6px;">
+          <div style="font-weight: 700; color: var(--text-main); margin-bottom: 6px;">تنسيق الوقت المحلي (القاهرة):</div>
+          <div style="font-size: 18px; font-weight: 700;">09:30 ص · 05:30 م</div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">توقيت محلي مصري Africa/Cairo بنظام 12 ساعة</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Interactive Colored Mockups Showcase -->
+    <div class="ui-card" style="border-right: 5px solid var(--primary-600);">
+      <div class="ui-card-header">
+        <div>
+          <div class="ui-card-title" style="font-size: 16px;">4. النماذج الملونة عالية الدقة المعتمدة (Colored Mockups Showcase)</div>
+          <p style="font-size: 12px; color: var(--text-muted);">
+            ثلاث شاشات رئيسية تطبق الهوية، درجات الكثافة المتباينة (مدمج للاستقبال وموسع للعيادة)، ودعم الوضع الداكن:
+          </p>
+        </div>
+      </div>
+
+      <div class="mockup-grid">
+        <!-- Mockup 1: Front Desk Today -->
+        <div class="mockup-card">
+          <div>
+            <span class="status-badge" style="background: var(--primary-50); color: var(--primary-600); margin-bottom: 8px;">كثافة مدمجة (Compact)</span>
+            <h2 style="font-size: 16px; font-weight: 700; margin-bottom: 6px;">1. لوحة الاستقبال اليومية (Today)</h2>
+            <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 12px;">
+              شاشة الاستقبال عالية الكثافة: بطاقات الإحصاء، تدفق المرضى، تنبيهات التأخر (>10 دقائق)، والتحصيل السريع بالدرج.
+            </p>
+          </div>
+          <a href="today.html" class="btn-clinical btn-clinical-primary" style="width: 100%; text-align: center;">
+            فتح نموذج لوحة الاستقبال الملونة
+          </a>
+        </div>
+
+        <!-- Mockup 2: Patient Profile -->
+        <div class="mockup-card">
+          <div>
+            <span class="status-badge" style="background: var(--primary-50); color: var(--primary-600); margin-bottom: 8px;">إداري ومالي</span>
+            <h2 style="font-size: 16px; font-weight: 700; margin-bottom: 6px;">2. ملف المريض الشامل</h2>
+            <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 12px;">
+              رأس الملف الشخصي، شريط تقدم جلسات الباقة (3 مكتملة · 5 محجوزة · 4 متاحة)، الرصيد المستحق (450.00 ج.م)، وتبويبات الفواتير.
+            </p>
+          </div>
+          <a href="patient-profile.html" class="btn-clinical btn-clinical-primary" style="width: 100%; text-align: center;">
+            فتح نموذج ملف المريض الملون
+          </a>
+        </div>
+
+        <!-- Mockup 3: Session Complete Form -->
+        <div class="mockup-card">
+          <div>
+            <span class="status-badge" style="background: var(--primary-50); color: var(--primary-600); margin-bottom: 8px;">كثافة موسعة (Spacious)</span>
+            <h2 style="font-size: 16px; font-weight: 700; margin-bottom: 6px;">3. استكمال الجلسة الطبي (SOAP)</h2>
+            <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 12px;">
+              نموذج التوثيق السريري المريح: مقياس الألم التفاعلي 0-10، حقول SOAP الموسعة، قائمة الإجراءات العلاجية، وتنبيه قفل الـ 24 ساعة.
+            </p>
+          </div>
+          <a href="session-complete.html" class="btn-clinical btn-clinical-primary" style="width: 100%; text-align: center;">
+            فتح نموذج استكمال الجلسة الملون
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      document.getElementById('theme-icon').textContent = next === 'dark' ? '☀️' : '🌙';
+      document.getElementById('theme-text').textContent = next === 'dark' ? 'الوضع النهاري (Light Mode)' : 'الوضع الداكن (Dark Mode)';
+    }
+  </script>
+</body>
+</html>

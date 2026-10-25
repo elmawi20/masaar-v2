@@ -136,6 +136,12 @@ updated_at everywhere. Add a Mermaid diagram for this slice.
 ### 1.17 Wireframes C — Clinical & admin
 - **Prompt:** same style, for: "clinician workspace (today's queue), session completion form (pain 0–10, SOAP, treatments, home exercises), note with versions/addendum, nutrition consultation + progress chart placeholder, owner/manager reports, settings (hours per weekday, closures, rooms/beds, session types), staff list + schedule + leave, audit log viewer."
 
+### 1.17b Visual style & colored mockups
+- **Prompt:** "Define the visual design system in docs/design/style-guide.md and create colored high-fidelity mockups in docs/design/style/. Calm clinical look, NOT 'AI-looking' (no gradients, glassmorphism, neon/purple, or emoji decorations). One primary color: deep teal, neutral greys, white background, full dark mode support. Status colors always paired with explicit text labels: scheduled blue, arrived amber, completed green, cancelled grey, no-show red, waitlisted slate. Typography: IBM Plex Sans Arabic (fallback Cairo). Compact layouts for front desk and calendar, spacious layout for clinical forms. Egyptian currency '450.00 ج.م', time '5:30 م'. Output docs/design/style-guide.md and colored mockups in docs/design/style/ of: (1) Front desk Today, (2) Patient profile, (3) Session completion form, plus docs/design/style/index.html linking all."
+- **Output:** docs/design/style-guide.md, docs/design/style/*.html, docs/design/style/index.html
+- **Done when:** style guide complete with tokens and rules; 3 colored mockups with dark mode; index.html links all; strict review passes.
+
+
 ### 1.18 Action catalog
 - **Prompt:** "Create actions.md: every server action needed by screens.md. For each: name, permission action (from permissions.ts), input fields with Zod-style validation, rule IDs enforced, DB tables written, transaction yes/no, audit event name, possible errors (code + AR/EN message), idempotency (double-click safe?). Also list read queries per screen with filters and role-based field hiding."
 - **Done when:** every screen action in screens.md maps to an action; every rule ID enforced by 'server action' in 1.13 appears here.
@@ -192,6 +198,7 @@ Do not change files. If nothing is wrong, answer "DESIGN READY".
 | 1.15 | Wireframes A | ☐ | |
 | 1.16 | Wireframes B | ☐ | |
 | 1.17 | Wireframes C | ☐ | |
+| 1.17b | Visual style & mockups | ☐ | |
 | 1.18 | Action catalog | ☐ | |
 | 1.19 | Messages catalog | ☐ | |
 | 1.20 | Test plan & traceability | ☐ | |
