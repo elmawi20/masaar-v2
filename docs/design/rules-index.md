@@ -1,6 +1,6 @@
 # Masaar Clinic System — Rules Index
 
-Total Rules Defined: **193**  
+Total Rules Defined: **194**  
 Spec Reference: [docs/FEATURES-v2.2.md](file:///F:/Claude%20CRM/docs/FEATURES-v2.2.md)  
 Rule Permanence Policy: [DEC-025](file:///F:/Claude%20CRM/docs/design/decisions.md) (IDs are permanent and never renumbered)
 
@@ -21,7 +21,7 @@ Rule Permanence Policy: [DEC-025](file:///F:/Claude%20CRM/docs/design/decisions.
 | Billing | 15 | `R-8.1-1` – `R-8.4-4` |
 | Clinical Records | 12 | `R-9.1-1` – `R-9.5-1` |
 | Expenses | 3 | `R-10-1` – `R-10-3` |
-| Commission | 3 | `R-11-1` – `R-11-3` |
+| Commission | 4 | `R-11-1` – `R-11-4` |
 | Reports | 8 | `R-12-1` – `R-12-8` |
 | Audit Log | 3 | `R-13-1` – `R-13-3` |
 | Notifications | 6 | `R-14-1` – `R-14-6` |
@@ -190,6 +190,7 @@ Rule Permanence Policy: [DEC-025](file:///F:/Claude%20CRM/docs/design/decisions.
 | `R-11-1` | Commission earned per completed session based on session value and clinician commission type | Commission |
 | `R-11-2` | Commission payout generates payout record and expense; sessions marked paid once | Commission |
 | `R-11-3` | Clinicians can view their own earned and paid commission totals | Commission |
+| `R-11-4` | Commission payout void by Owner/Manager with required reason; voids linked expense and releases sessions | Commission |
 | `R-12-1` | Report period filters: today, this week, this month, and custom date range | Reports |
 | `R-12-2` | Daily summary report: collections, refunds, expenses, net revenue, sessions, closings | Reports |
 | `R-12-3` | Outstanding balances report per patient, sorted oldest debt first | Reports |

@@ -521,6 +521,8 @@
   - $\text{difference} = 0$: Balanced.
   - $\text{difference} < 0$: Shortage (cash deficit).
   - $\text{difference} > 0$: Overage (cash surplus).
+- **Snapshot Values Rule:** **Snapshot values are allowed only for closed, signed records.**
+  When a receptionist completes and submits an end-of-shift closing (`status = CLOSED`), `expectedCashPiasters` and `differencePiasters` are evaluated at that exact moment and persisted as a frozen, signed historical snapshot in `cash_closings`. The closing also records `included_transaction_ids` (snapshot of payment, refund, and expense IDs) and binds each transaction via `cash_shift_id`. Once closed, these historical snapshot figures are immutable and are never dynamically recomputed.
 
 #### Worked Examples
 1. **Normal Case with Cash Discrepancy (Exact Spec Case):**

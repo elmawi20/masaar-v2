@@ -301,6 +301,7 @@ A booking or reschedule is **rejected** if any of these fail:
   - `percent` → value × %; `fixed_per_session` → fixed amount; `none` → 0 (Owner account defaults to `none`).
 - **R-11-2** **Payout:** Owner/Manager selects clinician + period → sees unpaid earned sessions → confirms → creates a payout record + expense (`Doctor commission`). Those sessions are marked paid so they can never be paid twice.
 - **R-11-3** Clinicians see their own earned / paid totals.
+- **R-11-4** **Voiding Payout:** Owner/Manager can void a commission payout voucher with a required reason. Voiding marks the voucher as voided (`isVoided = true`), automatically voids the linked `Doctor commission` expense voucher, and releases the linked completed sessions so they can be recalculated in a subsequent payout run. Action is fully audited.
 
 ---
 

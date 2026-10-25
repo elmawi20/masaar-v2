@@ -31,6 +31,87 @@
 
 ## 2. Entity-Relationship Diagrams (ERDs)
 
+### 2.0 Master Consolidated Clinic System ERD (All 44 Tables)
+
+```mermaid
+erDiagram
+    %% =========================================================================
+    %% Master Consolidated Clinic System ERD (All 44 Tables)
+    %% =========================================================================
+
+    %% Slice A: Clinic, Staff, Auth
+    ClinicSetting ||--o| User : "updated_by"
+    ClinicOpeningHour ||--o| User : "updated_by"
+    ClinicClosure ||--o| User : "created_by"
+    Room ||--o{ Bed : "contains"
+    Room ||--o| User : "created_by"
+    Bed ||--o| User : "created_by"
+    SessionType ||--o| User : "created_by"
+    MessageTemplate ||--o| User : "updated_by"
+    User ||--o{ StaffSchedule : "works_shifts"
+    User ||--o{ StaffLeave : "takes_leave"
+    User ||--o{ UserSession : "logs_into"
+    User ||--o| OtpSecret : "enrolled_2fa"
+    User ||--o{ OtpBackupCode : "recovery_codes"
+    User ||--o{ TrustedDevice : "trusts_devices"
+    User ||--o{ PasswordResetCode : "resets_password"
+    User ||--o{ AuditLog : "initiates_audit"
+
+    %% Slice B: Patients & Documents
+    User ||--o{ Patient : "assigned_physiotherapist"
+    User ||--o{ Patient : "assigned_nutritionist"
+    Patient ||--o{ PatientDiagnosis : "has_diagnoses"
+    Patient ||--o{ PatientDocument : "owns_documents"
+    PatientDocument ||--o{ DocumentViewLog : "view_logs"
+    Patient ||--o{ CoveringAccessLog : "accessed_via_covering"
+    UserSession ||--o{ CoveringAccessLog : "session_scope"
+
+    %% Slice C: Scheduling
+    Patient ||--o{ Appointment : "booked_for"
+    User ||--o{ Appointment : "clinician_attending"
+    Room ||--o{ Appointment : "hosted_in"
+    Bed ||--o{ Appointment : "bed_assigned"
+    SessionType ||--o{ Appointment : "categorized_as"
+    AppointmentSeries ||--o{ Appointment : "generates_instances"
+    Patient ||--o{ AppointmentSeries : "patient_series"
+    Appointment ||--o{ AppointmentStatusHistory : "tracks_status"
+    Appointment ||--o{ AppointmentReminder : "receives_reminders"
+    User ||--o{ InAppNotification : "receives_notifications"
+    Appointment ||--o{ InAppNotification : "appointment_notifications"
+
+    %% Slice D: Packages & Money
+    Patient ||--o{ Package : "purchases_packages"
+    SessionType ||--o{ Package : "package_session_type"
+    Package ||--o{ PackageExtension : "extended_by"
+    Package ||--o{ Appointment : "covers_appointments"
+    Patient ||--o{ Charge : "billed_charges"
+    Package ||--o{ Charge : "package_charges"
+    Appointment ||--o{ Charge : "appointment_charges"
+    Charge ||--o{ Payment : "settled_by_payments"
+    Charge ||--o{ Refund : "refunded_from"
+    Charge ||--o{ WriteOff : "written_off_by"
+    Payment ||--o{ Refund : "payment_refunds"
+    CashClosing ||--o{ Payment : "closed_in_shift"
+    CashClosing ||--o{ Refund : "cash_refunds_in_shift"
+    CashClosing ||--o{ Expense : "cash_expenses_in_shift"
+    User ||--o{ CashClosing : "cashier_closings"
+
+    %% Slice E: Clinical, Nutrition & Back Office
+    Appointment ||--o| ClinicalNote : "session_soap_chart"
+    Patient ||--o{ ClinicalNote : "patient_notes"
+    ClinicalNote ||--o{ ClinicalNoteVersion : "edit_versions"
+    ClinicalNote ||--o{ ClinicalNoteAddendum : "appended_addenda"
+    Patient ||--o{ InBodyRecord : "inbody_consultations"
+    Appointment ||--o| InBodyRecord : "appointment_inbody"
+    Expense ||--o{ ExpenseEditHistory : "expense_revisions"
+    User ||--o{ CommissionPayout : "clinician_payouts"
+    CommissionPayout ||--o{ CommissionPayoutSession : "paid_session_links"
+    Appointment ||--o| CommissionPayoutSession : "session_commission"
+    CommissionPayout ||--o| Expense : "generates_commission_expense"
+```
+
+---
+
 ### 2.1 Slice A — Clinic, Staff & Auth ERD
 
 ```mermaid
@@ -1185,7 +1266,7 @@ erDiagram
 | `updated_at` | `TIMESTAMPTZ` | No | `now()` | Record update timestamp | `R-0-5` |
 
 - **Foreign Keys:**
-  - `patient_id REFERENCES patients(id) ON DELETE CASCADE`
+  - `patient_id REFERENCES patients(id) ON DELETE RESTRICT`
   - `diagnosed_by_user_id REFERENCES users(id) ON DELETE RESTRICT`
   - `created_by_user_id REFERENCES users(id) ON DELETE SET NULL`
   - `updated_by_user_id REFERENCES users(id) ON DELETE SET NULL`
@@ -1220,7 +1301,7 @@ erDiagram
 | `updated_at` | `TIMESTAMPTZ` | No | `now()` | Record update timestamp | `R-0-5` |
 
 - **Foreign Keys:**
-  - `patient_id REFERENCES patients(id) ON DELETE CASCADE`
+  - `patient_id REFERENCES patients(id) ON DELETE RESTRICT`
   - `uploaded_by_user_id REFERENCES users(id) ON DELETE RESTRICT`
   - `created_by_user_id REFERENCES users(id) ON DELETE SET NULL`
   - `updated_by_user_id REFERENCES users(id) ON DELETE SET NULL`
@@ -1271,7 +1352,7 @@ erDiagram
 | `user_agent` | `TEXT` | Yes | `NULL` | Browser User-Agent header (بيانات المتصفح) | `R-13-2` |
 
 - **Foreign Keys:**
-  - `patient_id REFERENCES patients(id) ON DELETE CASCADE`
+  - `patient_id REFERENCES patients(id) ON DELETE RESTRICT`
   - `clinician_id REFERENCES users(id) ON DELETE RESTRICT`
   - `session_id REFERENCES user_sessions(id) ON DELETE SET NULL`
 - **Indexes:**
@@ -1306,7 +1387,6 @@ erDiagram
 | `status` | `VARCHAR(20)` | No | `'SCHEDULED'` | Status: `SCHEDULED`, `ARRIVED`, `COMPLETED`, `CANCELLED`, `NO_SHOW`, `WAITLISTED` (حالة الموعد) | `R-5.5-1` |
 | `notes_for_reception` | `TEXT` | Yes | `NULL` | Operational notes for front desk staff (ملاحظات الاستقبال) | `R-5.1-1` |
 | `check_in_at` | `TIMESTAMPTZ` | Yes | `NULL` | Physical arrival timestamp at clinic desk (وقت تسجيل الحضور) | `R-5.5-3`, `R-6-2` |
-| `late_minutes` | `INTEGER` | Yes | `NULL` | Arrival delay in minutes; recorded upon check-in (دقائق التأخير عند الحضور) | `R-14-2`, `DEC-018` |
 | `completedAt` | `TIMESTAMPTZ` | Yes | `NULL` | Session form submission timestamp (وقت إتمام الجلسة سريرياً) | `R-5.5-5`, `R-9.1-7` |
 | `cancelled_at` | `TIMESTAMPTZ` | Yes | `NULL` | Cancellation timestamp (وقت الإلغاء) | `R-5.5-6` |
 | `cancellation_reason` | `TEXT` | Yes | `NULL` | Mandatory reason recorded for cancellation (سبب الإلغاء الإلزامي) | `R-5.5-6` |
@@ -1331,6 +1411,8 @@ erDiagram
   - `CREATE INDEX idx_appointments_clinician_time ON appointments (clinician_id, starts_at, ends_at)`
   - `CREATE INDEX idx_appointments_bed_time ON appointments (bed_id, starts_at, ends_at)`
   - `CREATE INDEX idx_appointments_date_status ON appointments (appointment_date, status)`
+  - `CREATE INDEX idx_appointments_room_date ON appointments (room_id, appointment_date)`
+  - `CREATE INDEX idx_appointments_clinician_report ON appointments (clinician_id, appointment_date, status)`
   - `CREATE INDEX idx_appointments_series ON appointments (series_id)`
 
 ---
@@ -1359,7 +1441,7 @@ erDiagram
 | `updated_at` | `TIMESTAMPTZ` | No | `now()` | Series update timestamp | `R-0-5` |
 
 - **Foreign Keys:**
-  - `patient_id REFERENCES patients(id) ON DELETE CASCADE`
+  - `patient_id REFERENCES patients(id) ON DELETE RESTRICT`
   - `session_type_id REFERENCES session_types(id) ON DELETE RESTRICT`
   - `clinician_id REFERENCES users(id) ON DELETE RESTRICT`
   - `room_id REFERENCES rooms(id) ON DELETE RESTRICT`
@@ -1397,14 +1479,14 @@ erDiagram
 ---
 
 ### 3.26 `appointment_reminders`
-- **Purpose:** Audit tracking for WhatsApp and SMS appointment reminder messages dispatched to patients.
+- **Purpose:** Audit tracking for WhatsApp appointment reminder messages (wa.me) and front desk manual calls dispatched to patients (SMS is excluded from v1).
 - **Rule References:** `R-4.1-21`, `R-14-1`, `R-14-6`, `R-6-1`
 
 | Column | Type | Nullable | Default | Description (AR / EN) | Rule ID |
 |---|---|:---:|---|---|:---:|
 | `id` | `UUID` | No | `uuid()` | Primary Key (معرف سجل التذكير) | `R-14-1` |
 | `appointment_id` | `UUID` | No | — | FK to `appointments.id` (معرف الموعد) | `R-14-1` |
-| `channel` | `VARCHAR(20)` | No | `'WHATSAPP'` | Delivery channel: `WHATSAPP`, `SMS`, `MANUAL_CALL` (قناة الإرسال) | `R-14-1` |
+| `channel` | `VARCHAR(20)` | No | `'WHATSAPP'` | Delivery channel: `WHATSAPP`, `MANUAL_CALL` (قناة الإرسال) | `R-14-1` |
 | `recipient_phone` | `VARCHAR(30)` | No | — | Phone number message was dispatched to (رقم الهاتف المستلم) | `R-4.1-2`, `R-4.1-6` |
 | `sent_at` | `TIMESTAMPTZ` | No | `now()` | Dispatch timestamp (وقت الإرسال) | `R-0-5` |
 | `status` | `VARCHAR(20)` | No | `'PENDING'` | Status: `PENDING`, `SENT`, `FAILED`, `DELIVERED`, `READ` (حالة التسليم) | `R-14-1` |
@@ -1464,7 +1546,6 @@ erDiagram
 | `total_price_piasters` | `INTEGER` | No | — | Package price in integer piasters (سعر الباقة بالقروش) | `R-0-4`, `R-7-1` |
 | `start_date` | `DATE` | No | — | Validity start calendar date (تاريخ بدء الصلاحية) | `R-7-1` |
 | `expiry_date` | `DATE` | No | — | Expiration calendar date, default start + 60 days (تاريخ انتهاء الصلاحية) | `R-2-6`, `R-7-1` |
-| `status` | `VARCHAR(20)` | No | `'ACTIVE'` | Status: `ACTIVE`, `COMPLETED`, `EXPIRED`, `CANCELLED` (حالة الباقة) | `R-7-1` |
 | `notes` | `TEXT` | Yes | `NULL` | Administrative / clinical notes on package (ملاحظات الباقة) | `R-7-1` |
 | `cancelled_at` | `TIMESTAMPTZ` | Yes | `NULL` | Cancellation timestamp if terminated early (تاريخ الإلغاء) | `R-7-2` |
 | `cancellation_reason` | `TEXT` | Yes | `NULL` | Required reason for early package cancellation (سبب الإلغاء) | `R-7-2` |
@@ -1473,14 +1554,16 @@ erDiagram
 | `created_at` | `TIMESTAMPTZ` | No | `now()` | Record creation timestamp | `R-0-5` |
 | `updated_at` | `TIMESTAMPTZ` | No | `now()` | Record update timestamp | `R-0-5` |
 
+> **Note on Calculated Status:** In strict compliance with `R-0-6` and `calculations.md §4.3`, package operational status (`ACTIVE`, `COMPLETED`, `EXPIRED`, `CANCELLED`) is dynamically derived at query time based on `cancelled_at`, completed session counts, and `expiry_date` vs current Cairo date. It is never persisted as a database column.
+
 - **Foreign Keys:**
   - `patient_id REFERENCES patients(id) ON DELETE RESTRICT`
   - `session_type_id REFERENCES session_types(id) ON DELETE RESTRICT`
   - `created_by_user_id REFERENCES users(id) ON DELETE SET NULL`
   - `updated_by_user_id REFERENCES users(id) ON DELETE SET NULL`
 - **Indexes:**
-  - `CREATE INDEX idx_packages_patient_status ON packages (patient_id, status)`
-  - `CREATE INDEX idx_packages_expiry_status ON packages (expiry_date, status)`
+  - `CREATE INDEX idx_packages_patient_cancelled ON packages (patient_id, cancelled_at)`
+  - `CREATE INDEX idx_packages_expiry_cancelled ON packages (expiry_date, cancelled_at)`
 
 ---
 
@@ -1500,7 +1583,7 @@ erDiagram
 | `extended_at` | `TIMESTAMPTZ` | No | `now()` | Exact timestamp extension was granted (وقت التمديد) | `R-0-5` |
 
 - **Foreign Keys:**
-  - `package_id REFERENCES packages(id) ON DELETE CASCADE`
+  - `package_id REFERENCES packages(id) ON DELETE RESTRICT`
   - `extended_by_user_id REFERENCES users(id) ON DELETE RESTRICT`
 - **Indexes:**
   - `CREATE INDEX idx_package_extensions_pkg ON package_extensions (package_id)`
@@ -1569,6 +1652,7 @@ erDiagram
 - **Indexes:**
   - `CREATE INDEX idx_payments_charge_voided ON payments (charge_id, is_voided)`
   - `CREATE INDEX idx_payments_cashier_time ON payments (collected_by_user_id, collected_at)`
+  - `CREATE INDEX idx_payments_revenue_report ON payments (collected_at, is_voided)`
   - `CREATE INDEX idx_payments_cash_shift ON payments (cash_shift_id)`
   - `CREATE INDEX idx_payments_method ON payments (payment_method)`
 
@@ -1657,7 +1741,6 @@ erDiagram
 | `package_id` | `UUID` | Yes | `NULL` | FK to `packages.id` if package price changed | `R-7-1` |
 | `old_price_piasters` | `INTEGER` | No | — | Price prior to change (السعر السابق بالقروش) | `R-5.1-2` |
 | `new_price_piasters` | `INTEGER` | No | — | Price after adjustment (السعر الجديد بالقروش) | `R-5.1-2` |
-| `difference_piasters` | `INTEGER` | No | — | Price variance in piasters (الفارق بالقروش) | `R-5.1-2` |
 | `reason` | `TEXT` | No | — | Mandatory explanation for price change (سبب تعديل السعر) | `R-5.1-2`, `R-8.3-4` |
 | `changed_by_user_id` | `UUID` | No | — | FK to `users.id` who modified price (المستخدم المعدل) | `R-0-2` |
 | `changed_at` | `TIMESTAMPTZ` | No | `now()` | Exact modification timestamp | `R-0-5` |
@@ -1685,19 +1768,23 @@ erDiagram
 | `opened_at` | `TIMESTAMPTZ` | No | — | Shift opening timestamp (وقت فتح الوردية) | `R-8.4-1` |
 | `closed_at` | `TIMESTAMPTZ` | Yes | `NULL` | Shift closing timestamp (وقت إغلاق الوردية) | `R-8.4-1` |
 | `status` | `VARCHAR(20)` | No | `'OPEN'` | Status: `OPEN`, `CLOSED` (حالة الوردية) | `R-8.4-1` |
-| `expected_cash_piasters` | `INTEGER` | No | `0` | Computed: `payments - refunds - expenses` in cash (النقدية المتوقعة دفترياً) | `R-8.4-1`, `calculations.md §2.5` |
 | `counted_cash_piasters` | `INTEGER` | Yes | `NULL` | Physical cash counted and entered by cashier (النقدية الفعلية بالدرج) | `R-8.4-1` |
-| `difference_piasters` | `INTEGER` | Yes | `NULL` | Variance: `counted - expected` (عجز أو زيادة الخزينة) | `R-8.4-1`, `calculations.md §2.5` |
+| `expected_cash_piasters` | `INTEGER` | Yes | `NULL` | Frozen snapshot calculated at closing moment (النقدية المتوقعة المحسوبة لحظة الإغلاق) | `R-8.4-1` |
+| `difference_piasters` | `INTEGER` | Yes | `NULL` | Frozen snapshot variance: counted - expected (عجز أو زيادة الدرج لحظة الإغلاق) | `R-8.4-1` |
+| `included_transaction_ids` | `JSONB` | Yes | `NULL` | Frozen audit snapshot: `{ paymentIds, refundIds, expenseIds }` (قائمة المعاملات المشمولة بالتقفيل) | `R-8.4-1` |
 | `closing_notes` | `TEXT` | Yes | `NULL` | Cashier comments or discrepancy notes (ملاحظات التقفيل) | `R-8.4-1` |
 | `witness_user_id` | `UUID` | Yes | `NULL` | FK to `users.id` of witnessing Manager/Owner (شاهد التقفيل) | `R-8.4-4` |
 | `created_at` | `TIMESTAMPTZ` | No | `now()` | Record creation timestamp | `R-0-5` |
 | `updated_at` | `TIMESTAMPTZ` | No | `now()` | Record update timestamp | `R-0-5` |
+
+> **Snapshot Values Rule:** **Snapshot values are allowed only for closed, signed records.** When a cashier closes a shift (`status = CLOSED`), `expected_cash_piasters` and `difference_piasters` are calculated at that exact moment and frozen in the `cash_closings` record alongside `included_transaction_ids` (and linked via `cash_shift_id` on payments, refunds, and expenses). Once signed and closed, these snapshot values are historical signed records and are never recalculated, preserving a 100% reproducible audit trail.
 
 - **Foreign Keys:**
   - `cashier_user_id REFERENCES users(id) ON DELETE RESTRICT`
   - `witness_user_id REFERENCES users(id) ON DELETE SET NULL`
 - **Indexes:**
   - `CREATE INDEX idx_cash_closings_cashier ON cash_closings (cashier_user_id, status)`
+  - `CREATE INDEX idx_cash_closings_cashier_window ON cash_closings (cashier_user_id, opened_at, closed_at)`
   - `CREATE INDEX idx_cash_closings_window ON cash_closings (opened_at, closed_at)`
 
 ---
@@ -1736,7 +1823,7 @@ erDiagram
 
 - **Foreign Keys:**
   - `appointment_id REFERENCES appointments(id) ON DELETE RESTRICT`
-  - `patient_id REFERENCES patients(id) ON DELETE CASCADE`
+  - `patient_id REFERENCES patients(id) ON DELETE RESTRICT`
   - `clinician_id REFERENCES users(id) ON DELETE RESTRICT`
   - `voided_by_user_id REFERENCES users(id) ON DELETE SET NULL`
   - `created_by_user_id REFERENCES users(id) ON DELETE SET NULL`
@@ -1845,7 +1932,7 @@ erDiagram
 | `updated_at` | `TIMESTAMPTZ` | No | `now()` | Record update timestamp | `R-0-5` |
 
 - **Foreign Keys:**
-  - `patient_id REFERENCES patients(id) ON DELETE CASCADE`
+  - `patient_id REFERENCES patients(id) ON DELETE RESTRICT`
   - `appointment_id REFERENCES appointments(id) ON DELETE SET NULL`
   - `recorded_by_user_id REFERENCES users(id) ON DELETE RESTRICT`
   - `voided_by_user_id REFERENCES users(id) ON DELETE SET NULL`
@@ -1891,6 +1978,7 @@ erDiagram
   - `updated_by_user_id REFERENCES users(id) ON DELETE SET NULL`
 - **Indexes:**
   - `CREATE INDEX idx_expenses_category_date ON expenses (category, expense_date)`
+  - `CREATE INDEX idx_expenses_report ON expenses (expense_date, is_voided)`
   - `CREATE INDEX idx_expenses_cash_shift ON expenses (cash_shift_id)`
   - `CREATE INDEX idx_expenses_user ON expenses (created_by_user_id)`
   - `CREATE INDEX idx_expenses_voided ON expenses (is_voided)`
@@ -1916,7 +2004,7 @@ erDiagram
 | `edit_reason` | `TEXT` | No | — | Mandatory administrative explanation for edit (سبب التعديل الإلزامي) | `R-10-3` |
 
 - **Foreign Keys:**
-  - `expense_id REFERENCES expenses(id) ON DELETE CASCADE`
+  - `expense_id REFERENCES expenses(id) ON DELETE RESTRICT`
   - `edited_by_user_id REFERENCES users(id) ON DELETE RESTRICT`
 - **Indexes:**
   - `CREATE INDEX idx_expense_edit_history_expense ON expense_edit_history (expense_id)`
@@ -1978,7 +2066,7 @@ erDiagram
 | `created_at` | `TIMESTAMPTZ` | No | `now()` | Record creation timestamp | `R-0-5` |
 
 - **Foreign Keys:**
-  - `payout_id REFERENCES commission_payouts(id) ON DELETE CASCADE`
+  - `payout_id REFERENCES commission_payouts(id) ON DELETE RESTRICT`
   - `appointment_id REFERENCES appointments(id) ON DELETE RESTRICT`
 - **Unique Constraints:**
   - `UNIQUE (appointment_id)` — Enforced at DB level via partial unique index `idx_unique_active_paid_session WHERE is_voided = false` to guarantee no session can ever be paid twice.
@@ -2073,6 +2161,21 @@ CHECK (
     (is_dependent = false AND mobile_phone IS NOT NULL) OR 
     (is_dependent = true AND guardian_name IS NOT NULL AND guardian_phone IS NOT NULL)
 );
+
+-- 5b. Patient Hard-Delete Prevention Trigger (R-0-3)
+-- Completely blocks hard DELETE operations on patients (deactivate or discharge only).
+CREATE OR REPLACE FUNCTION trg_prevent_patient_hard_delete()
+RETURNS TRIGGER AS $$
+BEGIN
+    RAISE EXCEPTION 'Patient records cannot be hard-deleted. Use soft deactivation (is_active = false) or clinical discharge.'
+        USING ERRCODE = 'integrity_constraint_violation';
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_patients_prevent_hard_delete
+BEFORE DELETE ON patients
+FOR EACH ROW
+EXECUTE FUNCTION trg_prevent_patient_hard_delete();
 
 -- 6. Document Size and Allowed MIME Types Validation (R-9.5-1)
 -- Enforces that uploaded files do not exceed 10 MB (10,485,760 bytes) and match supported clinical/admin MIME types.
@@ -2212,17 +2315,46 @@ ALTER TABLE refunds ADD CONSTRAINT chk_refunds_positive_amount CHECK (amount_pia
 ALTER TABLE write_offs ADD CONSTRAINT chk_write_offs_positive_amount CHECK (amount_piasters > 0);
 
 -- 14. Closed Shift Modification Lock Trigger (R-8.4-3, DEC-020)
--- Prohibits modifying or voiding payments included in a closed cash shift.
+-- After a shift is closed, blocks changes to amount, method, date, collected-by and shift link.
+-- ALLOWS setting void fields (is_voided, voided_at, voided_by_user_id, void_reason) so Owner/Manager can void closed-shift transactions without altering historical closing snapshots.
 CREATE OR REPLACE FUNCTION trg_check_closed_shift_payment_lock()
 RETURNS TRIGGER AS $$
 DECLARE
     shift_status VARCHAR(20);
 BEGIN
+    IF TG_OP = 'DELETE' THEN
+        IF OLD.cash_shift_id IS NOT NULL THEN
+            SELECT status INTO shift_status FROM cash_closings WHERE id = OLD.cash_shift_id;
+            IF shift_status = 'CLOSED' THEN
+                RAISE EXCEPTION 'Payments in a closed cash drawer shift cannot be hard-deleted.'
+                    USING ERRCODE = 'integrity_constraint_violation';
+            END IF;
+        END IF;
+        RETURN OLD;
+    END IF;
+
+    -- For UPDATE operations:
     IF OLD.cash_shift_id IS NOT NULL THEN
         SELECT status INTO shift_status FROM cash_closings WHERE id = OLD.cash_shift_id;
         IF shift_status = 'CLOSED' THEN
-            RAISE EXCEPTION 'Financial payment is locked because it belongs to a completed closed cash shift.'
-                USING ERRCODE = 'integrity_constraint_violation';
+            -- Block changes to amount, payment method, collected_at, collector, charge, or shift linkage
+            IF NEW.amount_piasters <> OLD.amount_piasters OR
+               NEW.payment_method <> OLD.payment_method OR
+               NEW.collected_at <> OLD.collected_at OR
+               NEW.collected_by_user_id <> OLD.collected_by_user_id OR
+               NEW.charge_id <> OLD.charge_id OR
+               (NEW.cash_shift_id IS DISTINCT FROM OLD.cash_shift_id) THEN
+                RAISE EXCEPTION 'Payment belongs to a closed cash shift. Core financial fields and shift linkage cannot be modified.'
+                    USING ERRCODE = 'integrity_constraint_violation';
+            END IF;
+
+            -- Prevent unvoiding once voided
+            IF OLD.is_voided = true AND NEW.is_voided = false THEN
+                RAISE EXCEPTION 'A voided payment in a closed cash drawer shift cannot be unvoided.'
+                    USING ERRCODE = 'integrity_constraint_violation';
+            END IF;
+
+            -- ALLOW setting void fields: is_voided, voided_at, voided_by_user_id, void_reason
         END IF;
     END IF;
     RETURN NEW;
@@ -2232,7 +2364,6 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER trg_lock_closed_shift_payments
 BEFORE UPDATE OR DELETE ON payments
 FOR EACH ROW
-WHEN (OLD.is_voided = false AND NEW.is_voided = true)
 EXECUTE FUNCTION trg_check_closed_shift_payment_lock();
 
 -- 15. Price Change History Immutability Trigger (R-5.1-2, R-13-1)
@@ -2252,11 +2383,26 @@ EXECUTE FUNCTION trg_block_price_change_history_mutation();
 
 -- 16. Clinical Note 24-Hour Edit Window Trigger (R-9.2-1, R-9.2-2, DEC-016)
 -- Allows author to edit note within 24 hours of initial completion.
--- After 24 hours, updates to core note fields are permanently blocked (only addenda permitted).
+-- Does NOT block: inserting addenda (stored in clinical_note_addenda), inserting note versions (clinical_note_versions),
+-- or the Owner re-open flow (appointment COMPLETED -> ARRIVED, where appt status is ARRIVED).
 CREATE OR REPLACE FUNCTION trg_check_clinical_note_edit_window()
 RETURNS TRIGGER AS $$
+DECLARE
+    appt_status VARCHAR(50);
 BEGIN
-    -- If 24 hours have elapsed since completed_at, block changes to clinical content
+    -- 1. Check if parent appointment has been re-opened by Owner (R-5.5-11)
+    SELECT status INTO appt_status FROM appointments WHERE id = OLD.appointment_id;
+    IF appt_status = 'ARRIVED' THEN
+        -- Owner re-open flow active: allow editing and re-completing the clinical note
+        RETURN NEW;
+    END IF;
+
+    -- 2. Allow setting void fields (soft voiding note with reason)
+    IF NEW.is_voided = true AND OLD.is_voided = false THEN
+        RETURN NEW;
+    END IF;
+
+    -- 3. If 24 hours have elapsed since completed_at, block changes to clinical content
     IF now() > (OLD.completed_at + INTERVAL '24 hours') THEN
         IF (NEW.pain_before IS DISTINCT FROM OLD.pain_before OR
             NEW.pain_after IS DISTINCT FROM OLD.pain_after OR
@@ -2281,17 +2427,47 @@ FOR EACH ROW
 EXECUTE FUNCTION trg_check_clinical_note_edit_window();
 
 -- 17. Closed Cash Shift Expense Modification Lock Trigger (R-10-2, DEC-020)
--- Prevents editing or voiding expense vouchers that have been sealed in a closed cash drawer shift.
+-- After a shift is closed, blocks changes to amount, method, date, creator, title, category, and shift link.
+-- ALLOWS setting void fields (is_voided, voided_at, voided_by_user_id, void_reason) so Owner/Manager can void closed-shift expenses.
 CREATE OR REPLACE FUNCTION trg_check_closed_shift_expense_lock()
 RETURNS TRIGGER AS $$
 DECLARE
     shift_status VARCHAR(20);
 BEGIN
+    IF TG_OP = 'DELETE' THEN
+        IF OLD.cash_shift_id IS NOT NULL THEN
+            SELECT status INTO shift_status FROM cash_closings WHERE id = OLD.cash_shift_id;
+            IF shift_status = 'CLOSED' THEN
+                RAISE EXCEPTION 'Expenses in a closed cash drawer shift cannot be hard-deleted.'
+                    USING ERRCODE = 'integrity_constraint_violation';
+            END IF;
+        END IF;
+        RETURN OLD;
+    END IF;
+
+    -- For UPDATE operations:
     IF OLD.cash_shift_id IS NOT NULL THEN
         SELECT status INTO shift_status FROM cash_closings WHERE id = OLD.cash_shift_id;
         IF shift_status = 'CLOSED' THEN
-            RAISE EXCEPTION 'This expense is locked because it is included in a closed cash drawer shift.'
-                USING ERRCODE = 'integrity_constraint_violation';
+            -- Block changes to amount, payment method, date, creator, title, category, or shift linkage
+            IF NEW.amount_piasters <> OLD.amount_piasters OR
+               NEW.payment_method <> OLD.payment_method OR
+               NEW.expense_date <> OLD.expense_date OR
+               NEW.created_by_user_id <> OLD.created_by_user_id OR
+               NEW.title <> OLD.title OR
+               NEW.category <> OLD.category OR
+               (NEW.cash_shift_id IS DISTINCT FROM OLD.cash_shift_id) THEN
+                RAISE EXCEPTION 'Expense belongs to a closed cash shift. Core expense fields and shift linkage cannot be modified.'
+                    USING ERRCODE = 'integrity_constraint_violation';
+            END IF;
+
+            -- Prevent unvoiding once voided
+            IF OLD.is_voided = true AND NEW.is_voided = false THEN
+                RAISE EXCEPTION 'A voided expense in a closed cash drawer shift cannot be unvoided.'
+                    USING ERRCODE = 'integrity_constraint_violation';
+            END IF;
+
+            -- ALLOW setting void fields: is_voided, voided_at, voided_by_user_id, void_reason
         END IF;
     END IF;
     RETURN NEW;
@@ -2301,7 +2477,6 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER trg_lock_closed_shift_expenses
 BEFORE UPDATE OR DELETE ON expenses
 FOR EACH ROW
-WHEN (OLD.is_voided = false AND NEW.is_voided = true)
 EXECUTE FUNCTION trg_check_closed_shift_expense_lock();
 
 -- 18. Commission Single-Payout Partial Unique Index (R-11-2)
@@ -2368,6 +2543,7 @@ In strict accordance with **Rule R-0-6** and **DEC-005**, the following values a
 | **Bed Reservation Persistence Window** | [calculations.md §3.1](file:///F:/Claude%20CRM/docs/design/calculations.md#31-appointment-overlap-detection) | Bed exclusion constraint holds until scheduled `ends_at` even if completed early (`DEC-021`, `R-5.2-10`). |
 | **Package Remaining Sessions** | [calculations.md §2.1](file:///F:/Claude%20CRM/docs/design/calculations.md#21-package-remaining-sessions) | Dynamically computed: `total_sessions - completed_sessions` (`R-7-1`). Never stored in DB. |
 | **Package Available Sessions for Booking** | [calculations.md §2.2](file:///F:/Claude%20CRM/docs/design/calculations.md#22-package-available-sessions-for-booking) | Dynamically computed: `total - completed - future_booked` (`DEC-008`, `R-5.2-7`). |
+| **Package Status (Operational State)** | [calculations.md §4.3](file:///F:/Claude%20CRM/docs/design/calculations.md#43-package-status-dynamic-resolution) | Dynamically resolved from `cancelled_at`, session consumption vs total, and expiry date (`R-7-4`). Never stored in DB. |
 | **Package Per-Session Value** | [calculations.md §2.2](file:///F:/Claude%20CRM/docs/design/calculations.md#22-package-available-sessions-for-booking) | Pro-rata value: `floor(total_price_piasters / total_sessions)` used for commission and refund ceiling (`R-7-3`). |
 | **Charge Balance Calculation** | [calculations.md §2.3](file:///F:/Claude%20CRM/docs/design/calculations.md#23-charge-balance-calculation) | Dynamically computed: `max(0, owed - (non_voided_payments - refunds) - write_offs)` (`R-8.1-1`). |
 | **Refund Maximum Allowed** | [calculations.md §2.4](file:///F:/Claude%20CRM/docs/design/calculations.md#24-refund-maximum-calculation) | Evaluated dynamically: `paid_piasters - (completed_sessions * per_session_value)` (`R-8.3-2`). |

@@ -124,7 +124,6 @@ enum AppointmentStatus {
 
 enum ReminderChannel {
   WHATSAPP
-  SMS
   MANUAL_CALL
 }
 
@@ -708,7 +707,7 @@ model Patient {
 model PatientDiagnosis {
   id                String    @id @default(uuid())
   patientId         String    @map("patient_id")
-  patient           Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  patient           Patient   @relation(fields: [patientId], references: [id], onDelete: Restrict)
   diagnosisText     String    @map("diagnosis_text") @db.Text // R-4.1-22, R-9.3-1
   diagnosedByUserId String    @map("diagnosed_by_user_id")
   diagnosedByUser   User      @relation("DiagnosedByUser", fields: [diagnosedByUserId], references: [id], onDelete: Restrict)
@@ -731,7 +730,7 @@ model PatientDiagnosis {
 model PatientDocument {
   id               String           @id @default(uuid())
   patientId        String           @map("patient_id")
-  patient          Patient          @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  patient          Patient          @relation(fields: [patientId], references: [id], onDelete: Restrict)
   category         DocumentCategory // R-9.5-1
   title            String           @db.VarChar(150)
   fileKey          String           @map("file_key") @db.VarChar(500) // Private path outside web root (R-9.5-1)
@@ -778,7 +777,7 @@ model DocumentViewLog {
 model CoveringAccessLog {
   id          String       @id @default(uuid())
   patientId   String       @map("patient_id")
-  patient     Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  patient     Patient      @relation(fields: [patientId], references: [id], onDelete: Restrict)
   clinicianId String       @map("clinician_id")
   clinician   User         @relation("CoveringAccessClinician", fields: [clinicianId], references: [id], onDelete: Restrict)
   sessionId   String?      @map("session_id") // Session-bound covering access (R-1.1-21, DEC-013)
@@ -824,7 +823,6 @@ model Appointment {
   status             AppointmentStatus  @default(SCHEDULED)
   notesForReception  String?            @map("notes_for_reception") @db.Text
   checkInAt          DateTime?          @map("check_in_at")
-  lateMinutes        Int?               @map("late_minutes") // Stored upon check-in if late (R-14-2)
   completedAt        DateTime?          @map("completed_at")
   cancelledAt        DateTime?          @map("cancelled_at")
   cancellationReason String?            @map("cancellation_reason") @db.Text
@@ -852,6 +850,8 @@ model Appointment {
   @@index([clinicianId, startsAt, endsAt])
   @@index([bedId, startsAt, endsAt])
   @@index([appointmentDate, status])
+  @@index([roomId, appointmentDate])
+  @@index([clinicianId, appointmentDate, status])
   @@index([seriesId])
   @@map("appointments")
 }
@@ -859,7 +859,7 @@ model Appointment {
 model AppointmentSeries {
   id              String      @id @default(uuid())
   patientId       String      @map("patient_id")
-  patient         Patient     @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  patient         Patient     @relation(fields: [patientId], references: [id], onDelete: Restrict)
   sessionTypeId   String      @map("session_type_id")
   sessionType     SessionType @relation(fields: [sessionTypeId], references: [id], onDelete: Restrict)
   clinicianId     String      @map("clinician_id")
@@ -958,7 +958,6 @@ model Package {
   totalPricePiasters Int           @map("total_price_piasters") // Integer piasters (R-0-4, R-7-1)
   startDate          DateTime      @map("start_date") @db.Date
   expiryDate         DateTime      @map("expiry_date") @db.Date // Default +60 days (R-2-6, R-7-1)
-  status             PackageStatus @default(ACTIVE)
   notes              String?       @db.Text
   cancelledAt        DateTime?     @map("cancelled_at")
   cancellationReason String?       @map("cancellation_reason") @db.Text
@@ -974,15 +973,16 @@ model Package {
   extensions   PackageExtension[]
   priceChanges PriceChangeHistory[]
 
-  @@index([patientId, status])
-  @@index([expiryDate, status])
+  // Note: Package status (ACTIVE, COMPLETED, EXPIRED, CANCELLED) is dynamically calculated per calculations.md §4.3
+  @@index([patientId, cancelledAt])
+  @@index([expiryDate, cancelledAt])
   @@map("packages")
 }
 
 model PackageExtension {
   id                 String   @id @default(uuid())
   packageId          String   @map("package_id")
-  package            Package  @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  package            Package  @relation(fields: [packageId], references: [id], onDelete: Restrict)
   previousExpiryDate DateTime @map("previous_expiry_date") @db.Date
   newExpiryDate      DateTime @map("new_expiry_date") @db.Date
   daysAdded          Int      @map("days_added") // 1..365 (R-7-6)
@@ -1049,6 +1049,7 @@ model Payment {
 
   @@index([chargeId, isVoided])
   @@index([collectedByUserId, collectedAt])
+  @@index([collectedAt, isVoided])
   @@index([cashShiftId])
   @@index([paymentMethod])
   @@map("payments")
@@ -1115,7 +1116,6 @@ model PriceChangeHistory {
   package            Package?     @relation(fields: [packageId], references: [id], onDelete: SetNull)
   oldPricePiasters   Int          @map("old_price_piasters")
   newPricePiasters   Int          @map("new_price_piasters")
-  differencePiasters Int          @map("difference_piasters")
   reason             String       @db.Text // Mandatory audit explanation (R-5.1-2, R-8.3-4)
   changedByUserId    String       @map("changed_by_user_id")
   changedByUser      User         @relation("PriceChangedBy", fields: [changedByUserId], references: [id], onDelete: Restrict)
@@ -1127,27 +1127,29 @@ model PriceChangeHistory {
 }
 
 model CashClosing {
-  id                   String          @id @default(uuid())
-  shiftNumber          Int             @map("shift_number")
-  cashierUserId        String          @map("cashier_user_id")
-  cashierUser          User            @relation("CashierClosings", fields: [cashierUserId], references: [id], onDelete: Restrict)
-  openedAt             DateTime        @map("opened_at")
-  closedAt             DateTime?       @map("closed_at")
-  status               CashShiftStatus @default(OPEN)
-  expectedCashPiasters Int             @default(0) @map("expected_cash_piasters") // Cash payments - Cash refunds - Cash expenses (R-8.4-1)
-  countedCashPiasters  Int?            @map("counted_cash_piasters") // Cashier entered counted physical cash
-  differencePiasters   Int?            @map("difference_piasters") // Counted - Expected
-  closingNotes         String?         @map("closing_notes") @db.Text
-  witnessUserId        String?         @map("witness_user_id")
-  witnessUser          User?           @relation("WitnessClosings", fields: [witnessUserId], references: [id], onDelete: SetNull)
-  createdAt            DateTime        @default(now()) @map("created_at")
-  updatedAt            DateTime        @updatedAt @map("updated_at")
+  id                  String          @id @default(uuid())
+  shiftNumber         Int             @map("shift_number")
+  cashierUserId       String          @map("cashier_user_id")
+  cashierUser         User            @relation("CashierClosings", fields: [cashierUserId], references: [id], onDelete: Restrict)
+  openedAt            DateTime        @map("opened_at")
+  closedAt            DateTime?       @map("closed_at")
+  status              CashShiftStatus @default(OPEN)
+  countedCashPiasters    Int?            @map("counted_cash_piasters") // Cashier entered counted physical cash
+  expectedCashPiasters   Int?            @map("expected_cash_piasters") // Frozen snapshot calculated at closing moment (R-8.4-1)
+  differencePiasters     Int?            @map("difference_piasters") // Frozen snapshot variance at closing: counted - expected (R-8.4-1)
+  includedTransactionIds Json?           @map("included_transaction_ids") // Frozen audit snapshot: { paymentIds, refundIds, expenseIds }
+  closingNotes           String?         @map("closing_notes") @db.Text
+  witnessUserId          String?         @map("witness_user_id")
+  witnessUser            User?           @relation("WitnessClosings", fields: [witnessUserId], references: [id], onDelete: SetNull)
+  createdAt              DateTime        @default(now()) @map("created_at")
+  updatedAt              DateTime        @updatedAt @map("updated_at")
 
   payments Payment[]
   refunds  Refund[]
   expenses Expense[]
 
   @@index([cashierUserId, status])
+  @@index([cashierUserId, openedAt, closedAt])
   @@index([openedAt, closedAt])
   @@map("cash_closings")
 }
@@ -1161,7 +1163,7 @@ model ClinicalNote {
   appointmentId       String              @unique @map("appointment_id") // 1-to-1 with Appointment (R-9.1-7)
   appointment         Appointment         @relation(fields: [appointmentId], references: [id], onDelete: Restrict)
   patientId           String              @map("patient_id")
-  patient             Patient             @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  patient             Patient             @relation(fields: [patientId], references: [id], onDelete: Restrict)
   clinicianId         String              @map("clinician_id")
   clinician           User                @relation("ClinicianNotes", fields: [clinicianId], references: [id], onDelete: Restrict)
   painBefore          Int                 @map("pain_before") // 0..10 scale (R-9.1-1)
@@ -1244,7 +1246,7 @@ model ClinicalNoteAddendum {
 model InBodyRecord {
   id                   String          @id @default(uuid())
   patientId            String          @map("patient_id")
-  patient              Patient         @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  patient              Patient         @relation(fields: [patientId], references: [id], onDelete: Restrict)
   appointmentId        String?         @unique @map("appointment_id")
   appointment          Appointment?    @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
   testDate             DateTime        @map("test_date")
@@ -1309,6 +1311,7 @@ model Expense {
   commissionPayout CommissionPayout?
 
   @@index([category, expenseDate])
+  @@index([expenseDate, isVoided])
   @@index([cashShiftId])
   @@index([createdByUserId])
   @@index([isVoided])
@@ -1318,7 +1321,7 @@ model Expense {
 model ExpenseEditHistory {
   id                     String          @id @default(uuid())
   expenseId              String          @map("expense_id")
-  expense                Expense         @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  expense                Expense         @relation(fields: [expenseId], references: [id], onDelete: Restrict)
   previousTitle          String          @map("previous_title") @db.VarChar(150)
   previousCategory       ExpenseCategory @map("previous_category")
   previousAmountPiasters Int             @map("previous_amount_piasters")
@@ -1369,7 +1372,7 @@ model CommissionPayout {
 model CommissionPayoutSession {
   id                       String           @id @default(uuid())
   payoutId                 String           @map("payout_id")
-  payout                   CommissionPayout @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+  payout                   CommissionPayout @relation(fields: [payoutId], references: [id], onDelete: Restrict)
   appointmentId            String           @unique @map("appointment_id") // One payout per session — never paid twice (R-11-2)
   appointment              Appointment      @relation(fields: [appointmentId], references: [id], onDelete: Restrict)
   sessionValuePiasters     Int              @map("session_value_piasters") // Session value at time of calculation (R-11-1)

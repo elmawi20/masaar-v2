@@ -2,7 +2,7 @@
 
 This document lists every unclear, missing, or contradictory point identified during the comprehensive review of the specification, along with the approved resolution and decision records incorporated into [docs/FEATURES-v2.2.md](file:///F:/Claude%20CRM/docs/FEATURES-v2.2.md).
 
-**Summary:** 15 questions scanned · **15 Resolved** · **0 Unresolved**
+**Summary:** 16 questions scanned · **16 Resolved** · **0 Unresolved**
 
 ---
 
@@ -146,3 +146,16 @@ This document lists every unclear, missing, or contradictory point identified du
 - **Suggested Answer:** Separate WhatsApp messaging consent. Medical data processing consent is mandatory for registration, while WhatsApp messaging consent is an independent toggle. If a patient opts out of WhatsApp, the WhatsApp buttons on their profile display an "Opted out" indicator to respect their communication preference.
 - **Approved Resolution:** **Accepted.** WhatsApp messaging consent (`whatsappConsent`) is a separate boolean toggle from mandatory medical data processing consent (`dataConsent`). If false, WhatsApp buttons show "Opted out".
 - **Status:** **Resolved** (Recorded in [DEC-022](file:///F:/Claude%20CRM/docs/design/decisions.md) & applied to spec §4.1, §6)
+
+---
+
+### Q-16: Commission Payout Voiding Authority & Session Release
+- **Spec Reference:** §11 (Commission) & §1.1 (Permissions)
+- **Question:** The specification defines creating commission payouts (§11 `R-11-2`) where sessions are marked paid so they can never be paid twice. However, the spec does not explicitly describe voiding a commission payout voucher if an error occurs (e.g. wrong clinician selected or wrong date range). Does the system permit voiding a commission payout? If so, who has authority, what happens to the linked expense voucher, and do the sessions become available to be paid again?
+- **Suggested Answer:** Voiding allowed for Owner and Manager only, with mandatory reason and full audit logging. When a commission payout voucher is voided:
+  1. `commission_payouts.is_voided = true` is set, recording `voided_at`, `voided_by_user_id`, and `void_reason`.
+  2. The linked `Doctor commission` expense voucher in `expenses` is automatically voided.
+  3. The linked sessions in `commission_payout_sessions` are set to `is_voided = true`. By virtue of the partial unique index `idx_unique_active_paid_session (appointment_id) WHERE is_voided = false`, voiding releases the completed sessions so they can legitimately be included in a subsequent corrected payout run.
+- **Approved Resolution:** **Accepted.** Owner and Manager can void a commission payout voucher with a mandatory reason and full audit logging. The linked `Doctor commission` expense is automatically voided and completed sessions released via the partial unique index for recalculation.
+- **Status:** **Resolved** (Recorded in [DEC-026](file:///F:/Claude%20CRM/docs/design/decisions.md) & applied to spec §11, `R-11-4`)
+
