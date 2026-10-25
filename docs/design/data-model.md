@@ -420,6 +420,141 @@ erDiagram
     }
 ```
 
+### 2.4 Slice D — Packages & Money ERD
+
+```mermaid
+erDiagram
+    Package ||--o{ Appointment : "covers"
+    Package ||--o{ Charge : "generates_charges"
+    Package ||--o{ PackageExtension : "extended_by"
+    Package ||--o{ PriceChangeHistory : "price_changes"
+
+    Patient ||--o{ Package : "purchases"
+    Patient ||--o{ Charge : "incurred_by"
+
+    SessionType ||--o{ Package : "classified_by"
+
+    Charge ||--o{ Payment : "settled_by"
+    Charge ||--o{ Refund : "refunds"
+    Charge ||--o{ WriteOff : "write_offs"
+    Charge ||--o{ PriceChangeHistory : "price_changes"
+
+    Payment ||--o{ Refund : "refunded_against"
+    Payment ||--o| CashClosing : "included_in_shift"
+    Refund ||--o| CashClosing : "deducted_from_shift"
+
+    User ||--o{ Package : "created_by"
+    User ||--o{ PackageExtension : "extended_by_user"
+    User ||--o{ Charge : "created_by"
+    User ||--o{ Payment : "collected_by"
+    User ||--o{ Payment : "voided_by"
+    User ||--o{ Refund : "handed_out_by"
+    User ||--o{ Refund : "approved_by"
+    User ||--o{ WriteOff : "approved_by"
+    User ||--o{ PriceChangeHistory : "changed_by"
+    User ||--o{ CashClosing : "cashier"
+    User ||--o{ CashClosing : "witness"
+
+    Package {
+        uuid id PK
+        uuid patient_id FK
+        uuid session_type_id FK
+        int total_sessions
+        int total_price_piasters
+        date start_date
+        date expiry_date
+        enum status
+    }
+
+    PackageExtension {
+        uuid id PK
+        uuid package_id FK
+        date previous_expiry_date
+        date new_expiry_date
+        int days_added
+        text reason
+        uuid extended_by_user_id FK
+    }
+
+    Charge {
+        uuid id PK
+        uuid patient_id FK
+        uuid package_id FK "nullable"
+        uuid appointment_id FK "nullable"
+        int amount_piasters
+        string description
+        enum status
+    }
+
+    Payment {
+        uuid id PK
+        uuid charge_id FK
+        string receipt_number UK
+        int receipt_year
+        int receipt_sequence
+        int amount_piasters
+        enum payment_method
+        uuid cash_shift_id FK "nullable"
+        boolean is_voided
+        datetime voided_at
+        text void_reason
+        uuid collected_by_user_id FK
+    }
+
+    ReceiptCounter {
+        uuid id PK
+        int year UK
+        int last_value
+    }
+
+    Refund {
+        uuid id PK
+        uuid charge_id FK
+        uuid payment_id FK "nullable"
+        int amount_piasters
+        enum refund_method
+        uuid handed_out_by_user_id FK
+        uuid cash_shift_id FK "nullable"
+        text reason
+        uuid approved_by_user_id FK
+    }
+
+    WriteOff {
+        uuid id PK
+        uuid charge_id FK
+        int amount_piasters
+        text reason
+        uuid approved_by_user_id FK
+    }
+
+    PriceChangeHistory {
+        uuid id PK
+        string entity_type
+        string entity_id
+        uuid appointment_id FK "nullable"
+        uuid charge_id FK "nullable"
+        uuid package_id FK "nullable"
+        int old_price_piasters
+        int new_price_piasters
+        int difference_piasters
+        text reason
+        uuid changed_by_user_id FK
+    }
+
+    CashClosing {
+        uuid id PK
+        int shift_number
+        uuid cashier_user_id FK
+        datetime opened_at
+        datetime closed_at
+        enum status
+        int expected_cash_piasters
+        int counted_cash_piasters "nullable"
+        int difference_piasters "nullable"
+        uuid witness_user_id FK "nullable"
+    }
+```
+
 ---
 
 ## 3. Database Table Dictionaries
@@ -1182,6 +1317,259 @@ erDiagram
 
 ---
 
+### Slice D — Packages & Money Tables
+
+### 3.28 `packages`
+- **Purpose:** Multi-session prepaid bundle for Physiotherapy or Nutrition with defined validity and session quota.
+- **Rule References:** `R-2-6`, `R-7-1` through `R-7-6`, `DEC-009`
+
+| Column | Type | Nullable | Default | Description (AR / EN) | Rule ID |
+|---|---|:---:|---|---|:---:|
+| `id` | `UUID` | No | `uuid()` | Primary Key (معرف الباقة) | `R-7-1` |
+| `patient_id` | `UUID` | No | — | FK to `patients.id` (معرف المريض) | `R-7-1` |
+| `session_type_id` | `UUID` | No | — | FK to `session_types.id` (نوع جلسات الباقة - علاج طبيعي أو تغذية فقط) | `R-7-1`, `DEC-009` |
+| `total_sessions` | `INTEGER` | No | — | Total session count in package e.g. 12 (إجمالي جلسات الباقة) | `R-7-1` |
+| `total_price_piasters` | `INTEGER` | No | — | Package price in integer piasters (سعر الباقة بالقروش) | `R-0-4`, `R-7-1` |
+| `start_date` | `DATE` | No | — | Validity start calendar date (تاريخ بدء الصلاحية) | `R-7-1` |
+| `expiry_date` | `DATE` | No | — | Expiration calendar date, default start + 60 days (تاريخ انتهاء الصلاحية) | `R-2-6`, `R-7-1` |
+| `status` | `VARCHAR(20)` | No | `'ACTIVE'` | Status: `ACTIVE`, `COMPLETED`, `EXPIRED`, `CANCELLED` (حالة الباقة) | `R-7-1` |
+| `notes` | `TEXT` | Yes | `NULL` | Administrative / clinical notes on package (ملاحظات الباقة) | `R-7-1` |
+| `cancelled_at` | `TIMESTAMPTZ` | Yes | `NULL` | Cancellation timestamp if terminated early (تاريخ الإلغاء) | `R-7-2` |
+| `cancellation_reason` | `TEXT` | Yes | `NULL` | Required reason for early package cancellation (سبب الإلغاء) | `R-7-2` |
+| `created_by_user_id` | `UUID` | Yes | `NULL` | FK to `users.id` who sold package (أنشئت بواسطة) | `R-0-2` |
+| `updated_by_user_id` | `UUID` | Yes | `NULL` | FK to `users.id` of last editor (آخر تعديل بواسطة) | `R-0-2` |
+| `created_at` | `TIMESTAMPTZ` | No | `now()` | Record creation timestamp | `R-0-5` |
+| `updated_at` | `TIMESTAMPTZ` | No | `now()` | Record update timestamp | `R-0-5` |
+
+- **Foreign Keys:**
+  - `patient_id REFERENCES patients(id) ON DELETE RESTRICT`
+  - `session_type_id REFERENCES session_types(id) ON DELETE RESTRICT`
+  - `created_by_user_id REFERENCES users(id) ON DELETE SET NULL`
+  - `updated_by_user_id REFERENCES users(id) ON DELETE SET NULL`
+- **Indexes:**
+  - `CREATE INDEX idx_packages_patient_status ON packages (patient_id, status)`
+  - `CREATE INDEX idx_packages_expiry_status ON packages (expiry_date, status)`
+
+---
+
+### 3.29 `package_extensions`
+- **Purpose:** Audit record of validity extensions granted by Owner/Manager to expiring or expired packages.
+- **Rule References:** `R-7-6`
+
+| Column | Type | Nullable | Default | Description (AR / EN) | Rule ID |
+|---|---|:---:|---|---|:---:|
+| `id` | `UUID` | No | `uuid()` | Primary Key (معرف التمديد) | `R-7-6` |
+| `package_id` | `UUID` | No | — | FK to `packages.id` (معرف الباقة الممددة) | `R-7-6` |
+| `previous_expiry_date` | `DATE` | No | — | Expiry date prior to extension (تاريخ الانتهاء السابق) | `R-7-6` |
+| `new_expiry_date` | `DATE` | No | — | New extended expiry date (تاريخ الانتهاء الجديد) | `R-7-6` |
+| `days_added` | `INTEGER` | No | — | Number of days extended, 1..365 (الأيام المضافة) | `R-7-6` |
+| `reason` | `TEXT` | No | — | Mandatory administrative explanation (سبب التمديد الإلزامي) | `R-7-6` |
+| `extended_by_user_id` | `UUID` | No | — | FK to `users.id` of approving Owner/Manager (اعتمد بواسطة) | `R-1.1-10`, `R-7-6` |
+| `extended_at` | `TIMESTAMPTZ` | No | `now()` | Exact timestamp extension was granted (وقت التمديد) | `R-0-5` |
+
+- **Foreign Keys:**
+  - `package_id REFERENCES packages(id) ON DELETE CASCADE`
+  - `extended_by_user_id REFERENCES users(id) ON DELETE RESTRICT`
+- **Indexes:**
+  - `CREATE INDEX idx_package_extensions_pkg ON package_extensions (package_id)`
+  - `CREATE INDEX idx_package_extensions_user ON package_extensions (extended_by_user_id)`
+
+---
+
+### 3.30 `charges`
+- **Purpose:** Financial invoice / receivable obligation generated for package sales or standalone appointments.
+- **Rule References:** `R-8.1-1` through `R-8.1-4`
+
+| Column | Type | Nullable | Default | Description (AR / EN) | Rule ID |
+|---|---|:---:|---|---|:---:|
+| `id` | `UUID` | No | `uuid()` | Primary Key (معرف الاستحقاق المالي) | `R-8.1-1` |
+| `patient_id` | `UUID` | No | — | FK to `patients.id` (معرف المريض) | `R-8.1-1` |
+| `package_id` | `UUID` | Yes | `NULL` | FK to `packages.id` if charge represents package sale (الباقة المرتبطة) | `R-8.1-1` |
+| `appointment_id` | `UUID` | Yes | `NULL` | FK to `appointments.id` if single visit charge (الموعد المرتبط) | `R-8.1-1` |
+| `amount_piasters` | `INTEGER` | No | — | Obligation amount in integer piasters (قيمة الاستحقاق بالقروش) | `R-0-4`, `R-8.1-1` |
+| `description` | `VARCHAR(200)` | No | — | Billing item description e.g. "12-session Physiotherapy Package" (بيان الفاتورة) | `R-8.1-1` |
+| `status` | `VARCHAR(20)` | No | `'ACTIVE'` | Status: `ACTIVE`, `CANCELLED` (حالة الاستحقاق) | `R-8.1-1` |
+| `created_by_user_id` | `UUID` | Yes | `NULL` | FK to `users.id` who generated charge (أنشئ بواسطة) | `R-0-2` |
+| `created_at` | `TIMESTAMPTZ` | No | `now()` | Record creation timestamp | `R-0-5` |
+| `updated_at` | `TIMESTAMPTZ` | No | `now()` | Record update timestamp | `R-0-5` |
+
+- **Foreign Keys:**
+  - `patient_id REFERENCES patients(id) ON DELETE RESTRICT`
+  - `package_id REFERENCES packages(id) ON DELETE SET NULL`
+  - `appointment_id REFERENCES appointments(id) ON DELETE SET NULL`
+  - `created_by_user_id REFERENCES users(id) ON DELETE SET NULL`
+- **Indexes:**
+  - `CREATE INDEX idx_charges_patient_status ON charges (patient_id, status)`
+  - `CREATE INDEX idx_charges_package ON charges (package_id)`
+  - `CREATE INDEX idx_charges_appointment ON charges (appointment_id)`
+
+---
+
+### 3.31 `payments`
+- **Purpose:** Financial payment receipt collected against an invoice charge, generating gapless annual receipt serials.
+- **Rule References:** `R-8.2-1` through `R-8.2-5`, `DEC-017`
+
+| Column | Type | Nullable | Default | Description (AR / EN) | Rule ID |
+|---|---|:---:|---|---|:---:|
+| `id` | `UUID` | No | `uuid()` | Primary Key (معرف الدفعة) | `R-8.2-1` |
+| `charge_id` | `UUID` | No | — | FK to `charges.id` (الاستحقاق المالي المسدد) | `R-8.2-1` |
+| `receipt_number` | `VARCHAR(30)` | No | — | Gapless serial e.g. `INV-2026-00001` (رقم الإيصال السنوي الموحد) | `R-8.2-2`, `DEC-017` |
+| `receipt_year` | `INTEGER` | No | — | Fiscal calendar year in Cairo time e.g. 2026 (سنة الإيصال) | `DEC-017` |
+| `receipt_sequence` | `INTEGER` | No | — | Sequence number within year (الرقم التسلسلي السنوي) | `DEC-017` |
+| `amount_piasters` | `INTEGER` | No | — | Payment amount collected in integer piasters (المبلغ المسدد بالقروش) | `R-0-4`, `R-8.2-1` |
+| `payment_method` | `VARCHAR(30)` | No | — | Channel: `CASH`, `INSTAPAY`, `VODAFONE_CASH`, `CARD`, `FAWRY`, `BANK_TRANSFER` (وسيلة الدفع) | `R-8.2-1` |
+| `cash_shift_id` | `UUID` | Yes | `NULL` | FK to `cash_closings.id` of active shift (وردية الخزينة النقدية) | `R-8.4-1` |
+| `is_voided` | `BOOLEAN` | No | `false` | True if payment voided by Owner/Manager (تم إلغاء الإيصال) | `R-0-3`, `R-8.3-1` |
+| `voided_at` | `TIMESTAMPTZ` | Yes | `NULL` | Voiding timestamp (تاريخ ووقت الإلغاء) | `R-8.3-1` |
+| `void_reason` | `TEXT` | Yes | `NULL` | Mandatory reason recorded for voiding (سبب إلغاء الإيصال) | `R-8.3-1` |
+| `voided_by_user_id` | `UUID` | Yes | `NULL` | FK to `users.id` of approving Owner/Manager (أُلغي بواسطة) | `R-1.1-12`, `R-8.3-1` |
+| `collected_by_user_id` | `UUID` | No | — | FK to `users.id` of receptionist/cashier (حُصّل بواسطة) | `R-0-2`, `R-8.2-1` |
+| `collected_at` | `TIMESTAMPTZ` | No | `now()` | Collection timestamp (تاريخ ووقت التحصيل) | `R-0-5` |
+| `created_at` | `TIMESTAMPTZ` | No | `now()` | Record creation timestamp | `R-0-5` |
+| `updated_at` | `TIMESTAMPTZ` | No | `now()` | Record update timestamp | `R-0-5` |
+
+- **Unique Constraints:** `UNIQUE (receipt_number)`
+- **Foreign Keys:**
+  - `charge_id REFERENCES charges(id) ON DELETE RESTRICT`
+  - `cash_shift_id REFERENCES cash_closings(id) ON DELETE SET NULL`
+  - `voided_by_user_id REFERENCES users(id) ON DELETE SET NULL`
+  - `collected_by_user_id REFERENCES users(id) ON DELETE RESTRICT`
+- **Indexes:**
+  - `CREATE INDEX idx_payments_charge_voided ON payments (charge_id, is_voided)`
+  - `CREATE INDEX idx_payments_cashier_time ON payments (collected_by_user_id, collected_at)`
+  - `CREATE INDEX idx_payments_cash_shift ON payments (cash_shift_id)`
+  - `CREATE INDEX idx_payments_method ON payments (payment_method)`
+
+---
+
+### 3.32 `receipt_counters`
+- **Purpose:** Gapless annual sequential receipt number generator table rolling over at 00:00:00 Cairo time on Jan 1.
+- **Rule References:** `R-8.2-2`, `DEC-017`
+
+| Column | Type | Nullable | Default | Description (AR / EN) | Rule ID |
+|---|---|:---:|---|---|:---:|
+| `id` | `UUID` | No | `uuid()` | Primary Key (معرف العداد) | `DEC-017` |
+| `year` | `INTEGER` | No | — | Calendar year unique key e.g. 2026 (سنة العداد) | `DEC-017` |
+| `last_value` | `INTEGER` | No | `0` | Last assigned receipt sequence number (آخر رقم مسلسل صادر) | `DEC-017` |
+| `updated_at` | `TIMESTAMPTZ` | No | `now()` | Timestamp of last counter increment (تاريخ آخر إصدار) | `DEC-017` |
+
+- **Unique Constraints:** `UNIQUE (year)`
+
+---
+
+### 3.33 `refunds`
+- **Purpose:** Payout record of money returned to a patient with cashier drawer attribution and method tracking.
+- **Rule References:** `R-8.3-2`, `R-8.3-3`, `DEC-019`
+
+| Column | Type | Nullable | Default | Description (AR / EN) | Rule ID |
+|---|---|:---:|---|---|:---:|
+| `id` | `UUID` | No | `uuid()` | Primary Key (معرف الاسترداد) | `R-8.3-2` |
+| `charge_id` | `UUID` | No | — | FK to `charges.id` (الاستحقاق المسترد منه) | `R-8.3-2` |
+| `payment_id` | `UUID` | Yes | `NULL` | FK to `payments.id` if refunding a specific payment (الإيصال المرتبط) | `R-8.3-2` |
+| `amount_piasters` | `INTEGER` | No | — | Refund payout in integer piasters (المبلغ المسترد بالقروش) | `R-0-4`, `R-8.3-2` |
+| `refund_method` | `VARCHAR(30)` | No | — | Channel refund disbursed by: `CASH`, `INSTAPAY`, `VODAFONE_CASH`, `CARD`, `BANK_TRANSFER` (وسيلة رد المبلغ) | `R-8.3-2` |
+| `handed_out_by_user_id` | `UUID` | No | — | FK to `users.id` who physically handed out cash/refund (المستخدم المسلم للنقدية) | `R-8.3-3`, `DEC-019` |
+| `cash_shift_id` | `UUID` | Yes | `NULL` | FK to `cash_closings.id` of cashier's shift if cash (وردية الخزينة المتأثرة) | `R-8.3-3` |
+| `reason` | `TEXT` | No | — | Mandatory administrative explanation (سبب الاسترداد الإلزامي) | `R-8.3-2` |
+| `approved_by_user_id` | `UUID` | No | — | FK to `users.id` of approving Owner/Manager (اعتمد بواسطة) | `R-1.1-12`, `R-8.3-2` |
+| `refunded_at` | `TIMESTAMPTZ` | No | `now()` | Refund transaction timestamp | `R-0-5` |
+| `created_at` | `TIMESTAMPTZ` | No | `now()` | Record creation timestamp | `R-0-5` |
+| `updated_at` | `TIMESTAMPTZ` | No | `now()` | Record update timestamp | `R-0-5` |
+
+- **Foreign Keys:**
+  - `charge_id REFERENCES charges(id) ON DELETE RESTRICT`
+  - `payment_id REFERENCES payments(id) ON DELETE SET NULL`
+  - `handed_out_by_user_id REFERENCES users(id) ON DELETE RESTRICT`
+  - `cash_shift_id REFERENCES cash_closings(id) ON DELETE SET NULL`
+  - `approved_by_user_id REFERENCES users(id) ON DELETE RESTRICT`
+- **Indexes:**
+  - `CREATE INDEX idx_refunds_charge ON refunds (charge_id)`
+  - `CREATE INDEX idx_refunds_cashier ON refunds (handed_out_by_user_id)`
+  - `CREATE INDEX idx_refunds_cash_shift ON refunds (cash_shift_id)`
+
+---
+
+### 3.34 `write_offs`
+- **Purpose:** Audit record of uncollectible patient account balance forgiveness authorized by Owner/Manager.
+- **Rule References:** `R-1.1-10`, `R-8.1-4`
+
+| Column | Type | Nullable | Default | Description (AR / EN) | Rule ID |
+|---|---|:---:|---|---|:---:|
+| `id` | `UUID` | No | `uuid()` | Primary Key (معرف الشطب المالي) | `R-8.1-4` |
+| `charge_id` | `UUID` | No | — | FK to `charges.id` (الاستحقاق المشطوب منه) | `R-8.1-4` |
+| `amount_piasters` | `INTEGER` | No | — | Forgiven balance in integer piasters (المبلغ المشطوب بالقروش) | `R-0-4`, `R-8.1-4` |
+| `reason` | `TEXT` | No | — | Mandatory financial reason for write-off (سبب الشطب الإلزامي) | `R-8.1-4` |
+| `approved_by_user_id` | `UUID` | No | — | FK to `users.id` of approving Owner/Manager (اعتمد بواسطة) | `R-1.1-10`, `R-8.1-4` |
+| `written_off_at` | `TIMESTAMPTZ` | No | `now()` | Transaction timestamp | `R-0-5` |
+| `created_at` | `TIMESTAMPTZ` | No | `now()` | Record creation timestamp | `R-0-5` |
+
+- **Foreign Keys:**
+  - `charge_id REFERENCES charges(id) ON DELETE RESTRICT`
+  - `approved_by_user_id REFERENCES users(id) ON DELETE RESTRICT`
+- **Indexes:**
+  - `CREATE INDEX idx_write_offs_charge ON write_offs (charge_id)`
+
+---
+
+### 3.35 `price_change_history`
+- **Purpose:** Immutable audit record of all price adjustments on appointments, packages, and charges.
+- **Rule References:** `R-1.1-13`, `R-1.1-14`, `R-5.1-2`, `R-8.3-4`, `DEC-015`
+
+| Column | Type | Nullable | Default | Description (AR / EN) | Rule ID |
+|---|---|:---:|---|---|:---:|
+| `id` | `UUID` | No | `uuid()` | Primary Key (معرف سجل تعديل السعر) | `R-5.1-2` |
+| `entity_type` | `VARCHAR(50)` | No | — | Target entity: `APPOINTMENT`, `CHARGE`, `PACKAGE` (نوع الكيان المعدل سعره) | `R-5.1-2` |
+| `entity_id` | `VARCHAR(100)` | No | — | Identifier of modified record (معرف الكيان) | `R-5.1-2` |
+| `appointment_id` | `UUID` | Yes | `NULL` | FK to `appointments.id` if appointment price changed | `R-5.1-2` |
+| `charge_id` | `UUID` | Yes | `NULL` | FK to `charges.id` if charge price changed | `R-8.3-4` |
+| `package_id` | `UUID` | Yes | `NULL` | FK to `packages.id` if package price changed | `R-7-1` |
+| `old_price_piasters` | `INTEGER` | No | — | Price prior to change (السعر السابق بالقروش) | `R-5.1-2` |
+| `new_price_piasters` | `INTEGER` | No | — | Price after adjustment (السعر الجديد بالقروش) | `R-5.1-2` |
+| `difference_piasters` | `INTEGER` | No | — | Price variance in piasters (الفارق بالقروش) | `R-5.1-2` |
+| `reason` | `TEXT` | No | — | Mandatory explanation for price change (سبب تعديل السعر) | `R-5.1-2`, `R-8.3-4` |
+| `changed_by_user_id` | `UUID` | No | — | FK to `users.id` who modified price (المستخدم المعدل) | `R-0-2` |
+| `changed_at` | `TIMESTAMPTZ` | No | `now()` | Exact modification timestamp | `R-0-5` |
+
+- **Foreign Keys:**
+  - `appointment_id REFERENCES appointments(id) ON DELETE SET NULL`
+  - `charge_id REFERENCES charges(id) ON DELETE SET NULL`
+  - `package_id REFERENCES packages(id) ON DELETE SET NULL`
+  - `changed_by_user_id REFERENCES users(id) ON DELETE RESTRICT`
+- **Indexes:**
+  - `CREATE INDEX idx_price_change_entity ON price_change_history (entity_type, entity_id)`
+  - `CREATE INDEX idx_price_change_user ON price_change_history (changed_by_user_id, changed_at)`
+
+---
+
+### 3.36 `cash_closings`
+- **Purpose:** End-of-shift cash drawer balance reconciliation record for receptionists and cashiers.
+- **Rule References:** `R-1.1-18`, `R-8.4-1` through `R-8.4-4`, `DEC-019`, `DEC-020`
+
+| Column | Type | Nullable | Default | Description (AR / EN) | Rule ID |
+|---|---|:---:|---|---|:---:|
+| `id` | `UUID` | No | `uuid()` | Primary Key (معرف تقفيل الوردية) | `R-8.4-1` |
+| `shift_number` | `INTEGER` | No | — | Sequential shift number (رقم الوردية) | `R-8.4-1` |
+| `cashier_user_id` | `UUID` | No | — | FK to `users.id` of receptionist closing drawer (أمين الخزينة / الموظف) | `R-8.4-1` |
+| `opened_at` | `TIMESTAMPTZ` | No | — | Shift opening timestamp (وقت فتح الوردية) | `R-8.4-1` |
+| `closed_at` | `TIMESTAMPTZ` | Yes | `NULL` | Shift closing timestamp (وقت إغلاق الوردية) | `R-8.4-1` |
+| `status` | `VARCHAR(20)` | No | `'OPEN'` | Status: `OPEN`, `CLOSED` (حالة الوردية) | `R-8.4-1` |
+| `expected_cash_piasters` | `INTEGER` | No | `0` | Computed: `payments - refunds - expenses` in cash (النقدية المتوقعة دفترياً) | `R-8.4-1`, `calculations.md §2.5` |
+| `counted_cash_piasters` | `INTEGER` | Yes | `NULL` | Physical cash counted and entered by cashier (النقدية الفعلية بالدرج) | `R-8.4-1` |
+| `difference_piasters` | `INTEGER` | Yes | `NULL` | Variance: `counted - expected` (عجز أو زيادة الخزينة) | `R-8.4-1`, `calculations.md §2.5` |
+| `closing_notes` | `TEXT` | Yes | `NULL` | Cashier comments or discrepancy notes (ملاحظات التقفيل) | `R-8.4-1` |
+| `witness_user_id` | `UUID` | Yes | `NULL` | FK to `users.id` of witnessing Manager/Owner (شاهد التقفيل) | `R-8.4-4` |
+| `created_at` | `TIMESTAMPTZ` | No | `now()` | Record creation timestamp | `R-0-5` |
+| `updated_at` | `TIMESTAMPTZ` | No | `now()` | Record update timestamp | `R-0-5` |
+
+- **Foreign Keys:**
+  - `cashier_user_id REFERENCES users(id) ON DELETE RESTRICT`
+  - `witness_user_id REFERENCES users(id) ON DELETE SET NULL`
+- **Indexes:**
+  - `CREATE INDEX idx_cash_closings_cashier ON cash_closings (cashier_user_id, status)`
+  - `CREATE INDEX idx_cash_closings_window ON cash_closings (opened_at, closed_at)`
+
+---
+
 ## 4. PostgreSQL Database Triggers & Check Constraints (Raw SQL)
 
 The following database triggers and constraints are written in raw SQL and will be packaged into Prisma migrations in Stage 2 to guarantee database-level enforcement of business rules:
@@ -1365,6 +1753,84 @@ CREATE TRIGGER trg_appointment_status_history_immutability
 BEFORE UPDATE OR DELETE ON appointment_status_history
 FOR EACH ROW
 EXECUTE FUNCTION trg_block_appointment_status_history_mutation();
+
+-- 12. Annual Receipt Number Sequential Generator Function (DEC-017, R-8.2-2, R-8.2-3)
+-- Transactional row lock guarantees gapless numbering without duplicates.
+CREATE OR REPLACE FUNCTION generate_next_receipt_number()
+RETURNS TRIGGER AS $$
+DECLARE
+    current_cairo_year INT;
+    next_seq INT;
+BEGIN
+    -- Evaluate year in Cairo local time boundary
+    current_cairo_year := EXTRACT(YEAR FROM (NEW.collected_at AT TIME ZONE 'Africa/Cairo'));
+    NEW.receipt_year := current_cairo_year;
+
+    -- Upsert annual counter with strict row lock
+    INSERT INTO receipt_counters (id, year, last_value, updated_at)
+    VALUES (gen_random_uuid(), current_cairo_year, 1, now())
+    ON CONFLICT (year) DO UPDATE 
+    SET last_value = receipt_counters.last_value + 1, updated_at = now()
+    RETURNING last_value INTO next_seq;
+
+    NEW.receipt_sequence := next_seq;
+    NEW.receipt_number := 'INV-' || current_cairo_year || '-' || LPAD(next_seq::TEXT, 5, '0');
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_generate_receipt_number
+BEFORE INSERT ON payments
+FOR EACH ROW
+WHEN (NEW.receipt_number IS NULL OR NEW.receipt_number = '')
+EXECUTE FUNCTION generate_next_receipt_number();
+
+-- 13. Financial Amounts Positive Check Constraints (R-0-4)
+-- Enforces that all financial transactions have positive non-zero piasters.
+ALTER TABLE packages ADD CONSTRAINT chk_packages_positive_price CHECK (total_price_piasters > 0 AND total_sessions > 0);
+ALTER TABLE charges ADD CONSTRAINT chk_charges_positive_amount CHECK (amount_piasters > 0);
+ALTER TABLE payments ADD CONSTRAINT chk_payments_positive_amount CHECK (amount_piasters > 0);
+ALTER TABLE refunds ADD CONSTRAINT chk_refunds_positive_amount CHECK (amount_piasters > 0);
+ALTER TABLE write_offs ADD CONSTRAINT chk_write_offs_positive_amount CHECK (amount_piasters > 0);
+
+-- 14. Closed Shift Modification Lock Trigger (R-8.4-3, DEC-020)
+-- Prohibits modifying or voiding payments included in a closed cash shift.
+CREATE OR REPLACE FUNCTION trg_check_closed_shift_payment_lock()
+RETURNS TRIGGER AS $$
+DECLARE
+    shift_status VARCHAR(20);
+BEGIN
+    IF OLD.cash_shift_id IS NOT NULL THEN
+        SELECT status INTO shift_status FROM cash_closings WHERE id = OLD.cash_shift_id;
+        IF shift_status = 'CLOSED' THEN
+            RAISE EXCEPTION 'Financial payment is locked because it belongs to a completed closed cash shift.'
+                USING ERRCODE = 'integrity_constraint_violation';
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_lock_closed_shift_payments
+BEFORE UPDATE OR DELETE ON payments
+FOR EACH ROW
+WHEN (OLD.is_voided = false AND NEW.is_voided = true)
+EXECUTE FUNCTION trg_check_closed_shift_payment_lock();
+
+-- 15. Price Change History Immutability Trigger (R-5.1-2, R-13-1)
+-- Blocks UPDATE and DELETE on price_change_history.
+CREATE OR REPLACE FUNCTION trg_block_price_change_history_mutation()
+RETURNS TRIGGER AS $$
+BEGIN
+    RAISE EXCEPTION 'Price change history records are immutable audit entries. UPDATE and DELETE are prohibited.'
+        USING ERRCODE = 'integrity_constraint_violation';
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_price_change_history_immutability
+BEFORE UPDATE OR DELETE ON price_change_history
+FOR EACH ROW
+EXECUTE FUNCTION trg_block_price_change_history_mutation();
 ```
 
 ---
@@ -1389,3 +1855,10 @@ In strict accordance with **Rule R-0-6** and **DEC-005**, the following values a
 | **Patient Daily Session Type Count** | [calculations.md §3.1](file:///F:/Claude%20CRM/docs/design/calculations.md#31-appointment-overlap-detection) | Computed dynamically as count of active bookings for same patient + date + session type (max 1 per type per day per `R-5.2-6`). |
 | **Late Minutes Alert Trigger** | [calculations.md §1.2](file:///F:/Claude%20CRM/docs/design/calculations.md#12-late-arrival-minutes-calculation) | Evaluated dynamically: alert triggers if `now() > starts_at + 10 minutes` and status is still `SCHEDULED` (`R-14-2`). |
 | **Bed Reservation Persistence Window** | [calculations.md §3.1](file:///F:/Claude%20CRM/docs/design/calculations.md#31-appointment-overlap-detection) | Bed exclusion constraint holds until scheduled `ends_at` even if completed early (`DEC-021`, `R-5.2-10`). |
+| **Package Remaining Sessions** | [calculations.md §2.1](file:///F:/Claude%20CRM/docs/design/calculations.md#21-package-remaining-sessions) | Dynamically computed: `total_sessions - completed_sessions` (`R-7-1`). Never stored in DB. |
+| **Package Available Sessions for Booking** | [calculations.md §2.2](file:///F:/Claude%20CRM/docs/design/calculations.md#22-package-available-sessions-for-booking) | Dynamically computed: `total - completed - future_booked` (`DEC-008`, `R-5.2-7`). |
+| **Package Per-Session Value** | [calculations.md §2.2](file:///F:/Claude%20CRM/docs/design/calculations.md#22-package-available-sessions-for-booking) | Pro-rata value: `floor(total_price_piasters / total_sessions)` used for commission and refund ceiling (`R-7-3`). |
+| **Charge Balance Calculation** | [calculations.md §2.3](file:///F:/Claude%20CRM/docs/design/calculations.md#23-charge-balance-calculation) | Dynamically computed: `max(0, owed - (non_voided_payments - refunds) - write_offs)` (`R-8.1-1`). |
+| **Refund Maximum Allowed** | [calculations.md §2.4](file:///F:/Claude%20CRM/docs/design/calculations.md#24-refund-maximum-calculation) | Evaluated dynamically: `paid_piasters - (completed_sessions * per_session_value)` (`R-8.3-2`). |
+| **Expected Cash in Shift Closing** | [calculations.md §2.5](file:///F:/Claude%20CRM/docs/design/calculations.md#25-cash-shift-closing-expected-cash) | Evaluated dynamically at closing: `cash_payments - cash_refunds_handed_out - cash_expenses` (`R-8.4-1`). |
+| **Cash Closing Drawer Difference** | [calculations.md §2.5](file:///F:/Claude%20CRM/docs/design/calculations.md#25-cash-shift-closing-expected-cash) | Computed: `counted_cash_piasters - expected_cash_piasters` (`R-8.4-1`). |

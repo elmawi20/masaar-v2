@@ -3,6 +3,7 @@
 // Stage 1 Design — Database Slice A: Clinic, Staff & Auth
 // Stage 1 Design — Database Slice B: Patients & Documents
 // Stage 1 Design — Database Slice C: Scheduling
+// Stage 1 Design — Database Slice D: Packages & Money
 
 datasource db {
   provider = "postgresql"
@@ -145,6 +146,36 @@ enum NotificationType {
 }
 
 // ============================================================================
+// Enums for Slice D (Packages & Money)
+// ============================================================================
+
+enum PackageStatus {
+  ACTIVE
+  COMPLETED
+  EXPIRED
+  CANCELLED
+}
+
+enum ChargeStatus {
+  ACTIVE
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  INSTAPAY
+  VODAFONE_CASH
+  CARD
+  FAWRY
+  BANK_TRANSFER
+}
+
+enum CashShiftStatus {
+  OPEN
+  CLOSED
+}
+
+// ============================================================================
 // 1. Clinic Settings & Schedules
 // ============================================================================
 
@@ -254,6 +285,7 @@ model SessionType {
 
   appointments      Appointment[]
   appointmentSeries AppointmentSeries[]
+  packages          Package[]
 
   @@map("session_types")
 }
@@ -333,6 +365,20 @@ model User {
   statusChangesAuthored AppointmentStatusHistory[] @relation("StatusChangedBy")
   remindersSent         AppointmentReminder[]      @relation("ReminderSentBy")
   receivedNotifications InAppNotification[]        @relation("ReceivedNotifications")
+
+  // Packages & Billing Relations (Slice D)
+  packagesCreated       Package[]            @relation("PackageCreatedBy")
+  packagesUpdated       Package[]            @relation("PackageUpdatedBy")
+  packageExtensions     PackageExtension[]   @relation("PackageExtendedBy")
+  chargesCreated        Charge[]             @relation("ChargeCreatedBy")
+  paymentsCollected     Payment[]            @relation("PaymentCollectedBy")
+  paymentsVoided        Payment[]            @relation("PaymentVoidedBy")
+  refundsHandedOut      Refund[]             @relation("RefundHandedOutBy")
+  refundsApproved       Refund[]             @relation("RefundApprovedBy")
+  writeOffsApproved     WriteOff[]           @relation("WriteOffApprovedBy")
+  priceChangesAuthored  PriceChangeHistory[] @relation("PriceChangedBy")
+  cashClosingsConducted CashClosing[]        @relation("CashierClosings")
+  cashClosingsWitnessed CashClosing[]        @relation("WitnessClosings")
 
   @@map("users")
 }
@@ -581,6 +627,10 @@ model Patient {
   appointmentSeries AppointmentSeries[]
   notifications     InAppNotification[]
 
+  // Slice D Relations
+  packages Package[]
+  charges  Charge[]
+
   @@index([fullName])
   @@index([mobilePhone])
   @@index([guardianPhone])
@@ -697,7 +747,8 @@ model Appointment {
   bed                Bed                @relation(fields: [bedId], references: [id], onDelete: Restrict)
   seriesId           String?            @map("series_id")
   series             AppointmentSeries? @relation(fields: [seriesId], references: [id], onDelete: SetNull)
-  packageId          String?            @map("package_id") // Relates to packages in Slice D
+  packageId          String?            @map("package_id")
+  package            Package?           @relation(fields: [packageId], references: [id], onDelete: SetNull)
   appointmentDate    DateTime           @map("appointment_date") @db.Date // Clinic-local calendar date (Africa/Cairo)
   startTime          String             @map("start_time") @db.VarChar(5) // HH:mm (24h)
   endTime            String             @map("end_time") @db.VarChar(5) // HH:mm (24h)
@@ -724,6 +775,8 @@ model Appointment {
   statusHistory AppointmentStatusHistory[]
   reminders     AppointmentReminder[]
   notifications InAppNotification[]
+  charges       Charge[]
+  priceChanges  PriceChangeHistory[]
 
   @@index([patientId, appointmentDate])
   @@index([clinicianId, startsAt, endsAt])
@@ -819,4 +872,211 @@ model InAppNotification {
 
   @@index([userId, isRead, createdAt])
   @@map("in_app_notifications")
+}
+
+// ============================================================================
+// 9. Packages & Financial Transactions (Slice D)
+// ============================================================================
+
+model Package {
+  id                 String        @id @default(uuid())
+  patientId          String        @map("patient_id")
+  patient            Patient       @relation(fields: [patientId], references: [id], onDelete: Restrict)
+  sessionTypeId      String        @map("session_type_id")
+  sessionType        SessionType   @relation(fields: [sessionTypeId], references: [id], onDelete: Restrict)
+  totalSessions      Int           @map("total_sessions") // e.g. 12
+  totalPricePiasters Int           @map("total_price_piasters") // Integer piasters (R-0-4, R-7-1)
+  startDate          DateTime      @map("start_date") @db.Date
+  expiryDate         DateTime      @map("expiry_date") @db.Date // Default +60 days (R-2-6, R-7-1)
+  status             PackageStatus @default(ACTIVE)
+  notes              String?       @db.Text
+  cancelledAt        DateTime?     @map("cancelled_at")
+  cancellationReason String?       @map("cancellation_reason") @db.Text
+  createdByUserId    String?       @map("created_by_user_id")
+  createdByUser      User?         @relation("PackageCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  updatedByUserId    String?       @map("updated_by_user_id")
+  updatedByUser      User?         @relation("PackageUpdatedBy", fields: [updatedByUserId], references: [id], onDelete: SetNull)
+  createdAt          DateTime      @default(now()) @map("created_at")
+  updatedAt          DateTime      @updatedAt @map("updated_at")
+
+  appointments Appointment[]
+  charges      Charge[]
+  extensions   PackageExtension[]
+  priceChanges PriceChangeHistory[]
+
+  @@index([patientId, status])
+  @@index([expiryDate, status])
+  @@map("packages")
+}
+
+model PackageExtension {
+  id                 String   @id @default(uuid())
+  packageId          String   @map("package_id")
+  package            Package  @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  previousExpiryDate DateTime @map("previous_expiry_date") @db.Date
+  newExpiryDate      DateTime @map("new_expiry_date") @db.Date
+  daysAdded          Int      @map("days_added") // 1..365 (R-7-6)
+  reason             String   @db.Text // Mandatory audit reason (R-7-6)
+  extendedByUserId   String   @map("extended_by_user_id")
+  extendedByUser     User     @relation("PackageExtendedBy", fields: [extendedByUserId], references: [id], onDelete: Restrict)
+  extendedAt         DateTime @default(now()) @map("extended_at")
+
+  @@index([packageId])
+  @@index([extendedByUserId])
+  @@map("package_extensions")
+}
+
+model Charge {
+  id              String       @id @default(uuid())
+  patientId       String       @map("patient_id")
+  patient         Patient      @relation(fields: [patientId], references: [id], onDelete: Restrict)
+  packageId       String?      @map("package_id")
+  package         Package?     @relation(fields: [packageId], references: [id], onDelete: SetNull)
+  appointmentId   String?      @map("appointment_id")
+  appointment     Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  amountPiasters  Int          @map("amount_piasters") // Integer piasters (R-0-4, R-8.1-1)
+  description     String       @db.VarChar(200)
+  status          ChargeStatus @default(ACTIVE)
+  createdByUserId String?      @map("created_by_user_id")
+  createdByUser   User?        @relation("ChargeCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+
+  payments     Payment[]
+  refunds      Refund[]
+  writeOffs    WriteOff[]
+  priceChanges PriceChangeHistory[]
+
+  @@index([patientId, status])
+  @@index([packageId])
+  @@index([appointmentId])
+  @@map("charges")
+}
+
+model Payment {
+  id                String        @id @default(uuid())
+  chargeId          String        @map("charge_id")
+  charge            Charge        @relation(fields: [chargeId], references: [id], onDelete: Restrict)
+  receiptNumber     String        @unique @map("receipt_number") @db.VarChar(30) // INV-YYYY-00001 (R-8.2-2)
+  receiptYear       Int           @map("receipt_year") // 2026 (Cairo local time, DEC-017)
+  receiptSequence   Int           @map("receipt_sequence") // Sequential counter within year
+  amountPiasters    Int           @map("amount_piasters") // Integer piasters > 0
+  paymentMethod     PaymentMethod @map("payment_method")
+  cashShiftId       String?       @map("cash_shift_id")
+  cashShift         CashClosing?  @relation(fields: [cashShiftId], references: [id], onDelete: SetNull)
+  isVoided          Boolean       @default(false) @map("is_voided")
+  voidedAt          DateTime?     @map("voided_at")
+  voidReason        String?       @map("void_reason") @db.Text
+  voidedByUserId    String?       @map("voided_by_user_id")
+  voidedByUser      User?         @relation("PaymentVoidedBy", fields: [voidedByUserId], references: [id], onDelete: SetNull)
+  collectedByUserId String        @map("collected_by_user_id")
+  collectedByUser   User          @relation("PaymentCollectedBy", fields: [collectedByUserId], references: [id], onDelete: Restrict)
+  collectedAt       DateTime      @default(now()) @map("collected_at")
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+
+  refunds Refund[]
+
+  @@index([chargeId, isVoided])
+  @@index([collectedByUserId, collectedAt])
+  @@index([cashShiftId])
+  @@index([paymentMethod])
+  @@map("payments")
+}
+
+model ReceiptCounter {
+  id        String   @id @default(uuid())
+  year      Int      @unique // Calendar year e.g. 2026
+  lastValue Int      @default(0) @map("last_value") // Gapless annual sequential counter (DEC-017)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("receipt_counters")
+}
+
+model Refund {
+  id                String        @id @default(uuid())
+  chargeId          String        @map("charge_id")
+  charge            Charge        @relation(fields: [chargeId], references: [id], onDelete: Restrict)
+  paymentId         String?       @map("payment_id")
+  payment           Payment?      @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  amountPiasters    Int           @map("amount_piasters") // Integer piasters > 0 (R-0-4, R-8.3-2)
+  refundMethod      PaymentMethod @map("refund_method") // Method refund paid out with
+  handedOutByUserId String        @map("handed_out_by_user_id") // Cash drawer attribution (R-8.3-3, DEC-019)
+  handedOutByUser   User          @relation("RefundHandedOutBy", fields: [handedOutByUserId], references: [id], onDelete: Restrict)
+  cashShiftId       String?       @map("cash_shift_id")
+  cashShift         CashClosing?  @relation(fields: [cashShiftId], references: [id], onDelete: SetNull)
+  reason            String        @db.Text // Mandatory refund justification (R-8.3-2)
+  approvedByUserId  String        @map("approved_by_user_id")
+  approvedByUser    User          @relation("RefundApprovedBy", fields: [approvedByUserId], references: [id], onDelete: Restrict)
+  refundedAt        DateTime      @default(now()) @map("refunded_at")
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+
+  @@index([chargeId])
+  @@index([handedOutByUserId])
+  @@index([cashShiftId])
+  @@map("refunds")
+}
+
+model WriteOff {
+  id               String   @id @default(uuid())
+  chargeId         String   @map("charge_id")
+  charge           Charge   @relation(fields: [chargeId], references: [id], onDelete: Restrict)
+  amountPiasters   Int      @map("amount_piasters") // Amount written off in piasters (R-8.1-4)
+  reason           String   @db.Text // Mandatory reason (R-8.1-4)
+  approvedByUserId String   @map("approved_by_user_id")
+  approvedByUser   User     @relation("WriteOffApprovedBy", fields: [approvedByUserId], references: [id], onDelete: Restrict)
+  writtenOffAt     DateTime @default(now()) @map("written_off_at")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@index([chargeId])
+  @@map("write_offs")
+}
+
+model PriceChangeHistory {
+  id                 String       @id @default(uuid())
+  entityType         String       @map("entity_type") @db.VarChar(50) // APPOINTMENT, CHARGE, PACKAGE
+  entityId           String       @map("entity_id") @db.VarChar(100)
+  appointmentId      String?      @map("appointment_id")
+  appointment        Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  chargeId           String?      @map("charge_id")
+  charge             Charge?      @relation(fields: [chargeId], references: [id], onDelete: SetNull)
+  packageId          String?      @map("package_id")
+  package            Package?     @relation(fields: [packageId], references: [id], onDelete: SetNull)
+  oldPricePiasters   Int          @map("old_price_piasters")
+  newPricePiasters   Int          @map("new_price_piasters")
+  differencePiasters Int          @map("difference_piasters")
+  reason             String       @db.Text // Mandatory audit explanation (R-5.1-2, R-8.3-4)
+  changedByUserId    String       @map("changed_by_user_id")
+  changedByUser      User         @relation("PriceChangedBy", fields: [changedByUserId], references: [id], onDelete: Restrict)
+  changedAt          DateTime     @default(now()) @map("changed_at")
+
+  @@index([entityType, entityId])
+  @@index([changedByUserId, changedAt])
+  @@map("price_change_history")
+}
+
+model CashClosing {
+  id                   String          @id @default(uuid())
+  shiftNumber          Int             @map("shift_number")
+  cashierUserId        String          @map("cashier_user_id")
+  cashierUser          User            @relation("CashierClosings", fields: [cashierUserId], references: [id], onDelete: Restrict)
+  openedAt             DateTime        @map("opened_at")
+  closedAt             DateTime?       @map("closed_at")
+  status               CashShiftStatus @default(OPEN)
+  expectedCashPiasters Int             @default(0) @map("expected_cash_piasters") // Cash payments - Cash refunds - Cash expenses (R-8.4-1)
+  countedCashPiasters  Int?            @map("counted_cash_piasters") // Cashier entered counted physical cash
+  differencePiasters   Int?            @map("difference_piasters") // Counted - Expected
+  closingNotes         String?         @map("closing_notes") @db.Text
+  witnessUserId        String?         @map("witness_user_id")
+  witnessUser          User?           @relation("WitnessClosings", fields: [witnessUserId], references: [id], onDelete: SetNull)
+  createdAt            DateTime        @default(now()) @map("created_at")
+  updatedAt            DateTime        @updatedAt @map("updated_at")
+
+  payments Payment[]
+  refunds  Refund[]
+
+  @@index([cashierUserId, status])
+  @@index([openedAt, closedAt])
+  @@map("cash_closings")
 }
