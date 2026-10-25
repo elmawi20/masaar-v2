@@ -1,0 +1,392 @@
+// Masaar Clinic System — Prisma Schema
+// Specification Reference: docs/FEATURES-v2.2.md
+// Stage 1 Design — Database Slice A: Clinic, Staff & Auth
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ============================================================================
+// Enums for Slice A
+// ============================================================================
+
+enum Role {
+  OWNER
+  MANAGER
+  RECEPTIONIST
+  PHYSIOTHERAPIST
+  NUTRITIONIST
+}
+
+enum PreferredLanguage {
+  AR
+  EN
+}
+
+enum OtpStatus {
+  NOT_SET
+  PENDING
+  ACTIVE
+}
+
+enum CommissionType {
+  PERCENT
+  FIXED_PER_SESSION
+  NONE
+}
+
+enum SessionCategory {
+  PHYSIOTHERAPY
+  NUTRITION
+  CONSULTANT_ASSESSMENT
+}
+
+enum LeaveType {
+  ANNUAL
+  SICK
+  UNPAID
+  OTHER
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+// ============================================================================
+// 1. Clinic Settings & Schedules
+// ============================================================================
+
+model ClinicSetting {
+  id                      String   @id @default(uuid())
+  nameAr                  String   @map("name_ar") @db.VarChar(120)
+  nameEn                  String   @map("name_en") @db.VarChar(120)
+  addressAr               String?  @map("address_ar") @db.Text
+  addressEn               String?  @map("address_en") @db.Text
+  phone                   String   @db.VarChar(30)
+  logoUrl                 String?  @map("logo_url") @db.Text
+  timezone                String   @default("Africa/Cairo") @db.VarChar(50)
+  defaultPackageExpiryDays Int     @default(60) @map("default_package_expiry_days")
+  doctorDailySoftLimit    Int      @default(10) @map("doctor_daily_soft_limit")
+  receiptPrefix           String   @default("INV") @map("receipt_prefix") @db.VarChar(10)
+  noteEditWindowHours     Int      @default(24) @map("note_edit_window_hours")
+  updatedByUserId         String?  @map("updated_by_user_id")
+  updatedByUser           User?    @relation("ClinicSettingUpdatedBy", fields: [updatedByUserId], references: [id], onDelete: SetNull)
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  @@map("clinic_settings")
+}
+
+model ClinicOpeningHour {
+  id              String   @id @default(uuid())
+  dayOfWeek       Int      @map("day_of_week") // 0 = Saturday, 1 = Sunday ... 6 = Friday
+  isOpen          Boolean  @default(true) @map("is_open")
+  openTime        String   @default("09:00") @map("open_time") @db.VarChar(5) // HH:mm (24h)
+  closeTime       String   @default("21:00") @map("close_time") @db.VarChar(5) // HH:mm (24h)
+  updatedByUserId String?  @map("updated_by_user_id")
+  updatedByUser   User?    @relation("OpeningHourUpdatedBy", fields: [updatedByUserId], references: [id], onDelete: SetNull)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@unique([dayOfWeek])
+  @@map("clinic_opening_hours")
+}
+
+model ClinicClosure {
+  id              String   @id @default(uuid())
+  closureDate     DateTime @map("closure_date") @db.Date // Specific closure day
+  reasonAr        String   @map("reason_ar") @db.VarChar(150)
+  reasonEn        String   @map("reason_en") @db.VarChar(150)
+  isActive        Boolean  @default(true) @map("is_active")
+  createdByUserId String?  @map("created_by_user_id")
+  createdByUser   User?    @relation("ClinicClosureCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@unique([closureDate])
+  @@map("clinic_closures")
+}
+
+// ============================================================================
+// 2. Facilities & Session Types
+// ============================================================================
+
+model Room {
+  id              String   @id @default(uuid())
+  nameAr          String   @map("name_ar") @db.VarChar(100)
+  nameEn          String   @map("name_en") @db.VarChar(100)
+  isActive        Boolean  @default(true) @map("is_active")
+  createdByUserId String?  @map("created_by_user_id")
+  createdByUser   User?    @relation("RoomCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  beds            Bed[]
+
+  @@map("rooms")
+}
+
+model Bed {
+  id              String   @id @default(uuid())
+  roomId          String   @map("room_id")
+  room            Room     @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  name            String   @db.VarChar(100)
+  isActive        Boolean  @default(true) @map("is_active")
+  createdByUserId String?  @map("created_by_user_id")
+  createdByUser   User?    @relation("BedCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@unique([roomId, name])
+  @@map("beds")
+}
+
+model SessionType {
+  id                     String          @id @default(uuid())
+  code                   String          @unique @db.VarChar(50) // PHYSIOTHERAPY, NUTRITION, ASSESSMENT
+  category               SessionCategory @default(PHYSIOTHERAPY)
+  nameAr                 String          @map("name_ar") @db.VarChar(120)
+  nameEn                 String          @map("name_en") @db.VarChar(120)
+  defaultDurationMinutes Int             @default(45) @map("default_duration_minutes") // 15..180 steps of 15
+  defaultPricePiasters   Int             @map("default_price_piasters") // Money in integer piasters (100 = 1 EGP)
+  isActive               Boolean         @default(true) @map("is_active")
+  createdByUserId        String?         @map("created_by_user_id")
+  createdByUser          User?           @relation("SessionTypeCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  createdAt              DateTime        @default(now()) @map("created_at")
+  updatedAt              DateTime        @updatedAt @map("updated_at")
+
+  @@map("session_types")
+}
+
+// ============================================================================
+// 3. Users, Staff Rosters & Leaves
+// ============================================================================
+
+model User {
+  id                          String            @id @default(uuid())
+  email                       String            @unique @db.VarChar(255) // Case-insensitive unique via citext / index
+  passwordHash                String            @map("password_hash") @db.VarChar(255)
+  fullName                    String            @map("full_name") @db.VarChar(120)
+  phone                       String            @db.VarChar(30)
+  jobTitle                    String            @map("job_title") @db.VarChar(100)
+  role                        Role
+  preferredLanguage           PreferredLanguage @default(AR) @map("preferred_language")
+  isActive                    Boolean           @default(true) @map("is_active")
+  deactivatedAt               DateTime?         @map("deactivated_at")
+  mustChangePassword          Boolean           @default(false) @map("must_change_password")
+  failedLoginCount            Int               @default(0) @map("failed_login_count")
+  lockedUntil                 DateTime?         @map("locked_until")
+  otpStatus                   OtpStatus         @default(NOT_SET) @map("otp_status")
+  canAssess                   Boolean           @default(false) @map("can_assess")
+  commissionType              CommissionType    @default(NONE) @map("commission_type")
+  commissionPercentBasisPoints Int              @default(0) @map("commission_percent_basis_points") // 2500 = 25.00%
+  commissionFixedPiasters     Int               @default(0) @map("commission_fixed_piasters") // Fixed amount in piasters
+  createdByUserId             String?           @map("created_by_user_id")
+  createdByUser               User?             @relation("UserCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  createdAt                   DateTime          @default(now()) @map("created_at")
+  updatedAt                   DateTime          @updatedAt @map("updated_at")
+
+  // Staff Schedule & Leave Relations
+  schedules                   StaffSchedule[]
+  leaves                      StaffLeave[]
+
+  // Auth & Security Relations
+  sessions                    UserSession[]
+  otpSecret                   OtpSecret?
+  backupCodes                 OtpBackupCode[]
+  trustedDevices              TrustedDevice[]
+  passwordResetCodes          PasswordResetCode[]
+
+  // Administrative Audit & Authoring Relations
+  createdUsers                User[]               @relation("UserCreatedBy")
+  updatedClinicSettings       ClinicSetting[]      @relation("ClinicSettingUpdatedBy")
+  updatedOpeningHours         ClinicOpeningHour[]  @relation("OpeningHourUpdatedBy")
+  createdClosures             ClinicClosure[]      @relation("ClinicClosureCreatedBy")
+  createdRooms                Room[]               @relation("RoomCreatedBy")
+  createdBeds                 Bed[]                @relation("BedCreatedBy")
+  createdSessionTypes         SessionType[]        @relation("SessionTypeCreatedBy")
+  updatedMessageTemplates     MessageTemplate[]    @relation("MessageTemplateUpdatedBy")
+  approvedLeaves              StaffLeave[]         @relation("StaffLeaveApprovedBy")
+  auditLogs                   AuditLog[]
+
+  @@map("users")
+}
+
+model StaffSchedule {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dayOfWeek   Int      @map("day_of_week") // 0 = Saturday ... 6 = Friday
+  shiftNumber Int      @map("shift_number") // 1 or 2 (up to 2 shifts per day)
+  isWorking   Boolean  @default(true) @map("is_working")
+  startTime   String   @map("start_time") @db.VarChar(5) // HH:mm (24h)
+  endTime     String   @map("end_time") @db.VarChar(5) // HH:mm (24h)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, dayOfWeek, shiftNumber])
+  @@map("staff_schedules")
+}
+
+model StaffLeave {
+  id               String      @id @default(uuid())
+  userId           String      @map("user_id")
+  user             User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startDate        DateTime    @map("start_date") @db.Date
+  endDate          DateTime    @map("end_date") @db.Date
+  leaveType        LeaveType   @map("leave_type")
+  status           LeaveStatus @default(APPROVED)
+  note             String?     @db.Text
+  approvedByUserId String?     @map("approved_by_user_id")
+  approvedByUser   User?       @relation("StaffLeaveApprovedBy", fields: [approvedByUserId], references: [id], onDelete: SetNull)
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime    @updatedAt @map("updated_at")
+
+  @@index([userId, startDate, endDate])
+  @@map("staff_leaves")
+}
+
+// ============================================================================
+// 4. Authentication, Sessions & Security Secrets
+// ============================================================================
+
+model LoginAttempt {
+  id            String   @id @default(uuid())
+  email         String   @db.VarChar(255)
+  ipAddress     String   @map("ip_address") @db.VarChar(45)
+  userAgent     String?  @map("user_agent") @db.Text
+  isSuccessful  Boolean  @map("is_successful")
+  failureReason String?  @map("failure_reason") @db.VarChar(100)
+  attemptedAt   DateTime @default(now()) @map("attempted_at")
+
+  @@index([email, attemptedAt])
+  @@index([ipAddress, attemptedAt])
+  @@map("login_attempts")
+}
+
+model UserSession {
+  id           String    @id @default(uuid())
+  userId       String    @map("user_id")
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash    String    @unique @map("token_hash") @db.VarChar(255) // Session token stored strictly as hash
+  ipAddress    String    @map("ip_address") @db.VarChar(45)
+  userAgent    String?   @map("user_agent") @db.Text
+  lastActiveAt DateTime  @default(now()) @map("last_active_at") // Checked for 15-min idle lock
+  expiresAt    DateTime  @map("expires_at") // Absolute 12-hour maximum
+  isRevoked    Boolean   @default(false) @map("is_revoked")
+  revokedAt    DateTime? @map("revoked_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  @@index([userId, isRevoked])
+  @@map("user_sessions")
+}
+
+model OtpSecret {
+  id                String    @id @default(uuid())
+  userId            String    @unique @map("user_id")
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  secretEncrypted   String    @map("secret_encrypted") @db.Text // AES-256-GCM ciphertext, key in .env only
+  verifiedAt        DateTime? @map("verified_at")
+  failedOtpAttempts Int       @default(0) @map("failed_otp_attempts")
+  otpLockedUntil    DateTime? @map("otp_locked_until")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  @@map("otp_secrets")
+}
+
+model OtpBackupCode {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  codeHash  String    @map("code_hash") @db.VarChar(255) // 1 of 10 backup codes, stored strictly as hash
+  isUsed    Boolean   @default(false) @map("is_used")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@index([userId, isUsed])
+  @@map("otp_backup_codes")
+}
+
+model TrustedDevice {
+  id              String    @id @default(uuid())
+  userId          String    @map("user_id")
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deviceTokenHash String    @unique @map("device_token_hash") @db.VarChar(255) // Token stored strictly as hash
+  deviceName      String    @map("device_name") @db.VarChar(120)
+  ipAddress       String    @map("ip_address") @db.VarChar(45)
+  userAgent       String?   @map("user_agent") @db.Text
+  expiresAt       DateTime  @map("expires_at") // 30 days from creation
+  isRevoked       Boolean   @default(false) @map("is_revoked")
+  revokedAt       DateTime? @map("revoked_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  @@index([userId, isRevoked])
+  @@map("trusted_devices")
+}
+
+model PasswordResetCode {
+  id            String    @id @default(uuid())
+  userId        String    @map("user_id")
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  codeHash      String    @map("code_hash") @db.VarChar(255) // 6-digit email reset code, stored as hash
+  expiresAt     DateTime  @map("expires_at") // 10 minutes validity
+  attemptsCount Int       @default(0) @map("attempts_count") // Max 5 attempts
+  isUsed        Boolean   @default(false) @map("is_used") // Single use only
+  usedAt        DateTime? @map("used_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  @@index([userId, isUsed])
+  @@map("password_reset_codes")
+}
+
+// ============================================================================
+// 5. Settings: WhatsApp & Notification Templates
+// ============================================================================
+
+model MessageTemplate {
+  id              String            @id @default(uuid())
+  key             String            @db.VarChar(50) // WELCOME, REMINDER, RESCHEDULE, etc.
+  language        PreferredLanguage @map("language")
+  templateText    String            @map("template_text") @db.Text
+  updatedByUserId String?           @map("updated_by_user_id")
+  updatedByUser   User?             @relation("MessageTemplateUpdatedBy", fields: [updatedByUserId], references: [id], onDelete: SetNull)
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+
+  @@unique([key, language])
+  @@map("message_templates")
+}
+
+// ============================================================================
+// 6. Immutable Audit Trail
+// ============================================================================
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  timestamp  DateTime @default(now()) @map("created_at")
+  userId     String?  @map("user_id") // Nullable for unauthenticated/system actions
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull) // Never cascade delete
+  userRole   String?  @map("user_role") @db.VarChar(50)
+  action     String   @db.VarChar(100) // CREATE, UPDATE, STATUS_CHANGE, LOGIN, etc.
+  entityType String   @map("entity_type") @db.VarChar(100) // USER, APPOINTMENT, SETTING, etc.
+  entityId   String?  @map("entity_id") @db.VarChar(100)
+  beforeState Json?   @map("before_state")
+  afterState  Json?   @map("after_state")
+  reason     String?  @db.Text
+  ipAddress  String?  @map("ip_address") @db.VarChar(45)
+  userAgent  String?  @map("user_agent") @db.Text
+
+  @@index([userId, timestamp])
+  @@index([entityType, entityId])
+  @@index([action, timestamp])
+  @@map("audit_logs")
+}
