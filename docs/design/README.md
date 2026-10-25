@@ -18,7 +18,7 @@ This directory contains all approved Stage 1 design specifications, matrices, di
 | **1.04** | [`glossary.md`](file:///F:/Claude%20CRM/docs/design/glossary.md) | AR/EN business terms, DB & code naming | **Done** | 2026-10-25 |
 | **1.05** | [`permissions.md`](file:///F:/Claude%20CRM/docs/design/permissions.md)<br>[`src/domain/permissions.ts`](file:///F:/Claude%20CRM/src/domain/permissions.ts) | Complete permission matrix & data tables | **Done** | 2026-10-25 |
 | **1.06** | [`state-machines.md`](file:///F:/Claude%20CRM/docs/design/state-machines.md)<br>[`src/domain/status/*.ts`](file:///F:/Claude%20CRM/src/domain/status/) | State machine definitions & forbidden transitions | **Done** | 2026-10-25 |
-| **1.07** | `calculations.md` | All formulas, piasters rounding, edge cases | Pending | — |
+| **1.07** | [`calculations.md`](file:///F:/Claude%20CRM/docs/design/calculations.md) | All formulas, piasters rounding, edge cases | **Done** | 2026-10-25 |
 | **1.08** | `data-model.md` (Slice A)<br>`prisma/schema.prisma` | DB Slice A: Clinic, staff & auth | Pending | — |
 | **1.09** | `data-model.md` (Slice B)<br>`prisma/schema.prisma` | DB Slice B: Patients & documents | Pending | — |
 | **1.10** | `data-model.md` (Slice C)<br>`prisma/schema.prisma` | DB Slice C: Scheduling & exclusion constraints | Pending | — |
