@@ -4,7 +4,7 @@
 Every task = **one new Antigravity session** → one output → you approve → commit → next task.
 Never do two tasks in one session. Never skip ahead.
 
-All outputs go in `docs/design/` unless stated. Spec = `docs/FEATURES-v2.1.md`.
+All outputs go in `docs/design/` unless stated. Spec = `docs/FEATURES-v2.2.md`.
 
 ---
 
@@ -12,7 +12,7 @@ All outputs go in `docs/design/` unless stated. Spec = `docs/FEATURES-v2.1.md`.
 
 ```text
 DESIGN SESSION — Masaar clinic system.
-Read docs/FEATURES-v2.1.md, docs/ROADMAP.md and everything already in docs/design/.
+Read docs/FEATURES-v2.2.md, docs/ROADMAP.md and everything already in docs/design/.
 Rules:
 - Design only. Do NOT create app code, pages, components or migrations,
   except files explicitly named in this task.

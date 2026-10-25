@@ -1,7 +1,7 @@
 # Masaar Clinic System — Project Rules (always on)
 
 ## Source of truth
-- docs/FEATURES-v2.1.md (or the newest FEATURES-v2.x.md) is the spec. If anything conflicts, the spec wins.
+- docs/FEATURES-v2.2.md (or the newest FEATURES-v2.x.md) is the spec. If anything conflicts, the spec wins.
 - docs/ROADMAP.md and docs/STAGE-1-DESIGN-TASKS.md define the order of work.
 - docs/design/ holds approved design files. Read them before any work.
 

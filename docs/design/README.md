@@ -2,7 +2,7 @@
 
 This directory contains all approved Stage 1 design specifications, matrices, diagrams, and domain data models for the Masaar Clinic System.
 
-- **Specification Reference:** [FEATURES-v2.1.md](file:///F:/Claude%20CRM/docs/FEATURES-v2.1.md)
+- **Specification Reference:** [FEATURES-v2.2.md](file:///F:/Claude%20CRM/docs/FEATURES-v2.2.md)
 - **Current Stage:** Stage 1 (Design)
 - **Status:** In Progress
 
@@ -13,7 +13,7 @@ This directory contains all approved Stage 1 design specifications, matrices, di
 | Task | Output File / Deliverable | Description | Status | Completed Date |
 |:---:|---|---|:---:|:---:|
 | **1.01** | [`README.md`](file:///F:/Claude%20CRM/docs/design/README.md)<br>[`decisions.md`](file:///F:/Claude%20CRM/docs/design/decisions.md)<br>[`open-questions.md`](file:///F:/Claude%20CRM/docs/design/open-questions.md) | Project docs setup & ambiguity scan | **Done** | 2026-10-25 |
-| **1.02** | `FEATURES-v2.2.md`<br>[`decisions.md`](file:///F:/Claude%20CRM/docs/design/decisions.md) | Apply answers to spec & bump version | Pending | — |
+| **1.02** | [`FEATURES-v2.2.md`](file:///F:/Claude%20CRM/docs/FEATURES-v2.2.md)<br>[`decisions.md`](file:///F:/Claude%20CRM/docs/design/decisions.md) | Apply answers to spec & bump version | **Done** | 2026-10-25 |
 | **1.03** | `rules-index.md`<br>Spec with rule IDs | Unique rule IDs (R-section-n) index | Pending | — |
 | **1.04** | `glossary.md` | AR/EN business terms, DB & code naming | Pending | — |
 | **1.05** | `permissions.md`<br>`src/domain/permissions.ts` | Complete permission matrix & data tables | Pending | — |

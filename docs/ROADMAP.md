@@ -2,7 +2,7 @@
 
 **Idea:** design everything first, build a "quality machine" that checks the work automatically, then build one module at a time. You don't audit code — the machine does. You only approve designs and look at screenshots.
 
-Spec: `docs/FEATURES-v2.1.md` · Guide: `docs/BUILD-AND-LAUNCH-GUIDE.md`
+Spec: `docs/FEATURES-v2.2.md` · Guide: `docs/BUILD-AND-LAUNCH-GUIDE.md`
 
 ---
 
