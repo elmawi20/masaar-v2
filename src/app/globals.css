@@ -1,16 +1,176 @@
 @import "tailwindcss";
+@import "./fonts.css";
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  /* Primary Deep Teal Brand Tokens */
+  --primary-50: #e8f6f3;
+  --primary-100: #d1f2eb;
+  --primary-200: #a3e4d7;
+  --primary-500: #117a65;
+  --primary-600: #0e6251; /* Main Brand Color */
+  --primary-700: #0b5345;
+  --primary-800: #083e34;
+  --primary-900: #052922;
+
+  /* Status Tokens (Light Mode) */
+  --status-scheduled-text: #1d4ed8;
+  --status-scheduled-bg: #eff6ff;
+  --status-scheduled-border: #bfdbfe;
+
+  --status-arrived-text: #b45309;
+  --status-arrived-bg: #fef3c7;
+  --status-arrived-border: #fde68a;
+
+  --status-completed-text: #15803d;
+  --status-completed-bg: #dcfce7;
+  --status-completed-border: #bbf7d0;
+
+  --status-cancelled-text: #475569;
+  --status-cancelled-bg: #f1f5f9;
+  --status-cancelled-border: #cbd5e1;
+
+  --status-noshow-text: #b91c1c;
+  --status-noshow-bg: #fee2e2;
+  --status-noshow-border: #fecaca;
+
+  --status-waitlisted-text: #334155;
+  --status-waitlisted-bg: #e2e8f0;
+  --status-waitlisted-border: #94a3b8;
+
+  /* Surfaces & Neutrals (Light Mode) */
+  --bg-app: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-surface-elevated: #ffffff;
+  --bg-sidebar: #f1f5f9;
+  --border-subtle: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --text-main: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+
+  --font-family:
+    "IBM Plex Sans Arabic", "Cairo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
 }
 
 [data-theme="dark"] {
-  --background: #0b1120;
-  --foreground: #f8fafc;
+  /* Primary Deep Teal Brand Tokens */
+  --primary-50: #0a2b24;
+  --primary-100: #114238;
+  --primary-200: #14594c;
+  --primary-500: #16a085;
+  --primary-600: #1abc9c;
+  --primary-700: #2ecc71;
+  --primary-800: #a3e4d7;
+  --primary-900: #e8f6f3;
+
+  /* Status Tokens (Dark Mode) */
+  --status-scheduled-text: #93c5fd;
+  --status-scheduled-bg: #1e3a8a;
+  --status-scheduled-border: #2563eb;
+
+  --status-arrived-text: #fcd34d;
+  --status-arrived-bg: #78350f;
+  --status-arrived-border: #d97706;
+
+  --status-completed-text: #86efac;
+  --status-completed-bg: #14532d;
+  --status-completed-border: #16a34a;
+
+  --status-cancelled-text: #94a3b8;
+  --status-cancelled-bg: #1e293b;
+  --status-cancelled-border: #334155;
+
+  --status-noshow-text: #fca5a5;
+  --status-noshow-bg: #7f1d1d;
+  --status-noshow-border: #dc2626;
+
+  --status-waitlisted-text: #cbd5e1;
+  --status-waitlisted-bg: #0f172a;
+  --status-waitlisted-border: #475569;
+
+  /* Surfaces & Neutrals (Dark Mode) */
+  --bg-app: #0b1120;
+  --bg-surface: #131c31;
+  --bg-surface-elevated: #1e293b;
+  --bg-sidebar: #0f172a;
+  --border-subtle: #1e293b;
+  --border-strong: #334155;
+  --text-main: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
 }
 
 body {
-  background-color: var(--background);
-  color: var(--foreground);
+  font-family: var(--font-family);
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  line-height: 1.5;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Centered Max-Width Container per Style Guide §5.1 */
+.app-container {
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+
+/* Compact Front Desk Tables (15px font) per Style Guide §4.2, §5.2 */
+.table-compact {
+  font-size: 15px;
+  line-height: 22px;
+}
+.table-compact th {
+  padding: 8px 12px;
+  height: 40px;
+}
+.table-compact td {
+  padding: 8px 12px;
+  height: 44px;
+}
+
+/* Status Badges */
+.badge-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  border-width: 1px;
+  border-style: solid;
+}
+.badge-scheduled {
+  color: var(--status-scheduled-text);
+  background-color: var(--status-scheduled-bg);
+  border-color: var(--status-scheduled-border);
+}
+.badge-arrived {
+  color: var(--status-arrived-text);
+  background-color: var(--status-arrived-bg);
+  border-color: var(--status-arrived-border);
+}
+.badge-completed {
+  color: var(--status-completed-text);
+  background-color: var(--status-completed-bg);
+  border-color: var(--status-completed-border);
+}
+.badge-cancelled {
+  color: var(--status-cancelled-text);
+  background-color: var(--status-cancelled-bg);
+  border-color: var(--status-cancelled-border);
+}
+.badge-noshow {
+  color: var(--status-noshow-text);
+  background-color: var(--status-noshow-bg);
+  border-color: var(--status-noshow-border);
+}
+.badge-waitlisted {
+  color: var(--status-waitlisted-text);
+  background-color: var(--status-waitlisted-bg);
+  border-color: var(--status-waitlisted-border);
 }
