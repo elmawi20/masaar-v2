@@ -10,15 +10,26 @@ export function ThemeToggle() {
 
   useEffect(() => {
     setMounted(true);
-    const existing = document.documentElement.getAttribute("data-theme") as "light" | "dark" | null;
-    if (existing) {
-      setTheme(existing);
-    } else {
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      const initial = prefersDark ? "dark" : "light";
-      setTheme(initial);
-      document.documentElement.setAttribute("data-theme", initial);
+    let activeTheme: "light" | "dark" = "light";
+    try {
+      const stored = localStorage.getItem("masaar_theme");
+      if (stored === "dark" || stored === "light") {
+        activeTheme = stored;
+      } else {
+        const existing = document.documentElement.getAttribute("data-theme") as
+          "light" | "dark" | null;
+        if (existing === "dark" || existing === "light") {
+          activeTheme = existing;
+        } else {
+          const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          activeTheme = prefersDark ? "dark" : "light";
+        }
+      }
+    } catch {
+      // Ignore
     }
+    setTheme(activeTheme);
+    document.documentElement.setAttribute("data-theme", activeTheme);
   }, []);
 
   const toggleTheme = () => {
@@ -36,6 +47,7 @@ export function ThemeToggle() {
     return (
       <button
         type="button"
+        data-testid="theme-toggle"
         className="inline-flex items-center justify-center w-9 h-9 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200"
         aria-label="Toggle theme"
       >
@@ -47,6 +59,7 @@ export function ThemeToggle() {
   return (
     <button
       type="button"
+      data-testid="theme-toggle"
       onClick={toggleTheme}
       title={theme === "light" ? t("dark") : t("light")}
       aria-label={t("toggleTheme")}

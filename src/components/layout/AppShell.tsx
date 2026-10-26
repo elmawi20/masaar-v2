@@ -10,7 +10,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <RoleProvider>
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex">
+      <div className="min-h-screen bg-[var(--bg-app)] text-[var(--text-main)] flex">
         <Sidebar isOpenMobile={mobileOpen} onCloseMobile={() => setMobileOpen(false)} />
 
         <div className="flex-1 flex flex-col min-w-0">
