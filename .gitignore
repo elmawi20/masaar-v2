@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# Build outputs & test coverage
+.next/
+out/
+build/
+dist/
+coverage/
+
+# Patient uploads and backups (never commit real data)
+uploads/
+/storage/
+backups/
+*.sql
+*.dump
+*.backup
+
+# Test outputs
+test-results/
+playwright-report/
+*.tsbuildinfo
+
+# Scratch / temporary scripts
+scratch/
