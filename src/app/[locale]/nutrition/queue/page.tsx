@@ -212,7 +212,7 @@ export default function NutritionQueuePage() {
                 {isAr ? "لا يوجد مواعيد في قائمة الانتظار حالياً" : "No appointments in queue"}
               </div>
             ) : (
-              <div className="space-y-2.5 max-h-[600px] overflow-y-auto pr-1">
+              <div className="space-y-2.5 max-h-150 overflow-y-auto pr-1">
                 {appointments.map((appt) => {
                   const isSelected = selectedAppt?.id === appt.id;
                   return (
@@ -260,7 +260,7 @@ export default function NutritionQueuePage() {
         {/* Right Column: InBody Form & Dynamic Calculations */}
         <div className="lg:col-span-8 space-y-6">
           {!selectedAppt ? (
-            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-12 text-center text-slate-400 flex flex-col items-center justify-center min-h-[400px]">
+            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-12 text-center text-slate-400 flex flex-col items-center justify-center min-h-100">
               <span className="text-5xl mb-4">⚖️</span>
               <h3 className="text-lg font-semibold text-slate-200">
                 {isAr ? "اختر مريضاً من القائمة لبدء فحص InBody" : "Select a patient to start InBody"}
@@ -583,7 +583,7 @@ export default function NutritionQueuePage() {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-medium text-sm transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50"
+                    className="px-6 py-2.5 rounded-xl bg-linear-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-medium text-sm transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50"
                   >
                     {submitting
                       ? isAr ? "جاري الحفظ..." : "Saving..."

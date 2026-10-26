@@ -219,7 +219,7 @@ export default function CommissionsManagementPage() {
         {calculationData && selectedApptIds.length > 0 && (
           <button
             onClick={handleOpenPayoutModal}
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-medium text-sm transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2"
+            className="px-5 py-2.5 rounded-xl bg-linear-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-medium text-sm transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2"
           >
             <span>✓</span>
             {isAr
@@ -239,7 +239,7 @@ export default function CommissionsManagementPage() {
             <select
               value={selectedClinicianId}
               onChange={(e) => setSelectedClinicianId(e.target.value)}
-              className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white min-w-[200px]"
+              className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white min-w-50"
             >
               {clinicians.map((c) => (
                 <option key={c.id} value={c.id}>

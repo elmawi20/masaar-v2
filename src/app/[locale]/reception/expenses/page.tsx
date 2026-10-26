@@ -230,7 +230,7 @@ export default function ExpensesPage() {
 
         <button
           onClick={handleOpenCreate}
-          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-amber-600 hover:from-rose-400 hover:to-amber-500 text-white font-medium text-sm transition-all shadow-lg shadow-rose-500/20 flex items-center gap-2"
+          className="px-5 py-2.5 rounded-xl bg-linear-to-r from-rose-500 to-amber-600 hover:from-rose-400 hover:to-amber-500 text-white font-medium text-sm transition-all shadow-lg shadow-rose-500/20 flex items-center gap-2"
         >
           <span>+</span>
           {isAr ? "تسجيل مصروف جديد" : "New Expense"}

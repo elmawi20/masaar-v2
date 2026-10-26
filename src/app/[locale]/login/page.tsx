@@ -282,7 +282,7 @@ export default function LoginPage() {
     <div className="w-full max-w-md mx-auto">
       <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden">
         {/* Header Banner */}
-        <div className="p-6 bg-gradient-to-b from-slate-50 to-white dark:from-slate-800/60 dark:to-slate-900 border-b border-slate-200 dark:border-slate-800 text-center">
+        <div className="p-6 bg-linear-to-b from-slate-50 to-white dark:from-slate-800/60 dark:to-slate-900 border-b border-slate-200 dark:border-slate-800 text-center">
           <div className="w-12 h-12 rounded-xl bg-[#0E6251] text-white flex items-center justify-center font-bold text-xl mx-auto shadow-md mb-3">
             م
           </div>

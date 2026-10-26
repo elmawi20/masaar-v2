@@ -120,7 +120,7 @@ export default function ReportsPage() {
         <button
           onClick={handleExportCsv}
           disabled={exporting || loading}
-          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium text-sm transition-all shadow-lg shadow-blue-600/20 flex items-center gap-2 disabled:opacity-50"
+          className="px-5 py-2.5 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium text-sm transition-all shadow-lg shadow-blue-600/20 flex items-center gap-2 disabled:opacity-50"
         >
           <span>📥</span>
           {exporting

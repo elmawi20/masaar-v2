@@ -603,7 +603,7 @@ function StaffSchedulesContent() {
                             {l.status}
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-slate-500 max-w-[160px] truncate">
+                        <td className="py-3 px-4 text-slate-500 max-w-40 truncate">
                           {l.note || "—"}
                         </td>
                         <td className="py-3 px-4 text-end">

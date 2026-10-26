@@ -307,7 +307,7 @@ export default function PatientsDirectoryPage() {
             <button
               type="button"
               onClick={() => setSearchQuery("")}
-              className="absolute end-2.5 top-2.5 text-xs text-slate-400 hover:text-slate-600"
+              className="absolute inset-e-2.5 top-2.5 text-xs text-slate-400 hover:text-slate-600"
             >
               ✕
             </button>

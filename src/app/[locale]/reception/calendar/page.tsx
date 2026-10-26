@@ -527,7 +527,7 @@ export default function CalendarPage() {
               {allBeds.length === 0 ? (
                 <div className="p-8 text-center text-slate-400">لا توجد أسرّة متاحة في هذا اليوم أو بهذه التصفية</div>
               ) : (
-                <div className="min-w-[800px]">
+                <div className="min-w-200">
                   {/* Grid Header (Beds) */}
                   <div className="grid border-b border-slate-200 dark:border-slate-800 sticky top-0 bg-slate-50 dark:bg-slate-850 z-10"
                     style={{ gridTemplateColumns: `80px repeat(${allBeds.length}, minmax(180px, 1fr))` }}
@@ -583,7 +583,7 @@ export default function CalendarPage() {
                               key={bed.id}
                               onDragOver={(e) => e.preventDefault()}
                               onDrop={(e) => handleDrop(e, bed.id, time)}
-                              className="p-1 min-h-[44px] border-l border-slate-200 dark:border-slate-800 relative group transition-colors"
+                              className="p-1 min-h-11 border-l border-slate-200 dark:border-slate-800 relative group transition-colors"
                             >
                               {matchingAppts.map((appt: any) => {
                                 // Only render card once at slot start
@@ -758,7 +758,7 @@ export default function CalendarPage() {
               </button>
             </div>
 
-            <div className="space-y-3 max-h-[600px] overflow-y-auto">
+            <div className="space-y-3 max-h-150 overflow-y-auto">
               {(dayData?.waitlist ?? []).length === 0 ? (
                 <div className="p-6 text-center text-xs text-slate-400">
                   لا يوجد مرضى في قائمة الانتظار اليوم

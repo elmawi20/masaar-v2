@@ -223,7 +223,7 @@ describe("Module 3.3 Patients & Documents Integration Tests [Spec §4, §9.5]", 
     );
     expect(searchRes.success).toBe(true);
     if (searchRes.success && searchRes.data) {
-      const names = searchRes.data.map((p) => p.fullName);
+      const names = searchRes.data.map((p: any) => p.fullName);
       expect(names).toContain("يوسف أحمد عادل");
       expect(names).toContain("مريم أحمد عادل");
     }
@@ -440,7 +440,7 @@ describe("Module 3.3 Patients & Documents Integration Tests [Spec §4, §9.5]", 
       { user: receptionistUser }
     );
     if (recProfile.success && recProfile.data) {
-      const categories = recProfile.data.documents.map((d) => d.category);
+      const categories = recProfile.data.documents.map((d: any) => d.category);
       expect(categories).toContain(DocumentCategory.ID_ADMINISTRATIVE);
       expect(categories).not.toContain(DocumentCategory.X_RAY);
     }
@@ -452,7 +452,7 @@ describe("Module 3.3 Patients & Documents Integration Tests [Spec §4, §9.5]", 
       { user: physioUser }
     );
     if (docProfile.success && docProfile.data) {
-      const categories = docProfile.data.documents.map((d) => d.category);
+      const categories = docProfile.data.documents.map((d: any) => d.category);
       expect(categories).toContain(DocumentCategory.ID_ADMINISTRATIVE);
       expect(categories).toContain(DocumentCategory.X_RAY);
     }
