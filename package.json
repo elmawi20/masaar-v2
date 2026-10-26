@@ -17,7 +17,7 @@
     "test:unit": "vitest run --dir test/unit",
     "test:integration": "vitest run --dir test/integration",
     "test:e2e": "playwright test",
-    "test:coverage": "node scripts/check-test-plan.js",
+    "test:coverage": "node scripts/check-test-plan.js && node scripts/check-rule-coverage.js",
     "db:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
