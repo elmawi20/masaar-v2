@@ -248,7 +248,7 @@ const NAV_GROUPS: NavGroup[] = [
       },
       {
         href: "/management/staff-schedules",
-        labelAr: "جداول العاملين والإجازات",
+        labelAr: "مواعيد عمل الموظفين",
         labelEn: "Staff Schedules",
         roles: ["OWNER", "MANAGER"],
         icon: IconToday,

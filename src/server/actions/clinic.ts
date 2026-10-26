@@ -227,12 +227,17 @@ export const toggleClosureAction = defineAction({
 
 export const listRoomsAction = defineAction({
   actionKey: "admin.staff.manage_schedules",
-  schema: z.object({}).optional().default({}),
-  handler: async ({ tx }) => {
+  schema: z.object({
+    includeInactive: z.boolean().optional().default(true),
+  }).optional().default({}),
+  handler: async ({ input, tx }) => {
+    const includeInactive = input?.includeInactive ?? true;
     return tx.room.findMany({
+      where: includeInactive ? undefined : { isActive: true },
       orderBy: { createdAt: "asc" },
       include: {
         beds: {
+          where: includeInactive ? undefined : { isActive: true },
           orderBy: { name: "asc" },
         },
       },

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { useLocale } from "next-intl";
 import { useRole } from "@/context/RoleContext";
 import {
@@ -366,6 +367,18 @@ export default function AdminStaffPage() {
                     </td>
                     <td className="py-3 px-4 text-end">
                       <div className="inline-flex items-center gap-1.5">
+                        {/* Work Schedules for Clinicians */}
+                        {(s.role === "PHYSIOTHERAPIST" || s.role === "NUTRITIONIST") && (
+                          <Link
+                            href={`/${locale}/management/staff-schedules?userId=${s.id}`}
+                            className="px-2 py-1 text-[11px] font-semibold rounded border border-teal-200 text-[#0E6251] dark:border-teal-800 dark:text-[#48C9B0] hover:bg-teal-50 dark:hover:bg-teal-950/40 inline-flex items-center gap-1"
+                            title={isAr ? "مواعيد العمل" : "Work Schedules"}
+                          >
+                            <span>📅</span>
+                            <span>{isAr ? "مواعيد العمل" : "Schedules"}</span>
+                          </Link>
+                        )}
+
                         {/* Reset Password Button */}
                         <button
                           type="button"

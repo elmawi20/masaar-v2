@@ -32,6 +32,7 @@ export default function ResourcesPage() {
   const isAr = locale === "ar";
 
   const [rooms, setRooms] = useState<RoomItem[]>([]);
+  const [showInactive, setShowInactive] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -220,7 +221,17 @@ export default function ResourcesPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-md border border-slate-200 dark:border-slate-700 shadow-sm">
+            <input
+              type="checkbox"
+              checked={showInactive}
+              onChange={(e) => setShowInactive(e.target.checked)}
+              className="w-4 h-4 rounded text-[#0E6251] focus:ring-[#0E6251]"
+            />
+            <span>{isAr ? "إظهار غير النشطة" : "Show Inactive"}</span>
+          </label>
+
           <button
             type="button"
             onClick={() => setShowRoomModal(true)}
@@ -253,112 +264,121 @@ export default function ResourcesPage() {
           <div className="col-span-full py-12 text-center text-xs text-slate-400">
             {isAr ? "جارٍ تحميل الغرف والأسرّة..." : "Loading resources..."}
           </div>
-        ) : rooms.length === 0 ? (
+        ) : rooms.filter((r) => showInactive || r.isActive).length === 0 ? (
           <div className="col-span-full py-12 text-center text-xs text-slate-400">
-            {isAr ? "لا توجد غرف مسجلة حالياً." : "No rooms configured."}
+            {isAr ? "لا توجد غرف مطابقة للعرض." : "No matching rooms to display."}
           </div>
         ) : (
-          rooms.map((r) => (
-            <div
-              key={r.id}
-              className={`rounded-xl border p-4 transition-all shadow-sm ${
-                r.isActive
-                  ? "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
-                  : "bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 opacity-60"
-              }`}
-            >
-              {/* Room Header */}
-              <div className="flex items-start justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">{r.nameAr}</h3>
-                    {r.beds.filter((b) => b.isActive).length === 1 && (
-                      <span className="px-1.5 py-0.5 text-[9px] font-semibold rounded bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
-                        {isAr ? "غرفة مفردة" : "Single Bed"}
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-[11px] text-slate-400 block">{r.nameEn}</span>
-                </div>
-
-                <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => handleToggleRoom(r.id, r.isActive)}
-                    className="px-2 py-0.5 text-[10px] font-medium rounded border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
-                  >
-                    {r.isActive ? (isAr ? "تعطيل الغرفة" : "Deactivate") : (isAr ? "تفعيل الغرفة" : "Activate")}
-                  </button>
-                </div>
-              </div>
-
-              {/* Beds in Room */}
-              <div className="pt-3 space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-slate-600 dark:text-slate-400">
-                    {isAr ? `الأسرّة (${r.beds.length})` : `Beds (${r.beds.length})`}
-                  </span>
-                  {r.isActive && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedRoomId(r.id);
-                        setShowBedModal(true);
-                      }}
-                      className="text-[11px] text-[#0E6251] dark:text-[#48C9B0] font-semibold hover:underline"
-                    >
-                      {isAr ? "+ سرير" : "+ Bed"}
-                    </button>
-                  )}
-                </div>
-
-                <div className="space-y-1.5">
-                  {r.beds.length === 0 ? (
-                    <span className="text-[11px] text-slate-400 italic block py-2 text-center">
-                      {isAr ? "لا توجد أسرّة بهذه الغرفة" : "No beds in this room"}
-                    </span>
-                  ) : (
-                    r.beds.map((b) => (
-                      <div
-                        key={b.id}
-                        className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 text-xs"
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-slate-800 dark:text-slate-200">
-                            🛏️ {b.name}
+          rooms
+            .filter((r) => showInactive || r.isActive)
+            .map((r) => {
+              const displayedBeds = r.beds.filter((b) => showInactive || b.isActive);
+              return (
+                <div
+                  key={r.id}
+                  className={`rounded-xl border p-4 transition-all shadow-sm ${
+                    r.isActive
+                      ? "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+                      : "bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 opacity-60"
+                  }`}
+                >
+                  {/* Room Header */}
+                  <div className="flex items-start justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">{r.nameAr}</h3>
+                        {r.beds.filter((b) => b.isActive).length === 1 && (
+                          <span className="px-1.5 py-0.5 text-[9px] font-semibold rounded bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
+                            {isAr ? "غرفة مفردة" : "Single Bed"}
                           </span>
-                          {r.isActive && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEditingBed({ id: b.id, name: b.name, roomId: r.id });
-                                setEditBedName(b.name);
-                                setShowEditBedModal(true);
-                              }}
-                              className="text-[10px] text-slate-500 hover:text-[#0E6251] dark:hover:text-[#48C9B0] underline px-1"
-                            >
-                              {isAr ? "تعديل" : "Edit"}
-                            </button>
-                          )}
-                        </div>
+                        )}
+                      </div>
+                      <span className="text-[11px] text-slate-400 block">{r.nameEn}</span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => handleToggleRoom(r.id, r.isActive)}
+                        className={`px-2.5 py-1 text-[11px] font-semibold rounded border ${
+                          r.isActive
+                            ? "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-300 hover:bg-amber-100"
+                            : "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300 hover:bg-emerald-100"
+                        }`}
+                      >
+                        {r.isActive ? (isAr ? "إيقاف" : "Deactivate") : (isAr ? "تفعيل" : "Activate")}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Beds in Room */}
+                  <div className="pt-3 space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-semibold text-slate-600 dark:text-slate-400">
+                        {isAr ? `الأسرّة (${displayedBeds.length})` : `Beds (${displayedBeds.length})`}
+                      </span>
+                      {r.isActive && (
                         <button
                           type="button"
-                          onClick={() => handleToggleBed(b.id, b.isActive)}
-                          className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
-                            b.isActive
-                              ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
-                              : "bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-400"
-                          }`}
+                          onClick={() => {
+                            setSelectedRoomId(r.id);
+                            setShowBedModal(true);
+                          }}
+                          className="text-[11px] text-[#0E6251] dark:text-[#48C9B0] font-semibold hover:underline"
                         >
-                          {b.isActive ? (isAr ? "نشط" : "Active") : (isAr ? "معطّل" : "Disabled")}
+                          {isAr ? "+ سرير" : "+ Bed"}
                         </button>
-                      </div>
-                    ))
-                  )}
+                      )}
+                    </div>
+
+                    <div className="space-y-1.5">
+                      {displayedBeds.length === 0 ? (
+                        <span className="text-[11px] text-slate-400 italic block py-2 text-center">
+                          {isAr ? "لا توجد أسرّة نشطة بهذه الغرفة" : "No active beds in this room"}
+                        </span>
+                      ) : (
+                        displayedBeds.map((b) => (
+                          <div
+                            key={b.id}
+                            className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 text-xs"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-slate-800 dark:text-slate-200">
+                                🛏️ {b.name}
+                              </span>
+                              {r.isActive && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingBed({ id: b.id, name: b.name, roomId: r.id });
+                                    setEditBedName(b.name);
+                                    setShowEditBedModal(true);
+                                  }}
+                                  className="text-[10px] text-slate-500 hover:text-[#0E6251] dark:hover:text-[#48C9B0] underline px-1"
+                                >
+                                  {isAr ? "تعديل" : "Edit"}
+                                </button>
+                              )}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleToggleBed(b.id, b.isActive)}
+                              className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${
+                                b.isActive
+                                  ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800"
+                                  : "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800"
+                              }`}
+                            >
+                              {b.isActive ? (isAr ? "إيقاف" : "Deactivate") : (isAr ? "تفعيل" : "Activate")}
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          ))
+              );
+            })
         )}
       </div>
 

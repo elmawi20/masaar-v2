@@ -39,7 +39,7 @@ export default async function LocaleLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         <NextIntlClientProvider messages={messages}>
           <AppShell initialUser={currentUser}>{children}</AppShell>
         </NextIntlClientProvider>

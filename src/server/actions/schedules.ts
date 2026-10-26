@@ -4,7 +4,7 @@ import { z } from "zod";
 import { defineAction } from "../defineAction";
 import { LeaveType, LeaveStatus } from "@prisma/client";
 
-const timeRegex = /^([01]\d|2[0-3]):[0-5]\d$/;
+const timeRegex = /^([01]\d|2[0-3]):(00|15|30|45)$/;
 
 // ============================================================================
 // 1. Staff Weekly Schedules (R-1.1-19, R-3-2)
