@@ -2,7 +2,7 @@
 
 This document lists every unclear, missing, or contradictory point identified during the comprehensive review of the specification, along with the approved resolution and decision records incorporated into [docs/FEATURES-v2.2.md](file:///F:/Claude%20CRM/docs/FEATURES-v2.2.md).
 
-**Summary:** 16 questions scanned · **16 Resolved** · **0 Unresolved**
+**Summary:** 17 questions scanned · **17 Resolved** · **0 Unresolved**
 
 ---
 
@@ -163,5 +163,6 @@ This document lists every unclear, missing, or contradictory point identified du
 - **Spec Reference:** §9.4 (Nutrition consultation, `R-9.4-1`)
 - **Question:** §9.4 specifies recording daily calorie target and protein/carbs/fat grams. Should the consultation form enforce a validation warning (or block submission) if the calculated caloric sum from macronutrients (`(protein_grams * 4) + (carbs_grams * 4) + (fat_grams * 9)`) deviates from `calorie_target` by more than 10%?
 - **Suggested Answer:** Non-blocking advisory warning only (soft alert). Clinical nutritionists frequently adjust for net carbohydrates (subtracting non-digestible dietary fiber) or use specialized ketogenic / post-bariatric dietary protocols where standard 4/4/9 Atwater factors diverge from total nominal calorie targets by 5% to 15%. A non-blocking advisory note ("تنبيه استرشادي: مجموع سعرات المغذيات يختلف عن السعرات المستهدفة بأكثر من 10%") alerts the clinician to accidental typos without blocking legitimate clinical prescriptions.
-- **Approved Resolution:** **Pending User Approval** (Omitted from wireframe design until approved per project rules: "If any of these is not in the spec, add it to open-questions.md instead of designing it").
-- **Status:** **Pending**
+- **Approved Resolution:** **Accepted.** A calorie mismatch (>10% discrepancy between calorie target and macronutrients sum) triggers an advisory soft warning banner on screen, but does not block saving the consultation note.
+- **Status:** **Resolved** (Recorded in [DEC-028](file:///F:/Claude%20CRM/docs/design/decisions.md) & applied to spec §9.4, `R-9.4-1`)
+
