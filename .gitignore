@@ -33,6 +33,7 @@ uploads/
 /storage/
 backups/
 *.sql
+!prisma/migrations/**/*.sql
 *.dump
 *.backup
 
