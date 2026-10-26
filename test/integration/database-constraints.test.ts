@@ -11,14 +11,15 @@ describe("Database Constraints & Immutability Triggers Integration Suite (masaar
   let patientId1: string;
   let patientId2: string;
 
-  beforeAll(async () => {
-    await resetTestDatabase();
+  const uniqueSuffix = Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 6);
+  const sessionTypeCode = ("PT_" + uniqueSuffix).toUpperCase().slice(0, 30);
 
+  beforeAll(async () => {
     // 1. Create baseline room & beds
     const room = await testDb.room.create({
       data: {
-        nameAr: "غرفة العلاج الطبيعي 1",
-        nameEn: "Physical Therapy Room 1",
+        nameAr: `غرفة العلاج الطبيعي ${uniqueSuffix}`,
+        nameEn: `Physical Therapy Room ${uniqueSuffix}`,
       },
     });
     roomId = room.id;
@@ -42,7 +43,7 @@ describe("Database Constraints & Immutability Triggers Integration Suite (masaar
     // 2. Create session type
     const sessionType = await testDb.sessionType.create({
       data: {
-        code: "PT_SESSION_45",
+        code: sessionTypeCode,
         nameAr: "جلسة تأهيل وعلاج طبيعي 45 دقيقة",
         nameEn: "Physical Therapy 45m",
         category: "PHYSIOTHERAPY",
@@ -52,13 +53,13 @@ describe("Database Constraints & Immutability Triggers Integration Suite (masaar
     });
     sessionTypeId = sessionType.id;
 
-    // 3. Create staff users
+    // 3. Create staff users with unique phones & emails
     const clinician1 = await testDb.user.create({
       data: {
-        email: "dr.tarek@masaar.com",
+        email: `dr.tarek_${uniqueSuffix}@masaar.com`,
         passwordHash: "$2a$10$dummyhashedpasswordfortesting12345678",
         fullName: "د. طارق الحسين",
-        phone: "01001112222",
+        phone: "010" + Math.floor(10000000 + Math.random() * 90000000),
         jobTitle: "Physiotherapist",
         role: "PHYSIOTHERAPIST",
         isActive: true,
@@ -68,10 +69,10 @@ describe("Database Constraints & Immutability Triggers Integration Suite (masaar
 
     const clinician2 = await testDb.user.create({
       data: {
-        email: "dr.mona@masaar.com",
+        email: `dr.mona_${uniqueSuffix}@masaar.com`,
         passwordHash: "$2a$10$dummyhashedpasswordfortesting12345678",
         fullName: "د. منى عبد الرحمن",
-        phone: "01003334444",
+        phone: "010" + Math.floor(10000000 + Math.random() * 90000000),
         jobTitle: "Physiotherapist",
         role: "PHYSIOTHERAPIST",
         isActive: true,
@@ -79,11 +80,11 @@ describe("Database Constraints & Immutability Triggers Integration Suite (masaar
     });
     clinicianId2 = clinician2.id;
 
-    // 4. Create patients
+    // 4. Create patients with unique mobile numbers
     const patient1 = await testDb.patient.create({
       data: {
         fullName: "محمود حسن علي",
-        mobilePhone: "01011112222",
+        mobilePhone: "011" + Math.floor(10000000 + Math.random() * 90000000),
         dateOfBirth: new Date("1985-05-15"),
         gender: "MALE",
         status: "ACTIVE",
@@ -96,7 +97,7 @@ describe("Database Constraints & Immutability Triggers Integration Suite (masaar
     const patient2 = await testDb.patient.create({
       data: {
         fullName: "سارة إبراهيم فتحي",
-        mobilePhone: "01022223333",
+        mobilePhone: "012" + Math.floor(10000000 + Math.random() * 90000000),
         dateOfBirth: new Date("1992-09-20"),
         gender: "FEMALE",
         status: "ACTIVE",

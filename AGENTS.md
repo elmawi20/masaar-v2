@@ -26,6 +26,7 @@ CURRENT_STAGE: 3 (Build)   <!-- update to 2, 3, 4 as you progress -->
 - Every server action uses defineAction(): auth -> active user -> permission -> Zod validation -> transaction -> audit log.
 - Money = integer piasters. Timestamps = UTC, shown in Africa/Cairo. Never store calculated values.
 - Never hard-delete business records (use void / cancel / deactivate).
+- Tests never hard-delete records; isolation is done by resetting masaar_test before the run and using unique test data.
 - Write tests for every rule ID touched; run typecheck, lint, all tests and rule coverage; never report "done" with anything failing.
 - Never delete, skip or weaken a test to make it pass.
 

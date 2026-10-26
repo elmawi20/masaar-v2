@@ -18,6 +18,8 @@ import {
 import type { ActionUser } from "@/server/defineAction";
 
 describe("Module 3.2: Clinic Setup & Staff Schedules (Integration)", () => {
+  const uniqueSuffix = Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 6);
+  const sessionTypeCode = ("PHYSIO_" + uniqueSuffix).toUpperCase().slice(0, 30);
   let ownerUser: ActionUser;
   let managerUser: ActionUser;
   let physioUser: ActionUser;
@@ -25,19 +27,13 @@ describe("Module 3.2: Clinic Setup & Staff Schedules (Integration)", () => {
   let testBedId: string;
   let testClosureId: string;
   let testLeaveId: string;
-  beforeAll(async () => {
-    // Clean up any previous session type test run
-    await prisma.sessionType.deleteMany({
-      where: { code: "PHYSIO_INTEGRATION_TEST" },
-    });
 
-    // 1. Create distinct test users
-    const owner = await prisma.user.upsert({
-      where: { email: "owner.clinic.setup@masaar.local" },
-      update: {},
-      create: {
+  beforeAll(async () => {
+    // 1. Create distinct test users with unique identifiers
+    const owner = await prisma.user.create({
+      data: {
         fullName: "د. طارق السعيد (مالك)",
-        email: "owner.clinic.setup@masaar.local",
+        email: `owner_${uniqueSuffix}@masaar.local`,
         passwordHash: "$2a$10$FakeHashedPasswordForTestEnvironment123",
         phone: "01011112222",
         jobTitle: "مالك العيادة",
@@ -47,12 +43,10 @@ describe("Module 3.2: Clinic Setup & Staff Schedules (Integration)", () => {
     });
     ownerUser = { id: owner.id, email: owner.email, role: "OWNER", isActive: true };
 
-    const manager = await prisma.user.upsert({
-      where: { email: "manager.clinic.setup@masaar.local" },
-      update: {},
-      create: {
+    const manager = await prisma.user.create({
+      data: {
         fullName: "أحمد فؤاد (مدير)",
-        email: "manager.clinic.setup@masaar.local",
+        email: `manager_${uniqueSuffix}@masaar.local`,
         passwordHash: "$2a$10$FakeHashedPasswordForTestEnvironment123",
         phone: "01033334444",
         jobTitle: "مدير العمليات",
@@ -62,12 +56,10 @@ describe("Module 3.2: Clinic Setup & Staff Schedules (Integration)", () => {
     });
     managerUser = { id: manager.id, email: manager.email, role: "MANAGER", isActive: true };
 
-    const physio = await prisma.user.upsert({
-      where: { email: "physio.clinic.setup@masaar.local" },
-      update: {},
-      create: {
+    const physio = await prisma.user.create({
+      data: {
         fullName: "د. هبة جمال (معالج)",
-        email: "physio.clinic.setup@masaar.local",
+        email: `physio_${uniqueSuffix}@masaar.local`,
         passwordHash: "$2a$10$FakeHashedPasswordForTestEnvironment123",
         phone: "01055556666",
         jobTitle: "أخصائي علاج طبيعي",
@@ -76,26 +68,6 @@ describe("Module 3.2: Clinic Setup & Staff Schedules (Integration)", () => {
       },
     });
     physioUser = { id: physio.id, email: physio.email, role: "PHYSIOTHERAPIST", isActive: true };
-  });
-
-  afterAll(async () => {
-    // Cleanup created test records
-    await prisma.staffLeave.deleteMany({
-      where: { userId: physioUser.id },
-    });
-    await prisma.staffSchedule.deleteMany({
-      where: { userId: physioUser.id },
-    });
-    if (testRoomId) {
-      await prisma.bed.deleteMany({ where: { roomId: testRoomId } });
-      await prisma.room.deleteMany({ where: { id: testRoomId } });
-    }
-    if (testClosureId) {
-      await prisma.clinicClosure.deleteMany({ where: { id: testClosureId } });
-    }
-    await prisma.sessionType.deleteMany({
-      where: { code: "PHYSIO_INTEGRATION_TEST" },
-    });
   });
 
   // --------------------------------------------------------------------------
@@ -238,7 +210,7 @@ describe("Module 3.2: Clinic Setup & Staff Schedules (Integration)", () => {
     it("allows OWNER to create new session type with duration & piasters [R-2-5]", async () => {
       const res = await createSessionTypeAction(
         {
-          code: "PHYSIO_INTEGRATION_TEST",
+          code: sessionTypeCode,
           category: "PHYSIOTHERAPY",
           nameAr: "جلسة علاج طبيعي متقدمة",
           nameEn: "Advanced Physiotherapy",

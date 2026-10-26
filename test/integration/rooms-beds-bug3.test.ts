@@ -11,17 +11,16 @@ import { Role } from "@prisma/client";
 import { hashPassword } from "@/server/auth/crypto";
 
 describe("Bug 3 & Improvement: Rooms and Beds Management [R-2-4, R-1.1-19]", () => {
+  const uniqueSuffix = Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 6);
   let managerUser: { id: string; email: string; role: Role; isActive: boolean };
 
   beforeAll(async () => {
-    await resetTestDatabase();
-
     const passwordHash = await hashPassword("ManagerPassword123!");
     const manager = await testDb.user.create({
       data: {
-        email: "manager.facility@masaar.local",
+        email: `manager_${uniqueSuffix}@masaar.local`,
         fullName: "محمد عزمي (مدير العمليات)",
-        phone: "01011223344",
+        phone: "010" + Math.floor(10000000 + Math.random() * 90000000),
         jobTitle: "مدير العمليات",
         role: "MANAGER",
         passwordHash,

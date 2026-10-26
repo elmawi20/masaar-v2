@@ -16,19 +16,18 @@ import { Role } from "@prisma/client";
 import { hashPassword } from "@/server/auth/crypto";
 
 describe("Module 3.1: Staff Accounts & Security Integration (masaar_test)", () => {
+  const uniqueSuffix = Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 6);
   let ownerUser: { id: string; email: string; role: Role; isActive: boolean };
   let managerUser: { id: string; email: string; role: Role; isActive: boolean };
   let createdStaffId: string;
 
   beforeAll(async () => {
-    await resetTestDatabase();
-
     const passwordHash = await hashPassword("Password123!");
 
     // Create Owner user
     const owner = await testDb.user.create({
       data: {
-        email: "owner.test@masaar.local",
+        email: `owner_${uniqueSuffix}@masaar.local`,
         fullName: "د. طارق المعوي",
         phone: "01000000001",
         jobTitle: "استشاري ورئيس المركز",
@@ -47,7 +46,7 @@ describe("Module 3.1: Staff Accounts & Security Integration (masaar_test)", () =
     // Create Manager user
     const manager = await testDb.user.create({
       data: {
-        email: "manager.test@masaar.local",
+        email: `manager_${uniqueSuffix}@masaar.local`,
         fullName: "منى الشريف",
         phone: "01000000002",
         jobTitle: "مديرة العمليات",
@@ -69,7 +68,7 @@ describe("Module 3.1: Staff Accounts & Security Integration (masaar_test)", () =
       const result = await createStaffAccountAction(
         {
           fullName: "د. إبراهيم كمال",
-          email: "ibrahim.physio@masaar.local",
+          email: `ibrahim_${uniqueSuffix}@masaar.local`,
           phone: "01011223344",
           jobTitle: "أخصائي علاج طبيعي",
           role: "PHYSIOTHERAPIST",
@@ -87,7 +86,7 @@ describe("Module 3.1: Staff Accounts & Security Integration (masaar_test)", () =
       if (result.success) {
         const staffData = result.data as { id: string; email: string; role: string };
         createdStaffId = staffData.id;
-        expect(staffData.email).toBe("ibrahim.physio@masaar.local");
+        expect(staffData.email).toBe(`ibrahim_${uniqueSuffix}@masaar.local`);
         expect(staffData.role).toBe("PHYSIOTHERAPIST");
       }
     });

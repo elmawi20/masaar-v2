@@ -329,18 +329,23 @@ async function main() {
       },
     });
 
-    // Create Payment
-    await prisma.payment.create({
-      data: {
-        chargeId: charge.id,
-        receiptNumber: "INV-2026-00001",
-        receiptYear: 2026,
-        receiptSequence: 1,
-        amountPiasters: 360000,
-        paymentMethod: PaymentMethod.CASH,
-        collectedByUserId: seededUsers.RECEPTIONIST.id,
-      },
+    // Create Payment if not already existing
+    const existingPayment1 = await prisma.payment.findFirst({
+      where: { receiptNumber: "INV-2026-00001" },
     });
+    if (!existingPayment1) {
+      await prisma.payment.create({
+        data: {
+          chargeId: charge.id,
+          receiptNumber: "INV-2026-00001",
+          receiptYear: 2026,
+          receiptSequence: 1,
+          amountPiasters: 360000,
+          paymentMethod: PaymentMethod.CASH,
+          collectedByUserId: seededUsers.RECEPTIONIST.id,
+        },
+      });
+    }
     console.log("  ✅ Package, Charge, and Payment (INV-2026-00001) seeded for Patient 1");
   }
 
@@ -418,17 +423,22 @@ async function main() {
       },
     });
 
-    await prisma.payment.create({
-      data: {
-        chargeId: charge2.id,
-        receiptNumber: "INV-2026-00002",
-        receiptYear: 2026,
-        receiptSequence: 2,
-        amountPiasters: 30000,
-        paymentMethod: PaymentMethod.INSTAPAY,
-        collectedByUserId: seededUsers.RECEPTIONIST.id,
-      },
+    const existingPayment2 = await prisma.payment.findFirst({
+      where: { receiptNumber: "INV-2026-00002" },
     });
+    if (!existingPayment2) {
+      await prisma.payment.create({
+        data: {
+          chargeId: charge2.id,
+          receiptNumber: "INV-2026-00002",
+          receiptYear: 2026,
+          receiptSequence: 2,
+          amountPiasters: 30000,
+          paymentMethod: PaymentMethod.INSTAPAY,
+          collectedByUserId: seededUsers.RECEPTIONIST.id,
+        },
+      });
+    }
     console.log("  ✅ Appointments and payment (INV-2026-00002) seeded");
   }
 

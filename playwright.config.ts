@@ -1,4 +1,14 @@
 import { defineConfig } from "@playwright/test";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+const devUrl = process.env.DATABASE_URL || "";
+const testDbUrl =
+  process.env.TEST_DATABASE_URL ||
+  devUrl.replace(/\/masaar_dev(\?.*)?$/, "/masaar_test$1");
+
+const e2ePort = process.env.CI ? 3000 : 3001;
 
 export default defineConfig({
   testDir: "./test/e2e",
@@ -8,7 +18,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: [["html", { open: "never" }], ["list"]],
   use: {
-    baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || "http://localhost:3000",
+    baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || `http://localhost:${e2ePort}`,
     trace: "on-first-retry",
   },
   projects: [
@@ -32,9 +42,13 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "npm run dev",
-    url: "http://localhost:3000",
-    reuseExistingServer: !process.env.CI,
+    command: `npm run dev -- -p ${e2ePort}`,
+    url: `http://localhost:${e2ePort}`,
+    reuseExistingServer: false,
     timeout: 120 * 1000,
+    env: {
+      PORT: String(e2ePort),
+      DATABASE_URL: testDbUrl,
+    },
   },
 });

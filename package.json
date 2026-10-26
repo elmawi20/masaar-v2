@@ -19,6 +19,9 @@
     "test:e2e": "playwright test",
     "test:coverage": "node scripts/check-test-plan.js && node scripts/check-rule-coverage.js",
     "db:seed": "tsx prisma/seed.ts",
+    "db:test:reset": "tsx scripts/reset-test-db.ts",
+    "db:test:seed": "tsx scripts/seed-test-db.ts",
+    "db:reset-dev": "tsx scripts/reset-dev-db.ts",
     "prepare": "husky"
   },
   "dependencies": {

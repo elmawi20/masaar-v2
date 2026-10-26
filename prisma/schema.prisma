@@ -600,7 +600,7 @@ model AuditLog {
   id          String   @id @default(uuid())
   timestamp   DateTime @default(now()) @map("created_at")
   userId      String?  @map("user_id") // Nullable for unauthenticated/system actions
-  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull) // Never cascade delete
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Restrict)
   userRole    String?  @map("user_role") @db.VarChar(50)
   action      String   @db.VarChar(100) // CREATE, UPDATE, STATUS_CHANGE, LOGIN, etc.
   entityType  String   @map("entity_type") @db.VarChar(100) // USER, APPOINTMENT, SETTING, etc.

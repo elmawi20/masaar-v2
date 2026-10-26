@@ -14,20 +14,19 @@ import { hashPassword } from "@/server/auth/crypto";
 import { authenticator } from "otplib";
 
 describe("Bug 2 Integration: Receptionist Account Onboarding & Role Segregation [R-1-6, R-3-1, R-3-4, R-15.2-2]", () => {
+  const uniqueSuffix = Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 6);
   let ownerUser: { id: string; email: string; role: Role; isActive: boolean };
-  const receptionistEmail = "receptionist.test@masaar.local";
+  const receptionistEmail = `receptionist_${uniqueSuffix}@masaar.local`;
   const tempPassword = "TemporaryPassword123!";
   const permanentPassword = "PermanentPassword123!";
 
   beforeAll(async () => {
-    await resetTestDatabase();
-
     const passwordHash = await hashPassword("OwnerPassword123!");
     const owner = await testDb.user.create({
       data: {
-        email: "owner.hospital@masaar.local",
+        email: `owner_${uniqueSuffix}@masaar.local`,
         fullName: "د. طارق المعوي",
-        phone: "01000000001",
+        phone: "010" + Math.floor(10000000 + Math.random() * 90000000),
         jobTitle: "المالك ورئيس المركز",
         role: "OWNER",
         passwordHash,

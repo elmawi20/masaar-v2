@@ -23,8 +23,8 @@ This document provides a comprehensive audit and registry of all database constr
   - *Slice D (9 tables):* `packages`, `package_extensions`, `charges`, `payments`, `receipt_counters`, `refunds`, `write_offs`, `price_change_history`, `cash_closings`.
   - *Slice E (8 tables):* `clinical_notes`, `clinical_note_versions`, `clinical_note_addenda`, `inbody_records`, `expenses`, `expense_edit_history`, `commission_payouts`, `commission_payout_sessions`.
 - **Total Foreign Key Relations:** **115 relations**
-  - **46 Restrict relations (`ON DELETE RESTRICT`):** Protects 100% of clinical, financial, and author records against accidental or administrative deletion.
-  - **56 SetNull relations (`ON DELETE SET NULL`):** Auditing and optional references (e.g. `created_by_user_id`, `cash_shift_id`).
+  - **47 Restrict relations (`ON DELETE RESTRICT`):** Protects 100% of clinical, financial, author, and audit records against accidental or administrative deletion.
+  - **55 SetNull relations (`ON DELETE SET NULL`):** Auditing and optional references (e.g. `created_by_user_id`, `cash_shift_id`).
   - **13 Cascade relations (`ON DELETE CASCADE`):** Strictly confined to internal user credentials (`UserSession`, `OtpSecret`, `OtpBackupCode`, `TrustedDevice`, `PasswordResetCode`, `StaffSchedule`, `StaffLeave`, `InAppNotification`) where user account deactivation is used rather than hard deletion. Zero cascade deletes touch clinical or financial records.
 - **Total Unique Constraints & Partial Unique Indexes:** **22 constraints**
 - **Total Check Constraints:** **20 table check constraints**
@@ -53,7 +53,7 @@ This document provides a comprehensive audit and registry of all database constr
 | `trusted_devices` | 30-day device tokens | `id` (UUID) | `user_id` (Cascade) | `UNIQUE (device_token_hash)` | None |
 | `password_reset_codes` | 10-min email reset codes | `id` (UUID) | `user_id` (Cascade) | None | `attempts_count <= 5` |
 | `message_templates` | WhatsApp text templates | `id` (UUID) | `updated_by_user_id` (SetNull) | `UNIQUE (key, language)` | Language enum (AR, EN) |
-| `audit_logs` | Append-only system audit | `id` (UUID) | `user_id` (SetNull) | None | `trg_audit_logs_immutability` (strictly blocks UPDATE/DELETE) |
+| `audit_logs` | Append-only system audit | `id` (UUID) | `user_id` (Restrict) | None | `trg_audit_logs_immutability` (strictly blocks UPDATE/DELETE) |
 | `patients` | Patient demographic & clinical summary | `id` (UUID) | `assigned_physiotherapist_id` (SetNull), `assigned_nutritionist_id` (SetNull), `discharged_by_user_id` (SetNull), `created_by_user_id` (SetNull), `updated_by_user_id` (SetNull) | `UNIQUE (file_number)`, Partial UK: `idx_patients_mobile_phone_unique (mobile_phone) WHERE mobile_phone IS NOT NULL` | `chk_patients_mobile_phone_format`, `chk_patients_guardian_phone_format`, `chk_patients_dependent_integrity`, `trg_patients_prevent_hard_delete` |
 | `patient_diagnoses` | Clinical diagnoses | `id` (UUID) | `patient_id` (Restrict), `diagnosed_by_user_id` (Restrict), `created_by_user_id` (SetNull), `updated_by_user_id` (SetNull) | None | None |
 | `patient_documents` | Attached medical/admin files | `id` (UUID) | `patient_id` (Restrict), `uploaded_by_user_id` (Restrict), `created_by_user_id` (SetNull), `updated_by_user_id` (SetNull) | None | `chk_patient_documents_file_size` (<=10MB), `chk_patient_documents_mime_type` |

@@ -48,8 +48,8 @@ jobs:
       - name: Generate Prisma Client
         run: npx prisma generate
 
-      - name: Apply Database Migrations & Constraints to Test DB
-        run: npx prisma migrate deploy
+      - name: Reset Test Database to Clean Migrated State
+        run: npm run db:test:reset
 
       - name: Run TypeScript Typecheck
         run: npm run typecheck
@@ -62,6 +62,9 @@ jobs:
 
       - name: Verify Specification Rule ID Coverage
         run: npm run test:coverage
+
+      - name: Seed Test Database for Playwright
+        run: npm run db:test:seed
 
       - name: Install Playwright Chromium Browser
         run: npx playwright install --with-deps chromium

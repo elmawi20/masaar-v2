@@ -4,19 +4,18 @@ import { loginAction } from "@/server/actions/auth";
 import { hashPassword } from "@/server/auth/crypto";
 
 describe("Bug 1 Reproduction: 15-minute Account Lockout after 5 Failed Attempts [R-15.1-3]", () => {
-  const testEmail = "lockout.test@masaar.local";
+  const uniqueSuffix = Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 6);
+  const testEmail = `lockout_${uniqueSuffix}@masaar.local`;
   const correctPassword = "CorrectPassword123!";
   const wrongPassword = "WrongPassword999!";
 
   beforeAll(async () => {
-    await resetTestDatabase();
-
     const passwordHash = await hashPassword(correctPassword);
     await testDb.user.create({
       data: {
         email: testEmail,
         fullName: "محمد أحمد فؤاد",
-        phone: "01055667788",
+        phone: "010" + Math.floor(10000000 + Math.random() * 90000000),
         jobTitle: "موظف استقبال",
         role: "RECEPTIONIST",
         passwordHash,
