@@ -18,7 +18,8 @@
     "test:integration": "vitest run --dir test/integration",
     "test:e2e": "playwright test",
     "test:coverage": "node scripts/check-test-plan.js && node scripts/check-rule-coverage.js",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "prepare": "husky"
   },
   "dependencies": {
     "@prisma/client": "^6.4.1",
@@ -44,6 +45,7 @@
     "dotenv": "^16.4.7",
     "eslint": "^9.21.0",
     "eslint-config-next": "^15.2.1",
+    "husky": "^9.1.7",
     "postcss": "^8.5.3",
     "prettier": "^3.5.2",
     "prisma": "^6.4.1",

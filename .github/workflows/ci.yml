@@ -1,0 +1,81 @@
+name: CI — Quality Machine
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality-check:
+    name: Local Quality Machine Verification
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: masaar
+          POSTGRES_PASSWORD: masaar_password
+          POSTGRES_DB: masaar_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://masaar:masaar_password@localhost:5432/masaar_test
+      TEST_DATABASE_URL: postgresql://masaar:masaar_password@localhost:5432/masaar_test
+      NEXTAUTH_SECRET: ci-secret-key-minimum-32-chars-long-quality-machine
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 24 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Apply Database Migrations & Constraints to Test DB
+        run: npx prisma migrate deploy
+
+      - name: Run TypeScript Typecheck
+        run: npm run typecheck
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run Automated Tests (Unit + DB Integration)
+        run: npm run test
+
+      - name: Verify Specification Rule ID Coverage
+        run: npm run test:coverage
+
+      - name: Install Playwright Chromium Browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright Responsive Screenshot Tests
+        run: npm run test:e2e
+
+      - name: Build Next.js Production Bundle
+        run: npm run build
+
+      - name: Upload Responsive Screenshots Artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-responsive-screenshots
+          path: artifacts/screenshots
+          if-no-files-found: warn
