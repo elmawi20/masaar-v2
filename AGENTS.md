@@ -39,4 +39,29 @@ CURRENT_STAGE: 2 (Quality machine)   <!-- update to 2, 3, 4 as you progress -->
 - GitHub is used only as a private code backup and for automatic checks (no deployment workflows).
 - Use only fake data (seed script) in development. Never real patient data.
 
+## Command safety rules (strict — always apply)
 
+### Allowed (may run when needed)
+- npm install / npm ci / npx create-next-app / npx playwright install
+- npx prisma generate / npx prisma migrate dev / npx prisma validate / npx prisma format
+- npm run test / lint / typecheck / build / dev / db:seed
+- git status / diff / log / add / commit / tag / push (normal push only)
+
+### Forbidden (never run, never suggest as a fix)
+- rm -rf, Remove-Item -Recurse, rmdir /s, del /s, or any mass delete
+- git reset --hard, git push --force, git push -f, git clean -fd, rewriting history
+- prisma migrate reset or prisma db push --force-reset on masaar_dev
+- DROP DATABASE, DROP TABLE, TRUNCATE on masaar_dev
+- Any command touching files or folders outside this project folder
+- Reading, printing, copying or committing .env or any password/secret
+
+### Exception
+- prisma migrate reset / dropping data is allowed ONLY on masaar_test (the automatic test database).
+
+### If a forbidden action seems necessary
+STOP. Do not run it and do not look for a workaround. Explain in simple words why it seems
+needed and what the safe alternatives are, then wait for my explicit decision.
+
+### Deleting single files
+Deleting or renaming a single file inside the project is allowed only when it is part of the
+approved plan and listed in it.
