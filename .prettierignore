@@ -1,0 +1,15 @@
+.next/
+node_modules/
+dist/
+build/
+coverage/
+playwright-report/
+test-results/
+scratch/
+*.tsbuildinfo
+docs/
+.agents/
+prisma/
+src/domain/
+AGENTS.md
+scripts/
