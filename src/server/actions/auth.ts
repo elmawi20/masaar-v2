@@ -746,7 +746,7 @@ export const logoutAction = defineAction({
       });
 
       if (session && !input.force) {
-        // Check for open cash shift for receptionist/cashier (R-15.1-6)
+        // Check for open cash shift or unclosed cash transactions for receptionist/cashier (R-8.4-2, R-15.1-6)
         const openShift = await tx.cashClosing.findFirst({
           where: {
             cashierUserId: session.userId,
@@ -754,11 +754,28 @@ export const logoutAction = defineAction({
           },
         });
 
-        if (openShift) {
+        const unclosedCashPayment = await tx.payment.findFirst({
+          where: {
+            collectedByUserId: session.userId,
+            paymentMethod: "CASH",
+            isVoided: false,
+            cashShiftId: null,
+          },
+        });
+
+        const unclosedCashRefund = await tx.refund.findFirst({
+          where: {
+            handedOutByUserId: session.userId,
+            refundMethod: "CASH",
+            cashShiftId: null,
+          },
+        });
+
+        if (openShift || unclosedCashPayment || unclosedCashRefund) {
           return {
             hasOpenCashShift: true,
             promptMessage:
-              "لديك وردية نقدية مفتوحة! يرجى إغلاق الوردية قبل تسجيل الخروج أو تبديل المستخدم.",
+              "لديك وردية نقدية مفتوحة أو معاملات نقدية غير مقفلة! يرجى إغلاق الوردية قبل تسجيل الخروج أو تبديل المستخدم.",
           };
         }
       }

@@ -13,7 +13,12 @@ import {
   changeAppointmentStatusAction,
   rescheduleAppointmentAction,
 } from "@/server/actions/scheduling";
-import { AppointmentStatus } from "@prisma/client";
+import {
+  recordPaymentAction,
+  getChargeBillingDetailsAction,
+} from "@/server/actions/billing";
+import { AppointmentStatus, PaymentMethod } from "@prisma/client";
+import PrintableReceiptModal, { type ReceiptData } from "@/components/billing/PrintableReceiptModal";
 
 export default function TodayPage() {
   const [activeTab, setActiveTab] = useState<"today" | "tomorrow" | "packages">("today");
@@ -47,8 +52,16 @@ export default function TodayPage() {
   const [waPreview, setWaPreview] = useState<any | null>(null);
   const [waCustomText, setWaCustomText] = useState<string>("");
 
-  // Placeholder dialogs
-  const [showPaymentPlaceholder, setShowPaymentPlaceholder] = useState<boolean>(false);
+  // Payment & Receipts (Spec §8)
+  const [showPaymentModal, setShowPaymentModal] = useState<boolean>(false);
+  const [paymentTargetCharge, setPaymentTargetCharge] = useState<any | null>(null);
+  const [paymentChargeDetails, setPaymentChargeDetails] = useState<any | null>(null);
+  const [paymentAmountEgp, setPaymentAmountEgp] = useState<string>("");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.CASH);
+  const [paymentRefNumber, setPaymentRefNumber] = useState<string>("");
+  const [paymentNotes, setPaymentNotes] = useState<string>("");
+  const [processingPayment, setProcessingPayment] = useState<boolean>(false);
+  const [activeReceipt, setActiveReceipt] = useState<ReceiptData | null>(null);
 
   // Load Dashboard Data
   const loadDashboard = async () => {
@@ -210,6 +223,80 @@ export default function TodayPage() {
     await markNotificationReadAction({ notificationId: notifId });
     setNotifications((prev) => prev.filter((n) => n.id !== notifId));
     setUnreadCount((c) => Math.max(0, c - 1));
+  };
+
+  // Payment Operations (Spec §8)
+  const handleOpenPaymentModal = async (appt: any) => {
+    setError(null);
+    const charge = appt.charges?.[0];
+    if (!charge) {
+      setError("لا توجد مطالبة مالية مسجلة لهذا الموعد");
+      return;
+    }
+
+    setPaymentTargetCharge({
+      ...charge,
+      patient: appt.patient,
+    });
+    setShowPaymentModal(true);
+    setProcessingPayment(true);
+
+    try {
+      const detailsRes = await getChargeBillingDetailsAction({ chargeId: charge.id });
+      if (detailsRes.success && detailsRes.data) {
+        setPaymentChargeDetails(detailsRes.data);
+        setPaymentAmountEgp((detailsRes.data.balancePiasters / 100).toFixed(2));
+      }
+    } catch {
+      // fallback
+    } finally {
+      setProcessingPayment(false);
+    }
+  };
+
+  const handleRecordPayment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!paymentTargetCharge) return;
+
+    setProcessingPayment(true);
+    setError(null);
+
+    try {
+      const amountPiasters = Math.round((parseFloat(paymentAmountEgp) || 0) * 100);
+      const res = await recordPaymentAction({
+        chargeId: paymentTargetCharge.id,
+        amountPiasters,
+        paymentMethod,
+        referenceNumber: paymentRefNumber || undefined,
+        notes: paymentNotes || undefined,
+      });
+
+      if (res.success && res.data) {
+        const paymentData = res.data as any;
+        setSuccessMsg(`تم تحصيل المبلغ بنجاح وإصدار الإيصال رقم ${paymentData.receiptNumber}`);
+        setShowPaymentModal(false);
+        setActiveReceipt({
+          receiptNumber: paymentData.receiptNumber,
+          receiptYear: paymentData.receiptYear,
+          receiptSequence: paymentData.receiptSequence,
+          amountPiasters: paymentData.amountPiasters,
+          paymentMethod: paymentData.paymentMethod,
+          collectedAt: paymentData.collectedAt,
+          patientName: paymentTargetCharge.patient?.fullName || "مريض",
+          patientPhone: paymentTargetCharge.patient?.mobilePhone,
+          description: paymentChargeDetails?.charge?.description || "جلسة علاج طبيعي",
+          collectedByName: paymentData.collectedByUser?.fullName,
+          referenceNumber: paymentRefNumber,
+        });
+        loadDashboard();
+      } else if (!res.success) {
+        setError(res.error?.message || "فشل تسجيل الدفعة");
+      }
+    } catch {
+      setError("حدث خطأ غير متوقع أثناء تسجيل الدفعة");
+    } finally {
+      setProcessingPayment(false);
+    }
   };
 
   const counts = todayData?.counts ?? {
@@ -558,7 +645,7 @@ export default function TodayPage() {
                           </div>
                         </div>
                         <button
-                          onClick={() => setShowPaymentPlaceholder(true)}
+                          onClick={() => handleOpenPaymentModal(item)}
                           className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-[11px]"
                         >
                           تحصيل
@@ -801,7 +888,7 @@ export default function TodayPage() {
               </button>
 
               <button
-                onClick={() => setShowPaymentPlaceholder(true)}
+                onClick={() => handleOpenPaymentModal(selectedAppointment)}
                 className="py-2.5 bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-300 font-bold text-xs rounded-xl"
               >
                 تحصيل دفعة
@@ -968,25 +1055,137 @@ export default function TodayPage() {
         </div>
       )}
 
-      {/* Payment Placeholder Modal */}
-      {showPaymentPlaceholder && (
+      {/* Real Payment Modal (Spec §8) */}
+      {showPaymentModal && paymentTargetCharge && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 max-w-sm w-full shadow-2xl text-center space-y-3">
-            <div className="text-3xl">💳</div>
-            <h3 className="font-bold text-base text-slate-900 dark:text-white">
-              تحصيل الرسوم والدفعات
-            </h3>
-            <p className="text-xs text-slate-500">
-              سيتم تفعيل درج النقدية وبوابات الدفع الإلكتروني بالكامل في الوحدة 3.6 (Billing & Drawer).
-            </p>
-            <button
-              onClick={() => setShowPaymentPlaceholder(false)}
-              className="mt-2 px-5 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold"
-            >
-              حسناً
-            </button>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 max-w-md w-full shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <h3 className="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+                <span>💳</span>
+                <span>تحصيل دفعة مالية وإصدار إيصال</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowPaymentModal(false)}
+                className="text-slate-400 hover:text-slate-600 text-sm"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Patient & Charge Summary */}
+            <div className="bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-200 dark:border-slate-800 text-xs space-y-1">
+              <div className="flex justify-between">
+                <span className="text-slate-500">المريض:</span>
+                <span className="font-bold text-slate-900 dark:text-white">
+                  {paymentTargetCharge.patient?.fullName}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">المطالبة:</span>
+                <span className="text-slate-700 dark:text-slate-300">
+                  {paymentChargeDetails?.charge?.description || "جلسة علاج طبيعي"}
+                </span>
+              </div>
+              {paymentChargeDetails && (
+                <div className="flex justify-between font-mono pt-1 border-t border-slate-200 dark:border-slate-700 font-bold">
+                  <span className="text-slate-600 dark:text-slate-300">الرصيد المتبقي:</span>
+                  <span className="text-[#0E6251] dark:text-teal-400">
+                    {(paymentChargeDetails.balancePiasters / 100).toFixed(2)} EGP
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <form onSubmit={handleRecordPayment} className="space-y-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  المبلغ المراد تحصيله (ج.م) *
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  max={paymentChargeDetails ? paymentChargeDetails.balancePiasters / 100 : undefined}
+                  required
+                  value={paymentAmountEgp}
+                  onChange={(e) => setPaymentAmountEgp(e.target.value)}
+                  className="w-full px-3 py-2 text-base font-mono font-bold rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-[#0E6251]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  طريقة الدفع *
+                </label>
+                <select
+                  required
+                  value={paymentMethod}
+                  onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
+                >
+                  <option value={PaymentMethod.CASH}>نقداً (درج الخزينة)</option>
+                  <option value={PaymentMethod.INSTAPAY}>إنستاباي (InstaPay)</option>
+                  <option value={PaymentMethod.VODAFONE_CASH}>محفظة إلكترونية (فودافون كاش)</option>
+                  <option value={PaymentMethod.CARD}>بطاقة ائتمانية / فيزا</option>
+                  <option value={PaymentMethod.FAWRY}>فوري (Fawry)</option>
+                  <option value={PaymentMethod.BANK_TRANSFER}>تحويل بنكي</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  الرقم المرجعي (اختياري للمعاملات الإلكترونية)
+                </label>
+                <input
+                  type="text"
+                  value={paymentRefNumber}
+                  onChange={(e) => setPaymentRefNumber(e.target.value)}
+                  placeholder="مثال: رقم تحويل إنستاباي أو كود العملية..."
+                  className="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  ملاحظات التحصيل
+                </label>
+                <input
+                  type="text"
+                  value={paymentNotes}
+                  onChange={(e) => setPaymentNotes(e.target.value)}
+                  placeholder="ملاحظات اختيارية على الإيصال..."
+                  className="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setShowPaymentModal(false)}
+                  className="px-4 py-2 text-xs rounded-xl border border-slate-300 hover:bg-slate-50 text-slate-700 dark:text-slate-300"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  disabled={processingPayment}
+                  className="px-5 py-2 text-xs font-bold rounded-xl bg-[#0E6251] text-white hover:bg-[#117A65] shadow-md transition disabled:opacity-50"
+                >
+                  {processingPayment ? "جارٍ التحصيل..." : "تأكيد التحصيل وإصدار الإيصال"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
+      )}
+
+      {/* Printable Receipt Modal (R-8.2-4) */}
+      {activeReceipt && (
+        <PrintableReceiptModal
+          receipt={activeReceipt}
+          onClose={() => setActiveReceipt(null)}
+        />
       )}
     </div>
   );
