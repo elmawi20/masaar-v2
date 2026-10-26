@@ -1,5 +1,14 @@
 import "dotenv/config";
-import { PrismaClient, Role, Gender, ReferralSource, PaymentMethod, SessionCategory } from "@prisma/client";
+import {
+  PrismaClient,
+  Role,
+  Gender,
+  ReferralSource,
+  PaymentMethod,
+  SessionCategory,
+  AppointmentStatus,
+  ChargeStatus,
+} from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
@@ -121,12 +130,31 @@ async function main() {
     seededUsers[u.role] = user;
   }
   console.log("  ✅ Staff users for all 5 roles seeded (owner, manager, receptionist, physio, nutritionist)");
-  console.log("\n=======================================================");
-  console.log("👑 [SEED] Initial Owner Account Credentials (First Login):");
-  console.log("   Email:    owner@masaar.local");
-  console.log("   Password: Password123!");
-  console.log("   (Change password and TOTP enrollment available on login)");
-  console.log("=======================================================\n");
+
+  // 3b. Staff Weekly Schedules (Sat-Thu 09:00 - 21:00)
+  for (const clinician of [seededUsers.OWNER, seededUsers.PHYSIOTHERAPIST, seededUsers.NUTRITIONIST]) {
+    for (let day = 0; day <= 5; day++) {
+      await prisma.staffSchedule.upsert({
+        where: {
+          userId_dayOfWeek_shiftNumber: {
+            userId: clinician.id,
+            dayOfWeek: day,
+            shiftNumber: 1,
+          },
+        },
+        update: {},
+        create: {
+          userId: clinician.id,
+          dayOfWeek: day,
+          shiftNumber: 1,
+          isWorking: true,
+          startTime: "09:00",
+          endTime: "21:00",
+        },
+      });
+    }
+  }
+  console.log("  ✅ Weekly staff schedules seeded for clinicians");
 
   // 4. Rooms and Beds
   const roomsData = [
@@ -236,70 +264,118 @@ async function main() {
   }
   console.log("  ✅ Session types seeded (PT, Nutrition, Assessment)");
 
-  // 6. Patients (Adults & Dependent child)
-  let patient1 = await prisma.patient.findFirst({ where: { mobilePhone: "01001112233" } });
-  if (!patient1) {
-    patient1 = await prisma.patient.create({
-      data: {
-        fullName: "محمود فاروق الدسوقي",
-        mobilePhone: "01001112233",
-        whatsappPhone: "01001112233",
-        isDependent: false,
-        dateOfBirth: new Date("1985-06-15T00:00:00Z"),
-        gender: Gender.MALE,
-        address: "حي السفارات، مدينة نصر، القاهرة",
-        emergencyContactName: "فاروق الدسوقي",
-        emergencyContactPhone: "01009998877",
-        referralSource: ReferralSource.GOOGLE,
-        initialComplaint: "آلام حادة أسفل الظهر مع تنميل في الفخذ الأيمن (عرق النسا)",
-        hasDiabetes: false,
-        hasHypertension: true,
-      },
-    });
-  }
+  // 6. Realistic Egyptian Patients (Adults & Dependents with guardians)
+  const patientsSeedData = [
+    {
+      fullName: "محمود فاروق الدسوقي",
+      mobilePhone: "01001112233",
+      whatsappPhone: "01001112233",
+      isDependent: false,
+      dateOfBirth: new Date("1985-06-15T00:00:00Z"),
+      gender: Gender.MALE,
+      address: "حي السفارات، مدينة نصر، القاهرة",
+      emergencyContactName: "فاروق الدسوقي",
+      emergencyContactPhone: "01009998877",
+      referralSource: ReferralSource.GOOGLE,
+      initialComplaint: "آلام حادة أسفل الظهر مع تنميل في الفخذ الأيمن (عرق النسا)",
+      hasDiabetes: false,
+      hasHypertension: true,
+      dataConsent: true,
+      whatsappConsent: true,
+    },
+    {
+      fullName: "ياسمين إبراهيم النجار",
+      mobilePhone: "01112223344",
+      whatsappPhone: "01112223344",
+      isDependent: false,
+      dateOfBirth: new Date("1993-09-20T00:00:00Z"),
+      gender: Gender.FEMALE,
+      address: "التجمع الخامس، القاهرة الجديدة",
+      emergencyContactName: "إبراهيم النجار",
+      emergencyContactPhone: "01118887766",
+      referralSource: ReferralSource.FACEBOOK,
+      initialComplaint: "رغبة في إنقاص الوزن ومتابعة حمية غذائية متوازنة لتكيس المبايض",
+      dataConsent: true,
+      whatsappConsent: true,
+    },
+    {
+      fullName: "علي حسن الشربيني",
+      mobilePhone: null,
+      isDependent: true,
+      guardianName: "حسن الشربيني",
+      guardianPhone: "01223334455",
+      whatsappPhone: "01223334455",
+      dateOfBirth: new Date("2015-03-10T00:00:00Z"),
+      gender: Gender.MALE,
+      address: "مصر الجديدة، القاهرة",
+      referralSource: ReferralSource.DOCTOR,
+      referringDoctor: "د. سامح عبد السلام (استشاري عظام)",
+      initialComplaint: "تأهيل ما بعد الجبس إثر كسر في مفصل الكاحل الأيسر",
+      dataConsent: true,
+      whatsappConsent: true,
+    },
+    {
+      fullName: "ليلى طارق عبد الفتاح",
+      mobilePhone: null,
+      isDependent: true,
+      guardianName: "مريم رضوان",
+      guardianPhone: "01066554433",
+      whatsappPhone: "01066554433",
+      dateOfBirth: new Date("2019-07-25T00:00:00Z"),
+      gender: Gender.FEMALE,
+      address: "المعادي، القاهرة",
+      referralSource: ReferralSource.INSTAGRAM,
+      initialComplaint: "تأخر حركي بسيط وتمارين تقوية للأطراف السفلية",
+      dataConsent: true,
+      whatsappConsent: true,
+    },
+    {
+      fullName: "حاج مصطفى عبد اللطيف",
+      mobilePhone: null,
+      isDependent: true,
+      guardianName: "أحمد مصطفى عبد اللطيف",
+      guardianPhone: "01188776655",
+      whatsappPhone: "01188776655",
+      dateOfBirth: new Date("1948-11-05T00:00:00Z"),
+      gender: Gender.MALE,
+      address: "الدقي، الجيزة",
+      referralSource: ReferralSource.DOCTOR,
+      referringDoctor: "د. حازم شريف",
+      initialComplaint: "خشونة متقدمة بمفصلي الركبة وصعوبة في صعود الدرج",
+      hasOsteoporosis: true,
+      hasFallRisk: true,
+      dataConsent: true,
+      whatsappConsent: true,
+    },
+    {
+      fullName: "سارة كمال المنشاوي",
+      mobilePhone: "01055443322",
+      whatsappPhone: "01055443322",
+      isDependent: false,
+      dateOfBirth: new Date("1996-01-18T00:00:00Z"),
+      gender: Gender.FEMALE,
+      address: "الشيخ زايد، 6 أكتوبر",
+      referralSource: ReferralSource.DOCTOR,
+      initialComplaint: "تأهيل بعد جراحة الرباط الصليبي الأمامي للركبة اليمنى",
+      dataConsent: true,
+      whatsappConsent: true,
+    },
+  ];
 
-  let patient2 = await prisma.patient.findFirst({ where: { mobilePhone: "01112223344" } });
-  if (!patient2) {
-    patient2 = await prisma.patient.create({
-      data: {
-        fullName: "ياسمين إبراهيم النجار",
-        mobilePhone: "01112223344",
-        whatsappPhone: "01112223344",
-        isDependent: false,
-        dateOfBirth: new Date("1993-09-20T00:00:00Z"),
-        gender: Gender.FEMALE,
-        address: "التجمع الخامس، القاهرة الجديدة",
-        emergencyContactName: "إبراهيم النجار",
-        emergencyContactPhone: "01118887766",
-        referralSource: ReferralSource.FACEBOOK,
-        initialComplaint: "رغبة في إنقاص الوزن ومتابعة حمية غذائية متوازنة لتكيس المبايض",
-      },
+  const seededPatients: any[] = [];
+  for (const p of patientsSeedData) {
+    let patient = await prisma.patient.findFirst({
+      where: p.mobilePhone ? { mobilePhone: p.mobilePhone } : { fullName: p.fullName },
     });
+    if (!patient) {
+      patient = await prisma.patient.create({ data: p });
+    }
+    seededPatients.push(patient);
   }
+  console.log(`  ✅ ${seededPatients.length} realistic Egyptian patients seeded (adults and dependents)`);
 
-  let patient3 = await prisma.patient.findFirst({ where: { fullName: "علي حسن الشربيني" } });
-  if (!patient3) {
-    patient3 = await prisma.patient.create({
-      data: {
-        fullName: "علي حسن الشربيني",
-        mobilePhone: null,
-        isDependent: true,
-        guardianName: "حسن الشربيني",
-        guardianPhone: "01223334455",
-        whatsappPhone: "01223334455",
-        dateOfBirth: new Date("2015-03-10T00:00:00Z"),
-        gender: Gender.MALE,
-        address: "مصر الجديدة، القاهرة",
-        referralSource: ReferralSource.DOCTOR,
-        referringDoctor: "د. سامح عبد السلام (استشاري عظام)",
-        initialComplaint: "تأهيل ما بعد الجبس إثر كسر في مفصل الكاحل الأيسر",
-      },
-    });
-  }
-  console.log("  ✅ Egyptian fake patients seeded (adults and child dependent)");
-
-  // 7. Package and Payment for Patient 1
-  let pkg = await prisma.package.findFirst({ where: { patientId: patient1.id } });
+  // 7. Packages and Payments
+  let pkg = await prisma.package.findFirst({ where: { patientId: seededPatients[0].id } });
   if (!pkg) {
     const today = new Date();
     const expiry = new Date(today);
@@ -307,10 +383,10 @@ async function main() {
 
     pkg = await prisma.package.create({
       data: {
-        patientId: patient1.id,
+        patientId: seededPatients[0].id,
         sessionTypeId: seededSessionTypes.PT_STANDARD.id,
         totalSessions: 12,
-        totalPricePiasters: 360000, // 3,600 EGP (discounted 12-session pack)
+        totalPricePiasters: 360000, // 3,600 EGP
         startDate: today,
         expiryDate: expiry,
         notes: "باقة علاج طبيعي وتأهيل عمود فقري 12 جلسة",
@@ -318,129 +394,151 @@ async function main() {
       },
     });
 
-    // Create Charge for Package
     const charge = await prisma.charge.create({
       data: {
-        patientId: patient1.id,
+        patientId: seededPatients[0].id,
         packageId: pkg.id,
         amountPiasters: 360000,
         description: "شراء باقة علاج طبيعي 12 جلسة",
+        status: ChargeStatus.ACTIVE,
         createdByUserId: seededUsers.RECEPTIONIST.id,
       },
     });
 
-    // Create Payment if not already existing
-    const existingPayment1 = await prisma.payment.findFirst({
-      where: { receiptNumber: "INV-2026-00001" },
+    await prisma.payment.create({
+      data: {
+        chargeId: charge.id,
+        receiptNumber: "INV-2026-00001",
+        receiptYear: 2026,
+        receiptSequence: 1,
+        amountPiasters: 360000,
+        paymentMethod: PaymentMethod.CASH,
+        collectedByUserId: seededUsers.RECEPTIONIST.id,
+      },
     });
-    if (!existingPayment1) {
-      await prisma.payment.create({
-        data: {
-          chargeId: charge.id,
-          receiptNumber: "INV-2026-00001",
-          receiptYear: 2026,
-          receiptSequence: 1,
-          amountPiasters: 360000,
-          paymentMethod: PaymentMethod.CASH,
-          collectedByUserId: seededUsers.RECEPTIONIST.id,
+    console.log("  ✅ Package, Charge, and Payment (INV-2026-00001) seeded");
+  }
+
+  // 8. One Week of Appointments (Current Saturday through Thursday)
+  // Calculate Saturday of current week
+  const now = new Date();
+  const currentJsDay = now.getUTCDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+  // Days to subtract to get to Saturday (if Sat: 0, if Sun: 1, ..., if Fri: 6)
+  const daysSinceSaturday = (currentJsDay + 1) % 7;
+  const saturdayDate = new Date(now);
+  saturdayDate.setUTCDate(now.getUTCDate() - daysSinceSaturday);
+
+  console.log("  🗓️ Seeding one week of realistic appointments across rooms and beds...");
+
+  // Schedule template for 6 weekdays (Sat to Thu)
+  const weekSchedule = [
+    {
+      dayOffset: 0, // Saturday
+      slots: [
+        { patientIdx: 0, time: "10:00", dur: 45, type: "PT_STANDARD", clinician: "PHYSIOTHERAPIST", roomIdx: 0, bedIdx: 0, status: AppointmentStatus.COMPLETED },
+        { patientIdx: 1, time: "11:00", dur: 30, type: "NUTRITION_CONSULT", clinician: "NUTRITIONIST", roomIdx: 2, bedIdx: 3, status: AppointmentStatus.COMPLETED },
+        { patientIdx: 2, time: "12:00", dur: 45, type: "PT_STANDARD", clinician: "PHYSIOTHERAPIST", roomIdx: 0, bedIdx: 1, status: AppointmentStatus.COMPLETED },
+      ],
+    },
+    {
+      dayOffset: 1, // Sunday
+      slots: [
+        { patientIdx: 3, time: "10:00", dur: 45, type: "PT_STANDARD", clinician: "PHYSIOTHERAPIST", roomIdx: 0, bedIdx: 0, status: AppointmentStatus.COMPLETED },
+        { patientIdx: 4, time: "11:00", dur: 60, type: "CONSULTANT_ASSESS", clinician: "OWNER", roomIdx: 1, bedIdx: 2, status: AppointmentStatus.COMPLETED },
+        { patientIdx: 5, time: "14:00", dur: 45, type: "PT_STANDARD", clinician: "PHYSIOTHERAPIST", roomIdx: 0, bedIdx: 1, status: AppointmentStatus.COMPLETED },
+      ],
+    },
+    {
+      dayOffset: 2, // Monday
+      slots: [
+        { patientIdx: 0, time: "10:00", dur: 45, type: "PT_STANDARD", clinician: "PHYSIOTHERAPIST", roomIdx: 0, bedIdx: 0, status: AppointmentStatus.ARRIVED },
+        { patientIdx: 1, time: "12:00", dur: 30, type: "NUTRITION_CONSULT", clinician: "NUTRITIONIST", roomIdx: 2, bedIdx: 3, status: AppointmentStatus.SCHEDULED },
+        { patientIdx: 2, time: "14:00", dur: 45, type: "PT_STANDARD", clinician: "PHYSIOTHERAPIST", roomIdx: 0, bedIdx: 1, status: AppointmentStatus.SCHEDULED },
+      ],
+    },
+    {
+      dayOffset: 3, // Tuesday
+      slots: [
+        { patientIdx: 3, time: "10:00", dur: 45, type: "PT_STANDARD", clinician: "PHYSIOTHERAPIST", roomIdx: 0, bedIdx: 0, status: AppointmentStatus.SCHEDULED },
+        { patientIdx: 4, time: "11:30", dur: 45, type: "PT_STANDARD", clinician: "PHYSIOTHERAPIST", roomIdx: 0, bedIdx: 1, status: AppointmentStatus.WAITLISTED },
+        { patientIdx: 5, time: "15:00", dur: 45, type: "PT_STANDARD", clinician: "PHYSIOTHERAPIST", roomIdx: 1, bedIdx: 2, status: AppointmentStatus.SCHEDULED },
+      ],
+    },
+    {
+      dayOffset: 4, // Wednesday
+      slots: [
+        { patientIdx: 0, time: "10:00", dur: 45, type: "PT_STANDARD", clinician: "PHYSIOTHERAPIST", roomIdx: 0, bedIdx: 0, status: AppointmentStatus.SCHEDULED },
+        { patientIdx: 1, time: "13:00", dur: 30, type: "NUTRITION_CONSULT", clinician: "NUTRITIONIST", roomIdx: 2, bedIdx: 3, status: AppointmentStatus.SCHEDULED },
+        { patientIdx: 2, time: "16:00", dur: 45, type: "PT_STANDARD", clinician: "PHYSIOTHERAPIST", roomIdx: 0, bedIdx: 1, status: AppointmentStatus.SCHEDULED },
+      ],
+    },
+    {
+      dayOffset: 5, // Thursday
+      slots: [
+        { patientIdx: 4, time: "10:00", dur: 45, type: "PT_STANDARD", clinician: "PHYSIOTHERAPIST", roomIdx: 0, bedIdx: 0, status: AppointmentStatus.SCHEDULED },
+        { patientIdx: 5, time: "11:30", dur: 45, type: "PT_STANDARD", clinician: "PHYSIOTHERAPIST", roomIdx: 1, bedIdx: 2, status: AppointmentStatus.SCHEDULED },
+        { patientIdx: 3, time: "14:00", dur: 45, type: "PT_STANDARD", clinician: "PHYSIOTHERAPIST", roomIdx: 0, bedIdx: 1, status: AppointmentStatus.CANCELLED },
+      ],
+    },
+  ];
+
+  let appointmentsCreated = 0;
+  for (const dayItem of weekSchedule) {
+    const apptDate = new Date(saturdayDate);
+    apptDate.setUTCDate(saturdayDate.getUTCDate() + dayItem.dayOffset);
+    const dateStr = apptDate.toISOString().slice(0, 10);
+
+    for (const slot of dayItem.slots) {
+      const [h, m] = slot.time.split(":").map(Number);
+      // Cairo is UTC+2
+      const startsAt = new Date(`${dateStr}T${(h - 2).toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:00Z`);
+      const endsAt = new Date(startsAt.getTime() + slot.dur * 60 * 1000);
+
+      const endMinutesTotal = h * 60 + m + slot.dur;
+      const endH = Math.floor(endMinutesTotal / 60);
+      const endM = endMinutesTotal % 60;
+      const endTimeStr = `${endH.toString().padStart(2, "0")}:${endM.toString().padStart(2, "0")}`;
+
+      const patient = seededPatients[slot.patientIdx];
+      const clinician = seededUsers[slot.clinician];
+      const sType = seededSessionTypes[slot.type];
+      const room = seededRooms[slot.roomIdx];
+      const bed = seededBeds[slot.bedIdx];
+
+      const existing = await prisma.appointment.findFirst({
+        where: {
+          patientId: patient.id,
+          startsAt,
         },
       });
+
+      if (!existing) {
+        await prisma.appointment.create({
+          data: {
+            patientId: patient.id,
+            sessionTypeId: sType.id,
+            clinicianId: clinician.id,
+            roomId: room.id,
+            bedId: bed.id,
+            appointmentDate: new Date(`${dateStr}T00:00:00Z`),
+            startTime: slot.time,
+            endTime: endTimeStr,
+            startsAt,
+            endsAt,
+            durationMinutes: slot.dur,
+            pricePiasters: sType.defaultPricePiasters,
+            status: slot.status,
+            cancellationReason: slot.status === AppointmentStatus.CANCELLED ? "سفر مفاجئ للمريض" : undefined,
+            cancelledAt: slot.status === AppointmentStatus.CANCELLED ? new Date() : undefined,
+            checkInAt: slot.status === AppointmentStatus.ARRIVED ? new Date() : undefined,
+            createdByUserId: seededUsers.RECEPTIONIST.id,
+          },
+        });
+        appointmentsCreated++;
+      }
     }
-    console.log("  ✅ Package, Charge, and Payment (INV-2026-00001) seeded for Patient 1");
   }
-
-  // 8. Appointments
-  const todayDate = new Date();
-  const year = todayDate.getFullYear();
-  const month = String(todayDate.getMonth() + 1).padStart(2, "0");
-  const day = String(todayDate.getDate()).padStart(2, "0");
-
-  const todayStr = `${year}-${month}-${day}`;
-  const startsAt1 = new Date(`${todayStr}T10:00:00Z`);
-  const endsAt1 = new Date(`${todayStr}T10:45:00Z`);
-
-  const existingAppt1 = await prisma.appointment.findFirst({
-    where: { patientId: patient1.id, startsAt: startsAt1 },
-  });
-
-  if (!existingAppt1) {
-    await prisma.appointment.create({
-      data: {
-        patientId: patient1.id,
-        sessionTypeId: seededSessionTypes.PT_STANDARD.id,
-        clinicianId: seededUsers.PHYSIOTHERAPIST.id,
-        roomId: seededRooms[0].id,
-        bedId: seededBeds[0].id,
-        packageId: pkg.id,
-        appointmentDate: new Date(`${todayStr}T00:00:00Z`),
-        startTime: "12:00",
-        endTime: "12:45",
-        startsAt: startsAt1,
-        endsAt: endsAt1,
-        durationMinutes: 45,
-        status: "SCHEDULED",
-        createdByUserId: seededUsers.RECEPTIONIST.id,
-      },
-    });
-  }
-
-  // Appointment 2: Patient 2 with Nutritionist
-  const startsAt2 = new Date(`${todayStr}T11:00:00Z`);
-  const endsAt2 = new Date(`${todayStr}T11:30:00Z`);
-
-  const existingAppt2 = await prisma.appointment.findFirst({
-    where: { patientId: patient2.id, startsAt: startsAt2 },
-  });
-
-  if (!existingAppt2) {
-    const appt2 = await prisma.appointment.create({
-      data: {
-        patientId: patient2.id,
-        sessionTypeId: seededSessionTypes.NUTRITION_CONSULT.id,
-        clinicianId: seededUsers.NUTRITIONIST.id,
-        roomId: seededRooms[2].id,
-        bedId: seededBeds[seededBeds.length - 1].id,
-        appointmentDate: new Date(`${todayStr}T00:00:00Z`),
-        startTime: "13:00",
-        endTime: "13:30",
-        startsAt: startsAt2,
-        endsAt: endsAt2,
-        durationMinutes: 30,
-        pricePiasters: 30000,
-        status: "SCHEDULED",
-        createdByUserId: seededUsers.RECEPTIONIST.id,
-      },
-    });
-
-    // Single-session charge and payment
-    const charge2 = await prisma.charge.create({
-      data: {
-        patientId: patient2.id,
-        appointmentId: appt2.id,
-        amountPiasters: 30000,
-        description: "استشارة تغذية علاجية فردية",
-        createdByUserId: seededUsers.RECEPTIONIST.id,
-      },
-    });
-
-    const existingPayment2 = await prisma.payment.findFirst({
-      where: { receiptNumber: "INV-2026-00002" },
-    });
-    if (!existingPayment2) {
-      await prisma.payment.create({
-        data: {
-          chargeId: charge2.id,
-          receiptNumber: "INV-2026-00002",
-          receiptYear: 2026,
-          receiptSequence: 2,
-          amountPiasters: 30000,
-          paymentMethod: PaymentMethod.INSTAPAY,
-          collectedByUserId: seededUsers.RECEPTIONIST.id,
-        },
-      });
-    }
-    console.log("  ✅ Appointments and payment (INV-2026-00002) seeded");
-  }
+  console.log(`  ✅ One week of appointments seeded (${appointmentsCreated} new appointments)`);
 
   // 9. Receipt Counter
   await prisma.receiptCounter.upsert({

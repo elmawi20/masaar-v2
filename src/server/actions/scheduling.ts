@@ -254,8 +254,8 @@ export async function validateBookingChecks(
     const pkg = await tx.package.findUnique({
       where: { id: packageId },
     });
-    if (!pkg || pkg.status !== "ACTIVE") {
-      throw new Error("الباقة المحددة غير نشطة");
+    if (!pkg || pkg.cancelledAt) {
+      throw new Error("الباقة المحددة غير نشطة أو تم إلغاؤها");
     }
     if (pkg.expiryDate && dateObj > pkg.expiryDate) {
       throw new Error("تاريخ الموعد بعد تاريخ انتهاء صلاحية الباقة");
@@ -562,6 +562,20 @@ export const changeAppointmentStatusAction = defineAction({
           },
         });
       }
+
+      // Notify assigned clinician of arrival (R-14-1)
+      await tx.inAppNotification.create({
+        data: {
+          userId: appt.clinicianId,
+          type: "PATIENT_CHECKED_IN",
+          titleAr: "حضر المريض",
+          titleEn: "Patient Checked In",
+          bodyAr: `وصل المريض ${appt.patient.fullName} لمقر العيادة بانتظار بدء الجلسة.`,
+          bodyEn: `Patient ${appt.patient.fullName} has arrived at the clinic.`,
+          appointmentId: appt.id,
+          patientId: appt.patientId,
+        },
+      });
     } else if (targetStatus === AppointmentStatus.SCHEDULED && currentStatus === AppointmentStatus.ARRIVED) {
       // Undo check-in (R-5.5-2)
       updateData.checkInAt = null;
@@ -572,6 +586,20 @@ export const changeAppointmentStatusAction = defineAction({
       await tx.charge.updateMany({
         where: { appointmentId: appt.id, status: ChargeStatus.ACTIVE },
         data: { status: ChargeStatus.CANCELLED },
+      });
+
+      // Notify assigned clinician of cancellation (R-14-3)
+      await tx.inAppNotification.create({
+        data: {
+          userId: appt.clinicianId,
+          type: "APPOINTMENT_CANCELLED",
+          titleAr: "تم إلغاء الموعد",
+          titleEn: "Appointment Cancelled",
+          bodyAr: `تم إلغاء موعد المريض ${appt.patient.fullName}. السبب: ${fullReason || "غير محدد"}`,
+          bodyEn: `Appointment for ${appt.patient.fullName} has been cancelled.`,
+          appointmentId: appt.id,
+          patientId: appt.patientId,
+        },
       });
     } else if (targetStatus === AppointmentStatus.NO_SHOW) {
       updateData.noShowAt = new Date();
