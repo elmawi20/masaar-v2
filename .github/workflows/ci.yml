@@ -73,7 +73,7 @@ jobs:
         run: npm run build
 
       - name: Upload Responsive Screenshots Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: playwright-responsive-screenshots
