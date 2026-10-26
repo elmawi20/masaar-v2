@@ -15,6 +15,9 @@ const routes = [
   { name: "home", path: "" },
   { name: "login", path: "/login" },
   { name: "admin-staff", path: "/admin/staff" },
+  { name: "admin-settings", path: "/admin/settings" },
+  { name: "management-resources", path: "/management/resources" },
+  { name: "management-staff-schedules", path: "/management/staff-schedules" },
 ];
 
 test.describe("Visual Regression & Responsive Screenshot Suite", () => {
