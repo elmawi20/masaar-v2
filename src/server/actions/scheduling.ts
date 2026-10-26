@@ -17,14 +17,14 @@ const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
 // Helper: Timezone & Date Calculations (Africa/Cairo)
 // ============================================================================
 
-export function getMasaarDayOfWeek(dateStr: string): number {
+function getMasaarDayOfWeek(dateStr: string): number {
   const [y, m, d] = dateStr.split("-").map(Number);
   const jsDay = new Date(Date.UTC(y, m - 1, d)).getUTCDay(); // 0=Sun, 1=Mon, ..., 6=Sat
   // Masaar system: 0=Sat, 1=Sun, 2=Mon, 3=Tue, 4=Wed, 5=Thu, 6=Fri
   return (jsDay + 1) % 7;
 }
 
-export function cairoDateTimeToUtc(dateStr: string, timeStr: string): Date {
+function cairoDateTimeToUtc(dateStr: string, timeStr: string): Date {
   const parts = dateStr.split("-").map(Number);
   const [hours, minutes] = timeStr.split(":").map(Number);
   const guessUtc = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2], hours, minutes));
@@ -49,7 +49,7 @@ export function cairoDateTimeToUtc(dateStr: string, timeStr: string): Date {
   return new Date(guessUtc.getTime() - hourDiff * 60 * 60 * 1000);
 }
 
-export function calculateEndTime(startTime: string, durationMinutes: number): string {
+function calculateEndTime(startTime: string, durationMinutes: number): string {
   const [h, m] = startTime.split(":").map(Number);
   const totalMinutes = h * 60 + m + durationMinutes;
   const endH = Math.floor(totalMinutes / 60) % 24;
@@ -68,7 +68,7 @@ const ACTIVE_STATUSES = [
 // Core Server Validation: 8 Booking Checks in One Transaction (Spec §5.2)
 // ============================================================================
 
-export async function validateBookingChecks(
+async function validateBookingChecks(
   tx: any,
   params: {
     patientId: string;
