@@ -180,10 +180,10 @@ export default function CashClosingPage() {
                 {isAr ? "المقبوضات النقدية (+)" : "Cash In (+)"}
               </span>
               <div className="text-xl font-black font-mono text-emerald-600 dark:text-emerald-400">
-                {(shiftData.cashPaymentsTotal / 100).toFixed(2)} EGP
+                {((shiftData?.cashPaymentsTotal || 0) / 100).toFixed(2)} EGP
               </div>
               <span className="text-[10px] text-slate-400">
-                {shiftData.paymentsCount} {isAr ? "إيصالات تحصيل" : "receipts"}
+                {shiftData?.paymentsCount || 0} {isAr ? "إيصالات تحصيل" : "receipts"}
               </span>
             </div>
 
@@ -193,10 +193,10 @@ export default function CashClosingPage() {
                 {isAr ? "الاستردادات المصروفة (-)" : "Cash Refunds (-)"}
               </span>
               <div className="text-xl font-black font-mono text-amber-600 dark:text-amber-400">
-                {(shiftData.cashRefundsTotal / 100).toFixed(2)} EGP
+                {((shiftData?.cashRefundsTotal || 0) / 100).toFixed(2)} EGP
               </div>
               <span className="text-[10px] text-slate-400">
-                {shiftData.refundsCount} {isAr ? "عمليات استرداد" : "refunds"}
+                {shiftData?.refundsCount || 0} {isAr ? "عمليات استرداد" : "refunds"}
               </span>
             </div>
 
@@ -206,10 +206,10 @@ export default function CashClosingPage() {
                 {isAr ? "مصروفات النثرية (-)" : "Cash Expenses (-)"}
               </span>
               <div className="text-xl font-black font-mono text-rose-600 dark:text-rose-400">
-                {(shiftData.cashExpensesTotal / 100).toFixed(2)} EGP
+                {((shiftData?.cashExpensesTotal || 0) / 100).toFixed(2)} EGP
               </div>
               <span className="text-[10px] text-slate-400">
-                {shiftData.expensesCount} {isAr ? "مصروفات مسجلة" : "expenses"}
+                {shiftData?.expensesCount || 0} {isAr ? "مصروفات مسجلة" : "expenses"}
               </span>
             </div>
 

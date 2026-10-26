@@ -8,6 +8,10 @@ import {
   SessionCategory,
   AppointmentStatus,
   ChargeStatus,
+  CashShiftStatus,
+  TreatmentModality,
+  DietaryProtocol,
+  ExpenseCategory,
 } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
@@ -18,7 +22,9 @@ async function main() {
 
   const passwordHash = await bcrypt.hash("Password123!", 10);
 
+  // ============================================================================
   // 1. Clinic Settings
+  // ============================================================================
   const existingSetting = await prisma.clinicSetting.findFirst();
   if (!existingSetting) {
     await prisma.clinicSetting.create({
@@ -38,7 +44,9 @@ async function main() {
     console.log("  ✅ Clinic settings created");
   }
 
+  // ============================================================================
   // 2. Clinic Opening Hours (0=Sat ... 6=Fri)
+  // ============================================================================
   for (let day = 0; day <= 6; day++) {
     const isFriday = day === 6;
     await prisma.clinicOpeningHour.upsert({
@@ -54,7 +62,9 @@ async function main() {
   }
   console.log("  ✅ Clinic opening hours (Sat-Thu 09:00-21:00, Fri closed) seeded");
 
+  // ============================================================================
   // 3. Staff Users for all 5 roles
+  // ============================================================================
   const usersData = [
     {
       email: "owner@masaar.local",
@@ -129,9 +139,11 @@ async function main() {
     });
     seededUsers[u.role] = user;
   }
-  console.log("  ✅ Staff users for all 5 roles seeded (owner, manager, receptionist, physio, nutritionist)");
+  console.log("  ✅ Staff users for all 5 roles seeded");
 
+  // ============================================================================
   // 3b. Staff Weekly Schedules (Sat-Thu 09:00 - 21:00)
+  // ============================================================================
   for (const clinician of [seededUsers.OWNER, seededUsers.PHYSIOTHERAPIST, seededUsers.NUTRITIONIST]) {
     for (let day = 0; day <= 5; day++) {
       await prisma.staffSchedule.upsert({
@@ -156,7 +168,9 @@ async function main() {
   }
   console.log("  ✅ Weekly staff schedules seeded for clinicians");
 
+  // ============================================================================
   // 4. Rooms and Beds
+  // ============================================================================
   const roomsData = [
     {
       nameAr: "غرفة العلاج الطبيعي العامة",
@@ -211,7 +225,9 @@ async function main() {
   }
   console.log(`  ✅ ${seededRooms.length} rooms and ${seededBeds.length} beds seeded`);
 
+  // ============================================================================
   // 5. Session Types
+  // ============================================================================
   const sessionTypesData = [
     {
       code: "PT_STANDARD",
@@ -264,7 +280,9 @@ async function main() {
   }
   console.log("  ✅ Session types seeded (PT, Nutrition, Assessment)");
 
+  // ============================================================================
   // 6. Realistic Egyptian Patients (Adults & Dependents with guardians)
+  // ============================================================================
   const patientsSeedData = [
     {
       fullName: "محمود فاروق الدسوقي",
@@ -374,14 +392,19 @@ async function main() {
   }
   console.log(`  ✅ ${seededPatients.length} realistic Egyptian patients seeded (adults and dependents)`);
 
-  // 7. Packages and Payments
-  let pkg = await prisma.package.findFirst({ where: { patientId: seededPatients[0].id } });
-  if (!pkg) {
-    const today = new Date();
+  // ============================================================================
+  // 7. Packages, Charges, and Payments (Active and Expired)
+  // ============================================================================
+  const today = new Date();
+  
+  // Package 1: Active 12-session PT package for Patient 0
+  let pkg1 = await prisma.package.findFirst({ where: { patientId: seededPatients[0].id } });
+  let payment1: any = null;
+  if (!pkg1) {
     const expiry = new Date(today);
     expiry.setDate(today.getDate() + 60);
 
-    pkg = await prisma.package.create({
+    pkg1 = await prisma.package.create({
       data: {
         patientId: seededPatients[0].id,
         sessionTypeId: seededSessionTypes.PT_STANDARD.id,
@@ -394,10 +417,10 @@ async function main() {
       },
     });
 
-    const charge = await prisma.charge.create({
+    const charge1 = await prisma.charge.create({
       data: {
         patientId: seededPatients[0].id,
-        packageId: pkg.id,
+        packageId: pkg1.id,
         amountPiasters: 360000,
         description: "شراء باقة علاج طبيعي 12 جلسة",
         status: ChargeStatus.ACTIVE,
@@ -405,9 +428,9 @@ async function main() {
       },
     });
 
-    await prisma.payment.create({
+    payment1 = await prisma.payment.create({
       data: {
-        chargeId: charge.id,
+        chargeId: charge1.id,
         receiptNumber: "INV-2026-00001",
         receiptYear: 2026,
         receiptSequence: 1,
@@ -416,81 +439,482 @@ async function main() {
         collectedByUserId: seededUsers.RECEPTIONIST.id,
       },
     });
-    console.log("  ✅ Package, Charge, and Payment (INV-2026-00001) seeded");
+    console.log("  ✅ Package 1 (Active) and Payment (INV-2026-00001) seeded");
+  } else {
+    payment1 = await prisma.payment.findFirst({ where: { receiptNumber: "INV-2026-00001" } });
   }
 
-  // 8. One Week of Appointments (Current Saturday through Thursday)
-  // Calculate Saturday of current week
-  const now = new Date();
-  const currentJsDay = now.getUTCDay(); // 0=Sun, 1=Mon, ..., 6=Sat
-  // Days to subtract to get to Saturday (if Sat: 0, if Sun: 1, ..., if Fri: 6)
+  // Package 2: Expired 6-session Nutrition package for Patient 1
+  let pkg2 = await prisma.package.findFirst({ where: { patientId: seededPatients[1].id } });
+  if (!pkg2) {
+    const pastStart = new Date(today);
+    pastStart.setDate(today.getDate() - 90);
+    const pastExpiry = new Date(today);
+    pastExpiry.setDate(today.getDate() - 30); // expired 30 days ago
+
+    pkg2 = await prisma.package.create({
+      data: {
+        patientId: seededPatients[1].id,
+        sessionTypeId: seededSessionTypes.NUTRITION_CONSULT.id,
+        totalSessions: 6,
+        totalPricePiasters: 150000, // 1,500 EGP
+        startDate: pastStart,
+        expiryDate: pastExpiry,
+        notes: "باقة متابعة وتخسيس 6 جلسات (منتهية الصلاحية)",
+        createdByUserId: seededUsers.RECEPTIONIST.id,
+      },
+    });
+
+    const charge2 = await prisma.charge.create({
+      data: {
+        patientId: seededPatients[1].id,
+        packageId: pkg2.id,
+        amountPiasters: 150000,
+        description: "شراء باقة تغذية 6 جلسات",
+        status: ChargeStatus.ACTIVE,
+        createdByUserId: seededUsers.RECEPTIONIST.id,
+      },
+    });
+
+    const existingP2 = await prisma.payment.findFirst({
+      where: { receiptNumber: "INV-2026-00002" },
+    });
+    if (!existingP2) {
+      await prisma.payment.create({
+        data: {
+          chargeId: charge2.id,
+          receiptNumber: "INV-2026-00002",
+          receiptYear: 2026,
+          receiptSequence: 2,
+          amountPiasters: 150000,
+          paymentMethod: PaymentMethod.INSTAPAY,
+          collectedByUserId: seededUsers.RECEPTIONIST.id,
+        },
+      });
+    }
+    console.log("  ✅ Package 2 (Expired) and Payment (INV-2026-00002) seeded");
+  }
+
+  // ============================================================================
+  // 8. Petty Cash Expense & Closed Cash Shift (CashClosing with Frozen Snapshot)
+  // ============================================================================
+  let closedShift = await prisma.cashClosing.findFirst({
+    where: { cashierUserId: seededUsers.RECEPTIONIST.id, status: CashShiftStatus.CLOSED },
+  });
+
+  if (!closedShift) {
+    // 1. Create a cash expense for hospitality/supplies
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+
+    const expense = await prisma.expense.create({
+      data: {
+        title: "ضيافة عيادة وشاي وسكر ومياه معدنية",
+        category: ExpenseCategory.HOSPITALITY,
+        amountPiasters: 10000, // 100 EGP
+        paymentMethod: PaymentMethod.CASH,
+        expenseDate: yesterday,
+        reason: "مستلزمات الضيافة الأسبوعية للاستقبال",
+        createdByUserId: seededUsers.RECEPTIONIST.id,
+      },
+    });
+
+    // Calculate cash in / cash out
+    const cashIn = payment1 ? payment1.amountPiasters : 360000;
+    const cashOut = expense.amountPiasters;
+    const expectedCash = cashIn - cashOut;
+
+    // 2. Create the frozen snapshot CashClosing record
+    closedShift = await prisma.cashClosing.create({
+      data: {
+        shiftNumber: 1,
+        cashierUserId: seededUsers.RECEPTIONIST.id,
+        openedAt: yesterday,
+        closedAt: yesterday,
+        status: CashShiftStatus.CLOSED,
+        countedCashPiasters: expectedCash,
+        expectedCashPiasters: expectedCash,
+        differencePiasters: 0,
+        includedTransactionIds: {
+          paymentIds: payment1 ? [payment1.id] : [],
+          refundIds: [],
+          expenseIds: [expense.id],
+        },
+        closingNotes: "إغلاق وردية الأمس بنجاح، ومطابقة الدرج بدون أي عجز",
+      },
+    });
+
+    // 3. Stamp transactions with cashShiftId
+    if (payment1) {
+      await prisma.payment.update({
+        where: { id: payment1.id },
+        data: { cashShiftId: closedShift.id },
+      });
+    }
+    await prisma.expense.update({
+      where: { id: expense.id },
+      data: { cashShiftId: closedShift.id },
+    });
+
+    console.log("  ✅ Closed cash shift with frozen snapshot & linked transactions seeded");
+  }
+
+  // ============================================================================
+  // 9. Two Weeks of Appointments (Past Week -7..-1 & Current/Next Week 0..+6)
+  // ============================================================================
+  const currentJsDay = today.getUTCDay(); // 0=Sun, 1=Mon, ..., 6=Sat
   const daysSinceSaturday = (currentJsDay + 1) % 7;
-  const saturdayDate = new Date(now);
-  saturdayDate.setUTCDate(now.getUTCDate() - daysSinceSaturday);
+  const currentSaturday = new Date(today);
+  currentSaturday.setUTCDate(today.getUTCDate() - daysSinceSaturday);
 
-  console.log("  🗓️ Seeding one week of realistic appointments across rooms and beds...");
+  console.log("  🗓️ Seeding 2 full weeks of realistic appointments across rooms & beds...");
 
-  // Schedule template for 6 weekdays (Sat to Thu)
-  const weekSchedule = [
+  // Week 1 (Past week, Saturday -7 to Thursday -2): All completed with clinical notes
+  // Week 2 (Current week, Saturday 0 to Thursday +5): Mix of completed, arrived, scheduled, waitlisted, cancelled
+  const twoWeeksSchedule = [
+    // Past Week
     {
-      dayOffset: 0, // Saturday
+      dayOffset: -7, // Past Sat
       slots: [
-        { patientIdx: 0, time: "10:00", dur: 45, type: "PT_STANDARD", clinician: "PHYSIOTHERAPIST", roomIdx: 0, bedIdx: 0, status: AppointmentStatus.COMPLETED },
-        { patientIdx: 1, time: "11:00", dur: 30, type: "NUTRITION_CONSULT", clinician: "NUTRITIONIST", roomIdx: 2, bedIdx: 3, status: AppointmentStatus.COMPLETED },
-        { patientIdx: 2, time: "12:00", dur: 45, type: "PT_STANDARD", clinician: "PHYSIOTHERAPIST", roomIdx: 0, bedIdx: 1, status: AppointmentStatus.COMPLETED },
+        {
+          patientIdx: 0,
+          time: "10:00",
+          dur: 45,
+          type: "PT_STANDARD",
+          clinician: "PHYSIOTHERAPIST",
+          roomIdx: 0,
+          bedIdx: 0,
+          status: AppointmentStatus.COMPLETED,
+          clinicalNote: {
+            painBefore: 8,
+            painAfter: 4,
+            subjective: "يشكو المريض من ألم حاد أسفل الظهر وممتد للساق اليمنى",
+            objective: "محدودية في حركة الانحناء مع تقلص في عضلات الفقرات القطنية",
+            assessment: "تحسن ملحوظ واستجابة جيدة بعد الجلسة الأولى",
+            plan: "الاستمرار على العلاج الكهربائي والكمادات والتمارين العلاجية 3 مرات أسبوعياً",
+            modalities: [TreatmentModality.TENS, TreatmentModality.ULTRASOUND, TreatmentModality.MANUAL_THERAPY],
+            treatmentNotes: "جلسة علاج طبيعي متكاملة للفقرات القطنية",
+            homeExercises: "تمارين إطالة العضلات الخلفية 10 دقائق مرتين يومياً",
+          },
+        },
+        {
+          patientIdx: 1,
+          time: "11:30",
+          dur: 30,
+          type: "NUTRITION_CONSULT",
+          clinician: "NUTRITIONIST",
+          roomIdx: 2,
+          bedIdx: 3,
+          status: AppointmentStatus.COMPLETED,
+          inBody: {
+            heightCm: 168,
+            weightKg: 82.5,
+            targetWeightKg: 65,
+            skeletalMuscleMassKg: 24.2,
+            bodyFatPercentage: 34.5,
+            visceralFatLevel: 8,
+            deviceBmrKcal: 1480,
+            calorieTargetKcal: 1600,
+            targetProteinGrams: 100,
+            targetCarbsGrams: 150,
+            targetFatGrams: 45,
+            protocol: DietaryProtocol.BALANCED_LIFESTYLE,
+            protocolNotes: "خطة غذائية متوازنة لتقليل مقاومة الإنسولين",
+            clinicalNotes: "استجابة ممتازة وفهم جيد للنظام الغذائي والالتزام بشرب الماء",
+          },
+        },
+      ],
+    },
+    {
+      dayOffset: -6, // Past Sun
+      slots: [
+        {
+          patientIdx: 2,
+          time: "10:00",
+          dur: 45,
+          type: "PT_STANDARD",
+          clinician: "PHYSIOTHERAPIST",
+          roomIdx: 0,
+          bedIdx: 1,
+          status: AppointmentStatus.COMPLETED,
+          clinicalNote: {
+            painBefore: 6,
+            painAfter: 3,
+            subjective: "صعوبة في تحميل الوزن على الكاحل الأيسر بعد فك الجبس",
+            objective: "نقص طفيف في المدى الحركي لمفصل الكاحل مع تورم بسيط",
+            assessment: "المفصل سليم وقابل للتأهيل تدريجياً",
+            plan: "تمارين تقوية ومدى حركي وتبريد موضعي",
+            modalities: [TreatmentModality.EXERCISE_THERAPY, TreatmentModality.SHOCKWAVE],
+            treatmentNotes: "تمارين تأهيل الكاحل الحركية",
+            homeExercises: "تحريك القدم بشكل دائري 15 تكراراً",
+          },
+        },
+        {
+          patientIdx: 4,
+          time: "12:00",
+          dur: 60,
+          type: "CONSULTANT_ASSESS",
+          clinician: "OWNER",
+          roomIdx: 1,
+          bedIdx: 2,
+          status: AppointmentStatus.COMPLETED,
+          clinicalNote: {
+            painBefore: 7,
+            painAfter: 4,
+            subjective: "ألم في الركبتين مع صعوبة الوقوف لفترات طويلة",
+            objective: "خشونة بمفصل الركبة من الدرجة الثانية وتيبس صباحي",
+            assessment: "حالة خشونة ركبة تستدعي برنامج تأهيل وقوة عضلية",
+            plan: "جلسات علاج طبيعي 12 جلسة للتقوية وتخفيف الحمل على المفصل",
+            modalities: [TreatmentModality.LASER, TreatmentModality.MANUAL_THERAPY],
+            treatmentNotes: "تقييم استشاري شامل وخطة علاجية",
+            homeExercises: "تمارين العضلة الرباعية متساوية القياس (Isometric)",
+          },
+        },
+      ],
+    },
+    {
+      dayOffset: -5, // Past Mon
+      slots: [
+        {
+          patientIdx: 0,
+          time: "10:00",
+          dur: 45,
+          type: "PT_STANDARD",
+          clinician: "PHYSIOTHERAPIST",
+          roomIdx: 0,
+          bedIdx: 0,
+          status: AppointmentStatus.COMPLETED,
+          clinicalNote: {
+            painBefore: 5,
+            painAfter: 2,
+            subjective: "تحسن في المشي وانخفاض التنميل",
+            objective: "تحسن المدى الحركي بمقدار 20 درجة",
+            assessment: "استجابة ممتازة للعلاج التكاملي",
+            plan: "المتابعة وفق الخطة",
+            modalities: [TreatmentModality.TENS, TreatmentModality.ULTRASOUND],
+            treatmentNotes: "الجلسة الثانية للظهر",
+            homeExercises: "مواصلة تمارين الإطالة",
+          },
+        },
+      ],
+    },
+    // Current Week
+    {
+      dayOffset: 0, // Saturday (Current)
+      slots: [
+        {
+          patientIdx: 0,
+          time: "10:00",
+          dur: 45,
+          type: "PT_STANDARD",
+          clinician: "PHYSIOTHERAPIST",
+          roomIdx: 0,
+          bedIdx: 0,
+          status: AppointmentStatus.ARRIVED,
+        },
+        {
+          patientIdx: 1,
+          time: "11:00",
+          dur: 30,
+          type: "NUTRITION_CONSULT",
+          clinician: "NUTRITIONIST",
+          roomIdx: 2,
+          bedIdx: 3,
+          status: AppointmentStatus.COMPLETED,
+          inBody: {
+            heightCm: 168,
+            weightKg: 81.2, // lost 1.3 kg
+            targetWeightKg: 65,
+            skeletalMuscleMassKg: 24.4,
+            bodyFatPercentage: 33.7,
+            visceralFatLevel: 8,
+            deviceBmrKcal: 1475,
+            calorieTargetKcal: 1600,
+            targetProteinGrams: 100,
+            targetCarbsGrams: 150,
+            targetFatGrams: 45,
+            protocol: DietaryProtocol.BALANCED_LIFESTYLE,
+            protocolNotes: "متابعة التقدم ونزول 1.3 كجم من الدهون الصافية",
+            clinicalNotes: "معنويات ممتازة مع انضباط في مواعيد الوجبات",
+          },
+        },
+        {
+          patientIdx: 2,
+          time: "12:00",
+          dur: 45,
+          type: "PT_STANDARD",
+          clinician: "PHYSIOTHERAPIST",
+          roomIdx: 0,
+          bedIdx: 1,
+          status: AppointmentStatus.SCHEDULED,
+        },
       ],
     },
     {
       dayOffset: 1, // Sunday
       slots: [
-        { patientIdx: 3, time: "10:00", dur: 45, type: "PT_STANDARD", clinician: "PHYSIOTHERAPIST", roomIdx: 0, bedIdx: 0, status: AppointmentStatus.COMPLETED },
-        { patientIdx: 4, time: "11:00", dur: 60, type: "CONSULTANT_ASSESS", clinician: "OWNER", roomIdx: 1, bedIdx: 2, status: AppointmentStatus.COMPLETED },
-        { patientIdx: 5, time: "14:00", dur: 45, type: "PT_STANDARD", clinician: "PHYSIOTHERAPIST", roomIdx: 0, bedIdx: 1, status: AppointmentStatus.COMPLETED },
+        {
+          patientIdx: 3,
+          time: "10:00",
+          dur: 45,
+          type: "PT_STANDARD",
+          clinician: "PHYSIOTHERAPIST",
+          roomIdx: 0,
+          bedIdx: 0,
+          status: AppointmentStatus.SCHEDULED,
+        },
+        {
+          patientIdx: 4,
+          time: "11:00",
+          dur: 60,
+          type: "CONSULTANT_ASSESS",
+          clinician: "OWNER",
+          roomIdx: 1,
+          bedIdx: 2,
+          status: AppointmentStatus.SCHEDULED,
+        },
+        {
+          patientIdx: 5,
+          time: "14:00",
+          dur: 45,
+          type: "PT_STANDARD",
+          clinician: "PHYSIOTHERAPIST",
+          roomIdx: 0,
+          bedIdx: 1,
+          status: AppointmentStatus.WAITLISTED,
+        },
       ],
     },
     {
       dayOffset: 2, // Monday
       slots: [
-        { patientIdx: 0, time: "10:00", dur: 45, type: "PT_STANDARD", clinician: "PHYSIOTHERAPIST", roomIdx: 0, bedIdx: 0, status: AppointmentStatus.ARRIVED },
-        { patientIdx: 1, time: "12:00", dur: 30, type: "NUTRITION_CONSULT", clinician: "NUTRITIONIST", roomIdx: 2, bedIdx: 3, status: AppointmentStatus.SCHEDULED },
-        { patientIdx: 2, time: "14:00", dur: 45, type: "PT_STANDARD", clinician: "PHYSIOTHERAPIST", roomIdx: 0, bedIdx: 1, status: AppointmentStatus.SCHEDULED },
+        {
+          patientIdx: 0,
+          time: "10:00",
+          dur: 45,
+          type: "PT_STANDARD",
+          clinician: "PHYSIOTHERAPIST",
+          roomIdx: 0,
+          bedIdx: 0,
+          status: AppointmentStatus.SCHEDULED,
+        },
+        {
+          patientIdx: 1,
+          time: "12:00",
+          dur: 30,
+          type: "NUTRITION_CONSULT",
+          clinician: "NUTRITIONIST",
+          roomIdx: 2,
+          bedIdx: 3,
+          status: AppointmentStatus.SCHEDULED,
+        },
+        {
+          patientIdx: 2,
+          time: "14:00",
+          dur: 45,
+          type: "PT_STANDARD",
+          clinician: "PHYSIOTHERAPIST",
+          roomIdx: 0,
+          bedIdx: 1,
+          status: AppointmentStatus.CANCELLED,
+        },
       ],
     },
     {
       dayOffset: 3, // Tuesday
       slots: [
-        { patientIdx: 3, time: "10:00", dur: 45, type: "PT_STANDARD", clinician: "PHYSIOTHERAPIST", roomIdx: 0, bedIdx: 0, status: AppointmentStatus.SCHEDULED },
-        { patientIdx: 4, time: "11:30", dur: 45, type: "PT_STANDARD", clinician: "PHYSIOTHERAPIST", roomIdx: 0, bedIdx: 1, status: AppointmentStatus.WAITLISTED },
-        { patientIdx: 5, time: "15:00", dur: 45, type: "PT_STANDARD", clinician: "PHYSIOTHERAPIST", roomIdx: 1, bedIdx: 2, status: AppointmentStatus.SCHEDULED },
+        {
+          patientIdx: 3,
+          time: "10:00",
+          dur: 45,
+          type: "PT_STANDARD",
+          clinician: "PHYSIOTHERAPIST",
+          roomIdx: 0,
+          bedIdx: 0,
+          status: AppointmentStatus.SCHEDULED,
+        },
+        {
+          patientIdx: 4,
+          time: "11:30",
+          dur: 45,
+          type: "PT_STANDARD",
+          clinician: "PHYSIOTHERAPIST",
+          roomIdx: 0,
+          bedIdx: 1,
+          status: AppointmentStatus.SCHEDULED,
+        },
+        {
+          patientIdx: 5,
+          time: "15:00",
+          dur: 45,
+          type: "PT_STANDARD",
+          clinician: "PHYSIOTHERAPIST",
+          roomIdx: 1,
+          bedIdx: 2,
+          status: AppointmentStatus.SCHEDULED,
+        },
       ],
     },
     {
       dayOffset: 4, // Wednesday
       slots: [
-        { patientIdx: 0, time: "10:00", dur: 45, type: "PT_STANDARD", clinician: "PHYSIOTHERAPIST", roomIdx: 0, bedIdx: 0, status: AppointmentStatus.SCHEDULED },
-        { patientIdx: 1, time: "13:00", dur: 30, type: "NUTRITION_CONSULT", clinician: "NUTRITIONIST", roomIdx: 2, bedIdx: 3, status: AppointmentStatus.SCHEDULED },
-        { patientIdx: 2, time: "16:00", dur: 45, type: "PT_STANDARD", clinician: "PHYSIOTHERAPIST", roomIdx: 0, bedIdx: 1, status: AppointmentStatus.SCHEDULED },
+        {
+          patientIdx: 0,
+          time: "10:00",
+          dur: 45,
+          type: "PT_STANDARD",
+          clinician: "PHYSIOTHERAPIST",
+          roomIdx: 0,
+          bedIdx: 0,
+          status: AppointmentStatus.SCHEDULED,
+        },
+        {
+          patientIdx: 1,
+          time: "13:00",
+          dur: 30,
+          type: "NUTRITION_CONSULT",
+          clinician: "NUTRITIONIST",
+          roomIdx: 2,
+          bedIdx: 3,
+          status: AppointmentStatus.SCHEDULED,
+        },
       ],
     },
     {
       dayOffset: 5, // Thursday
       slots: [
-        { patientIdx: 4, time: "10:00", dur: 45, type: "PT_STANDARD", clinician: "PHYSIOTHERAPIST", roomIdx: 0, bedIdx: 0, status: AppointmentStatus.SCHEDULED },
-        { patientIdx: 5, time: "11:30", dur: 45, type: "PT_STANDARD", clinician: "PHYSIOTHERAPIST", roomIdx: 1, bedIdx: 2, status: AppointmentStatus.SCHEDULED },
-        { patientIdx: 3, time: "14:00", dur: 45, type: "PT_STANDARD", clinician: "PHYSIOTHERAPIST", roomIdx: 0, bedIdx: 1, status: AppointmentStatus.CANCELLED },
+        {
+          patientIdx: 4,
+          time: "10:00",
+          dur: 45,
+          type: "PT_STANDARD",
+          clinician: "PHYSIOTHERAPIST",
+          roomIdx: 0,
+          bedIdx: 0,
+          status: AppointmentStatus.SCHEDULED,
+        },
+        {
+          patientIdx: 5,
+          time: "11:30",
+          dur: 45,
+          type: "PT_STANDARD",
+          clinician: "PHYSIOTHERAPIST",
+          roomIdx: 1,
+          bedIdx: 2,
+          status: AppointmentStatus.SCHEDULED,
+        },
       ],
     },
   ];
 
-  let appointmentsCreated = 0;
-  for (const dayItem of weekSchedule) {
-    const apptDate = new Date(saturdayDate);
-    apptDate.setUTCDate(saturdayDate.getUTCDate() + dayItem.dayOffset);
+  let appointmentsCount = 0;
+  for (const dayItem of twoWeeksSchedule) {
+    const apptDate = new Date(currentSaturday);
+    apptDate.setUTCDate(currentSaturday.getUTCDate() + dayItem.dayOffset);
     const dateStr = apptDate.toISOString().slice(0, 10);
 
     for (const slot of dayItem.slots) {
       const [h, m] = slot.time.split(":").map(Number);
-      // Cairo is UTC+2
       const startsAt = new Date(`${dateStr}T${(h - 2).toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:00Z`);
       const endsAt = new Date(startsAt.getTime() + slot.dur * 60 * 1000);
 
@@ -505,15 +929,15 @@ async function main() {
       const room = seededRooms[slot.roomIdx];
       const bed = seededBeds[slot.bedIdx];
 
-      const existing = await prisma.appointment.findFirst({
+      let appt = await prisma.appointment.findFirst({
         where: {
           patientId: patient.id,
           startsAt,
         },
       });
 
-      if (!existing) {
-        await prisma.appointment.create({
+      if (!appt) {
+        appt = await prisma.appointment.create({
           data: {
             patientId: patient.id,
             sessionTypeId: sType.id,
@@ -534,21 +958,84 @@ async function main() {
             createdByUserId: seededUsers.RECEPTIONIST.id,
           },
         });
-        appointmentsCreated++;
+        appointmentsCount++;
+      }
+
+      const slotAny = slot as any;
+
+      // Seed Clinical Note if specified
+      if (slotAny.clinicalNote) {
+        const existingNote = await prisma.clinicalNote.findUnique({
+          where: { appointmentId: appt.id },
+        });
+        if (!existingNote) {
+          await prisma.clinicalNote.create({
+            data: {
+              appointmentId: appt.id,
+              patientId: patient.id,
+              clinicianId: clinician.id,
+              painBefore: slotAny.clinicalNote.painBefore,
+              painAfter: slotAny.clinicalNote.painAfter,
+              subjective: slotAny.clinicalNote.subjective,
+              objective: slotAny.clinicalNote.objective,
+              assessment: slotAny.clinicalNote.assessment,
+              plan: slotAny.clinicalNote.plan,
+              treatmentModalities: slotAny.clinicalNote.modalities,
+              treatmentNotes: slotAny.clinicalNote.treatmentNotes,
+              homeExercises: slotAny.clinicalNote.homeExercises,
+              completedAt: startsAt,
+              createdByUserId: clinician.id,
+            },
+          });
+        }
+      }
+
+      // Seed InBody Record if specified
+      if (slotAny.inBody) {
+        const existingInBody = await prisma.inBodyRecord.findFirst({
+          where: { appointmentId: appt.id },
+        });
+        if (!existingInBody) {
+          await prisma.inBodyRecord.create({
+            data: {
+              patientId: patient.id,
+              appointmentId: appt.id,
+              testDate: new Date(dateStr),
+              heightCm: slotAny.inBody.heightCm,
+              weightKg: slotAny.inBody.weightKg,
+              targetWeightKg: slotAny.inBody.targetWeightKg,
+              skeletalMuscleMassKg: slotAny.inBody.skeletalMuscleMassKg,
+              bodyFatPercentage: slotAny.inBody.bodyFatPercentage,
+              visceralFatLevel: slotAny.inBody.visceralFatLevel,
+              deviceBmrKcal: slotAny.inBody.deviceBmrKcal,
+              calorieTargetKcal: slotAny.inBody.calorieTargetKcal,
+              targetProteinGrams: slotAny.inBody.targetProteinGrams,
+              targetCarbsGrams: slotAny.inBody.targetCarbsGrams,
+              targetFatGrams: slotAny.inBody.targetFatGrams,
+              protocol: slotAny.inBody.protocol,
+              protocolNotes: slotAny.inBody.protocolNotes,
+              clinicalNotes: slotAny.inBody.clinicalNotes,
+              recordedByUserId: clinician.id,
+              createdByUserId: clinician.id,
+            },
+          });
+        }
       }
     }
   }
-  console.log(`  ✅ One week of appointments seeded (${appointmentsCreated} new appointments)`);
+  console.log(`  ✅ 2 weeks of appointments seeded (${appointmentsCount} new appointments created, clinical notes & InBody attached)`);
 
-  // 9. Receipt Counter
+  // ============================================================================
+  // 10. Receipt Counter
+  // ============================================================================
   await prisma.receiptCounter.upsert({
     where: { year: 2026 },
-    update: { lastValue: 2 },
-    create: { year: 2026, lastValue: 2 },
+    update: { lastValue: 3 },
+    create: { year: 2026, lastValue: 3 },
   });
-  console.log("  ✅ Receipt counter updated to lastValue: 2");
+  console.log("  ✅ Receipt counter updated to lastValue: 3");
 
-  console.log("🎉 Database seed completed successfully with realistic fake Egyptian data!");
+  console.log("🎉 Database seed completed successfully with complete realistic clinic dataset!");
 }
 
 main()

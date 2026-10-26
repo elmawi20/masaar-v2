@@ -15,7 +15,7 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: 1,
   reporter: [["html", { open: "never" }], ["list"]],
   use: {
     baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || `http://localhost:${e2ePort}`,
@@ -42,7 +42,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `npm run dev -- -p ${e2ePort}`,
+    command: `npm run start -- -p ${e2ePort}`,
     url: `http://localhost:${e2ePort}`,
     reuseExistingServer: false,
     timeout: 120 * 1000,
