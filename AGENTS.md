@@ -6,7 +6,7 @@
 - docs/design/ holds approved design files. Read them before any work.
 
 ## Current stage
-CURRENT_STAGE: 1 (Design)   <!-- update to 2, 3, 4 as you progress -->
+CURRENT_STAGE: 2 (Quality machine)   <!-- update to 2, 3, 4 as you progress -->
 
 ## Always
 - Do ONLY the task the user names. Never start the next task by yourself.
