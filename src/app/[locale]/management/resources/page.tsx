@@ -9,6 +9,7 @@ import {
   toggleRoomAction,
   createBedAction,
   toggleBedAction,
+  updateBedAction,
 } from "@/server/actions/clinic";
 
 type BedItem = {
@@ -40,10 +41,15 @@ export default function ResourcesPage() {
   const [showRoomModal, setShowRoomModal] = useState(false);
   const [newRoomNameAr, setNewRoomNameAr] = useState("");
   const [newRoomNameEn, setNewRoomNameEn] = useState("");
+  const [newNumberOfBeds, setNewNumberOfBeds] = useState(1);
 
   const [showBedModal, setShowBedModal] = useState(false);
   const [selectedRoomId, setSelectedRoomId] = useState("");
   const [newBedName, setNewBedName] = useState("");
+
+  const [showEditBedModal, setShowEditBedModal] = useState(false);
+  const [editingBed, setEditingBed] = useState<{ id: string; name: string; roomId: string } | null>(null);
+  const [editBedName, setEditBedName] = useState("");
 
   const fetchRooms = useCallback(async () => {
     setLoading(true);
@@ -92,6 +98,7 @@ export default function ResourcesPage() {
       const res = await createRoomAction({
         nameAr: newRoomNameAr,
         nameEn: newRoomNameEn,
+        numberOfBeds: newNumberOfBeds,
       });
 
       if (!res.success) {
@@ -103,6 +110,37 @@ export default function ResourcesPage() {
       setShowRoomModal(false);
       setNewRoomNameAr("");
       setNewRoomNameEn("");
+      setNewNumberOfBeds(1);
+      fetchRooms();
+    } catch {
+      setError(isAr ? "حدث خطأ غير متوقع." : "Unexpected error.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Handle Edit Bed (Rename)
+  const handleEditBedSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingBed) return;
+    setSaving(true);
+    setError(null);
+
+    try {
+      const res = await updateBedAction({
+        bedId: editingBed.id,
+        name: editBedName.trim(),
+      });
+
+      if (!res.success) {
+        setError(res.error?.message || (isAr ? "فشل تعديل اسم السرير." : "Failed to rename bed."));
+        return;
+      }
+
+      setSuccessMessage(isAr ? "تم تعديل اسم السرير بنجاح." : "Bed renamed successfully.");
+      setShowEditBedModal(false);
+      setEditingBed(null);
+      setEditBedName("");
       fetchRooms();
     } catch {
       setError(isAr ? "حدث خطأ غير متوقع." : "Unexpected error.");
@@ -232,7 +270,14 @@ export default function ResourcesPage() {
               {/* Room Header */}
               <div className="flex items-start justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">{r.nameAr}</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">{r.nameAr}</h3>
+                    {r.beds.filter((b) => b.isActive).length === 1 && (
+                      <span className="px-1.5 py-0.5 text-[9px] font-semibold rounded bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
+                        {isAr ? "غرفة مفردة" : "Single Bed"}
+                      </span>
+                    )}
+                  </div>
                   <span className="text-[11px] text-slate-400 block">{r.nameEn}</span>
                 </div>
 
@@ -278,9 +323,24 @@ export default function ResourcesPage() {
                         key={b.id}
                         className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 text-xs"
                       >
-                        <span className="font-medium text-slate-800 dark:text-slate-200">
-                          🛏️ {b.name}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-slate-800 dark:text-slate-200">
+                            🛏️ {b.name}
+                          </span>
+                          {r.isActive && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingBed({ id: b.id, name: b.name, roomId: r.id });
+                                setEditBedName(b.name);
+                                setShowEditBedModal(true);
+                              }}
+                              className="text-[10px] text-slate-500 hover:text-[#0E6251] dark:hover:text-[#48C9B0] underline px-1"
+                            >
+                              {isAr ? "تعديل" : "Edit"}
+                            </button>
+                          )}
+                        </div>
                         <button
                           type="button"
                           onClick={() => handleToggleBed(b.id, b.isActive)}
@@ -340,6 +400,26 @@ export default function ResourcesPage() {
                 />
               </div>
 
+              <div>
+                <label className="block text-xs font-semibold mb-1">
+                  {isAr ? "عدد الأسرّة في الغرفة (افتراضي 1)" : "Number of Beds (Default 1)"}
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  max={20}
+                  required
+                  value={newNumberOfBeds}
+                  onChange={(e) => setNewNumberOfBeds(Math.max(1, parseInt(e.target.value) || 1))}
+                  className="w-full px-3 py-1.5 text-xs rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
+                />
+                <p className="text-[10px] text-slate-400 mt-1">
+                  {isAr
+                    ? "سيتم إنشاء الأسرّة تلقائياً بأسماء: سرير 1، سرير 2..."
+                    : "Beds will be created automatically as Bed 1, Bed 2..."}
+                </p>
+              </div>
+
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
@@ -379,7 +459,7 @@ export default function ResourcesPage() {
                   required
                   value={newBedName}
                   onChange={(e) => setNewBedName(e.target.value)}
-                  placeholder="سرير 1 (Bed 1)"
+                  placeholder="سرير إضافي"
                   className="w-full px-3 py-1.5 text-xs rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
                 />
               </div>
@@ -398,6 +478,53 @@ export default function ResourcesPage() {
                   className="px-4 py-1.5 text-xs font-semibold rounded bg-[#0E6251] text-white disabled:opacity-50"
                 >
                   {saving ? (isAr ? "جارٍ الإضافة..." : "Adding...") : (isAr ? "إضافة السرير" : "Add Bed")}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Edit Bed (Rename) */}
+      {showEditBedModal && editingBed && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl">
+            <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-3">
+              {isAr ? "تعديل اسم السرير" : "Rename Bed"}
+            </h2>
+
+            <form onSubmit={handleEditBedSubmit} className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold mb-1">
+                  {isAr ? "اسم السرير الجديد" : "New Bed Name"}
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editBedName}
+                  onChange={(e) => setEditBedName(e.target.value)}
+                  placeholder="سرير 1"
+                  className="w-full px-3 py-1.5 text-xs rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEditBedModal(false);
+                    setEditingBed(null);
+                  }}
+                  className="px-3 py-1.5 text-xs rounded border border-slate-300 dark:border-slate-700"
+                >
+                  {isAr ? "إلغاء" : "Cancel"}
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="px-4 py-1.5 text-xs font-semibold rounded bg-[#0E6251] text-white disabled:opacity-50"
+                >
+                  {saving ? (isAr ? "جارٍ الحفظ..." : "Saving...") : (isAr ? "حفظ التعديل" : "Save Name")}
                 </button>
               </div>
             </form>

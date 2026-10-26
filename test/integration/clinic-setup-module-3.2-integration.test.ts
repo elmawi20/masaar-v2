@@ -25,8 +25,12 @@ describe("Module 3.2: Clinic Setup & Staff Schedules (Integration)", () => {
   let testBedId: string;
   let testClosureId: string;
   let testLeaveId: string;
-
   beforeAll(async () => {
+    // Clean up any previous session type test run
+    await prisma.sessionType.deleteMany({
+      where: { code: "PHYSIO_INTEGRATION_TEST" },
+    });
+
     // 1. Create distinct test users
     const owner = await prisma.user.upsert({
       where: { email: "owner.clinic.setup@masaar.local" },
@@ -82,25 +86,15 @@ describe("Module 3.2: Clinic Setup & Staff Schedules (Integration)", () => {
     await prisma.staffSchedule.deleteMany({
       where: { userId: physioUser.id },
     });
-    if (testBedId) {
-      await prisma.bed.deleteMany({ where: { id: testBedId } });
-    }
     if (testRoomId) {
+      await prisma.bed.deleteMany({ where: { roomId: testRoomId } });
       await prisma.room.deleteMany({ where: { id: testRoomId } });
     }
     if (testClosureId) {
       await prisma.clinicClosure.deleteMany({ where: { id: testClosureId } });
     }
-    await prisma.user.deleteMany({
-      where: {
-        email: {
-          in: [
-            "owner.clinic.setup@masaar.local",
-            "manager.clinic.setup@masaar.local",
-            "physio.clinic.setup@masaar.local",
-          ],
-        },
-      },
+    await prisma.sessionType.deleteMany({
+      where: { code: "PHYSIO_INTEGRATION_TEST" },
     });
   });
 

@@ -1,20 +1,18 @@
-import { setRequestLocale } from "next-intl/server";
+"use client";
+
 import { useLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { useRole } from "@/context/RoleContext";
+import { isRouteAllowedForRole } from "@/domain/routePermissions";
+import { Role } from "@prisma/client";
 
-export default function HomePage({ params }: { params: Promise<{ locale: string }> }) {
-  return <HomePageContent params={params} />;
-}
-
-async function HomePageContent({ params }: { params: Promise<{ locale: string }> }) {
-  const { locale } = await params;
-  setRequestLocale(locale);
-
+export default function HomePage() {
   return <HomeDashboard />;
 }
 
 function HomeDashboard() {
   const locale = useLocale();
+  const { role } = useRole();
 
   const isAr = locale === "ar";
 
@@ -138,7 +136,9 @@ function HomeDashboard() {
           {isAr ? "أقسام النظام الأساسية" : "Core System Modules"}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {quickLinks.map((ql) => (
+          {quickLinks
+            .filter((ql) => isRouteAllowedForRole(ql.href, role as Role))
+            .map((ql) => (
             <Link
               key={ql.href}
               href={ql.href}

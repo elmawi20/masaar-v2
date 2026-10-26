@@ -245,6 +245,7 @@ export const createRoomAction = defineAction({
   schema: z.object({
     nameAr: z.string().min(2).max(100),
     nameEn: z.string().min(2).max(100),
+    numberOfBeds: z.number().int().min(1).max(20).default(1),
   }),
   audit: {
     entityType: "Room",
@@ -252,7 +253,7 @@ export const createRoomAction = defineAction({
     getEntityId: (data) => (data as { id?: string })?.id,
   },
   handler: async ({ input, ctx, tx }) => {
-    return tx.room.create({
+    const room = await tx.room.create({
       data: {
         nameAr: input.nameAr,
         nameEn: input.nameEn,
@@ -260,6 +261,20 @@ export const createRoomAction = defineAction({
         createdByUserId: ctx.user.id,
       },
     });
+
+    const bedCount = input.numberOfBeds ?? 1;
+    for (let i = 1; i <= bedCount; i++) {
+      await tx.bed.create({
+        data: {
+          roomId: room.id,
+          name: `سرير ${i}`,
+          isActive: true,
+          createdByUserId: ctx.user.id,
+        },
+      });
+    }
+
+    return room;
   },
 });
 
@@ -333,6 +348,48 @@ export const toggleBedAction = defineAction({
     return tx.bed.update({
       where: { id: input.bedId },
       data: { isActive: input.isActive },
+    });
+  },
+});
+
+export const updateBedAction = defineAction({
+  actionKey: "admin.staff.manage_schedules",
+  schema: z.object({
+    bedId: z.string().uuid(),
+    name: z.string().min(1).max(100),
+  }),
+  audit: {
+    entityType: "Bed",
+    actionName: "BED_UPDATED",
+    getEntityId: (_, input) => input.bedId,
+  },
+  handler: async ({ input, tx }) => {
+    const bed = await tx.bed.findUnique({
+      where: { id: input.bedId },
+    });
+
+    if (!bed) {
+      throw new Error("السرير غير موجود.");
+    }
+
+    const trimmedName = input.name.trim();
+
+    // Enforce bed name uniqueness within the same room
+    const duplicate = await tx.bed.findFirst({
+      where: {
+        roomId: bed.roomId,
+        name: trimmedName,
+        id: { not: input.bedId },
+      },
+    });
+
+    if (duplicate) {
+      throw new Error("اسم السرير مكرر بالفعل في هذه الغرفة.");
+    }
+
+    return tx.bed.update({
+      where: { id: input.bedId },
+      data: { name: trimmedName },
     });
   },
 });

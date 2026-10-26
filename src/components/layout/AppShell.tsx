@@ -1,12 +1,42 @@
 "use client";
 
 import React, { useState } from "react";
-import { usePathname } from "@/i18n/navigation";
-import { RoleProvider, type AuthUser } from "@/context/RoleContext";
+import { usePathname, useRouter } from "@/i18n/navigation";
+import { RoleProvider, useRole, type AuthUser } from "@/context/RoleContext";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { ThemeToggle } from "./ThemeToggle";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import { isRouteAllowedForRole } from "@/domain/routePermissions";
+import { ForbiddenPage } from "../common/ForbiddenPage";
+import { Role } from "@prisma/client";
+
+function AppShellBody({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const pathname = usePathname();
+  const { role, user } = useRole();
+
+  const isAllowed = isRouteAllowedForRole(pathname, role as Role);
+
+  return (
+    <div className="min-h-screen bg-[var(--bg-app)] text-[var(--text-main)] flex">
+      <Sidebar isOpenMobile={mobileOpen} onCloseMobile={() => setMobileOpen(false)} />
+
+      <div className="flex-1 flex flex-col min-w-0">
+        <Header onOpenMobileNav={() => setMobileOpen(true)} />
+        <main className="flex-1 p-4 md:p-6 overflow-y-auto">
+          <div className="max-w-[1400px] mx-auto w-full">
+            {isAllowed ? children : <ForbiddenPage path={pathname} />}
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}
 
 export function AppShell({
   children,
@@ -15,7 +45,6 @@ export function AppShell({
   children: React.ReactNode;
   initialUser?: AuthUser | null;
 }) {
-  const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
   const isLoginPage = pathname === "/login";
 
@@ -47,16 +76,7 @@ export function AppShell({
 
   return (
     <RoleProvider initialUser={initialUser}>
-      <div className="min-h-screen bg-[var(--bg-app)] text-[var(--text-main)] flex">
-        <Sidebar isOpenMobile={mobileOpen} onCloseMobile={() => setMobileOpen(false)} />
-
-        <div className="flex-1 flex flex-col min-w-0">
-          <Header onOpenMobileNav={() => setMobileOpen(true)} />
-          <main className="flex-1 p-4 md:p-6 overflow-y-auto">
-            <div className="max-w-[1400px] mx-auto w-full">{children}</div>
-          </main>
-        </div>
-      </div>
+      <AppShellBody>{children}</AppShellBody>
     </RoleProvider>
   );
 }

@@ -40,11 +40,52 @@ import {
 
 // Helper to get client IP and User Agent
 async function getClientMetadata(): Promise<{ ipAddress: string; userAgent?: string }> {
-  const headerStore = await headers();
-  const ipAddress =
-    headerStore.get("x-forwarded-for")?.split(",")[0]?.trim() || "127.0.0.1";
-  const userAgent = headerStore.get("user-agent") || undefined;
-  return { ipAddress, userAgent };
+  try {
+    const headerStore = await headers();
+    const ipAddress =
+      headerStore.get("x-forwarded-for")?.split(",")[0]?.trim() || "127.0.0.1";
+    const userAgent = headerStore.get("user-agent") || undefined;
+    return { ipAddress, userAgent };
+  } catch {
+    return { ipAddress: "127.0.0.1", userAgent: undefined };
+  }
+}
+
+async function safeGetCookie(name: string): Promise<string | undefined> {
+  try {
+    const cookieStore = await cookies();
+    return cookieStore.get(name)?.value;
+  } catch {
+    return undefined;
+  }
+}
+
+async function safeSetCookie(
+  name: string,
+  value: string,
+  options: {
+    httpOnly: boolean;
+    secure: boolean;
+    sameSite: "lax" | "strict" | "none";
+    path: string;
+    maxAge: number;
+  }
+): Promise<void> {
+  try {
+    const cookieStore = await cookies();
+    cookieStore.set(name, value, options);
+  } catch {
+    // Safely skipped when called outside HTTP request context (e.g. tests)
+  }
+}
+
+async function safeDeleteCookie(name: string): Promise<void> {
+  try {
+    const cookieStore = await cookies();
+    cookieStore.delete(name);
+  } catch {
+    // Safely skipped when called outside HTTP request context
+  }
 }
 
 // In-memory or temporary cache for 2FA login pending state (valid for 5 minutes)
@@ -99,8 +140,9 @@ export const loginAction = defineAction({
 
     // Check account lockout (R-15.1-3)
     if (user?.lockedUntil && user.lockedUntil > now) {
-      const remainingMinutes = Math.ceil(
-        (user.lockedUntil.getTime() - now.getTime()) / (60 * 1000)
+      const remainingMinutes = Math.max(
+        1,
+        Math.ceil((user.lockedUntil.getTime() - now.getTime()) / (60 * 1000))
       );
       throw new Error(
         `الحساب مقفل مؤقتاً لمدة ${remainingMinutes} دقيقة بعد محاولات فاشلة متكررة.`
@@ -116,15 +158,17 @@ export const loginAction = defineAction({
       if (user) {
         const nextFailedCount = user.failedLoginCount + 1;
         const willLock = nextFailedCount >= 5;
-        await tx.user.update({
+        const lockedUntil = willLock ? new Date(now.getTime() + 15 * 60 * 1000) : null;
+
+        await prisma.user.update({
           where: { id: user.id },
           data: {
             failedLoginCount: willLock ? 0 : nextFailedCount,
-            lockedUntil: willLock ? new Date(now.getTime() + 15 * 60 * 1000) : null,
+            lockedUntil,
           },
         });
 
-        await tx.loginAttempt.create({
+        await prisma.loginAttempt.create({
           data: {
             email: normalizedEmail,
             ipAddress,
@@ -135,10 +179,23 @@ export const loginAction = defineAction({
         });
 
         if (willLock) {
-          throw new Error("تم تجاوز الحد الأقصى للمحاولات. تم قفل الحساب لمدة 15 دقيقة.");
+          await prisma.auditLog.create({
+            data: {
+              userId: user.id,
+              userRole: user.role,
+              action: "AUTH_LOCKOUT_TRIGGERED",
+              entityType: "User",
+              entityId: user.id,
+              reason: "5 consecutive failed password attempts triggered 15-minute lockout",
+              ipAddress,
+              userAgent,
+            },
+          });
+
+          throw new Error("تم تجاوز الحد الأقصى للمحاولات (5 محاولات). تم قفل الحساب مؤقتاً لمدة 15 دقيقة.");
         }
       } else {
-        await tx.loginAttempt.create({
+        await prisma.loginAttempt.create({
           data: {
             email: normalizedEmail,
             ipAddress,
@@ -153,7 +210,7 @@ export const loginAction = defineAction({
     }
 
     // Reset failed count upon valid password
-    await tx.user.update({
+    await prisma.user.update({
       where: { id: user.id },
       data: { failedLoginCount: 0, lockedUntil: null },
     });
@@ -194,19 +251,18 @@ export const loginAction = defineAction({
     }
 
     // Check Trusted Device (R-15.2-4)
-    const cookieStore = await cookies();
-    const trustedToken = cookieStore.get(TRUSTED_DEVICE_COOKIE_NAME)?.value;
+    const trustedToken = await safeGetCookie(TRUSTED_DEVICE_COOKIE_NAME);
     const isTrusted = await isDeviceTrusted(user.id, trustedToken);
 
     if (isTrusted) {
       // Skip OTP, log in directly
-      const { sessionToken, expiresAt } = await createSession({
+      const { sessionToken } = await createSession({
         userId: user.id,
         ipAddress,
         userAgent,
       });
 
-      cookieStore.set(SESSION_COOKIE_NAME, sessionToken, {
+      await safeSetCookie(SESSION_COOKIE_NAME, sessionToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
@@ -356,8 +412,7 @@ export const verifyOtpAction = defineAction({
       userAgent,
     });
 
-    const cookieStore = await cookies();
-    cookieStore.set(SESSION_COOKIE_NAME, sessionToken, {
+    await safeSetCookie(SESSION_COOKIE_NAME, sessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
@@ -374,7 +429,7 @@ export const verifyOtpAction = defineAction({
         userAgent,
       });
 
-      cookieStore.set(TRUSTED_DEVICE_COOKIE_NAME, deviceToken, {
+      await safeSetCookie(TRUSTED_DEVICE_COOKIE_NAME, deviceToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
@@ -480,8 +535,7 @@ export const enrollOtpAction = defineAction({
       userAgent,
     });
 
-    const cookieStore = await cookies();
-    cookieStore.set(SESSION_COOKIE_NAME, sessionToken, {
+    await safeSetCookie(SESSION_COOKIE_NAME, sessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
@@ -683,8 +737,7 @@ export const logoutAction = defineAction({
     actionName: "AUTH_LOGOUT",
   },
   handler: async ({ input, tx }) => {
-    const cookieStore = await cookies();
-    const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+    const token = await safeGetCookie(SESSION_COOKIE_NAME);
 
     if (token) {
       const session = await tx.userSession.findUnique({
@@ -713,7 +766,7 @@ export const logoutAction = defineAction({
       await revokeSession(token);
     }
 
-    cookieStore.delete(SESSION_COOKIE_NAME);
+    await safeDeleteCookie(SESSION_COOKIE_NAME);
 
     return {
       hasOpenCashShift: false,
