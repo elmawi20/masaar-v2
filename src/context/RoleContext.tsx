@@ -1,46 +1,46 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState } from "react";
 
 export type UserRole = "OWNER" | "MANAGER" | "RECEPTIONIST" | "PHYSIOTHERAPIST" | "NUTRITIONIST";
 
-interface RoleContextType {
+export interface AuthUser {
+  id: string;
+  fullName?: string;
+  email: string;
   role: UserRole;
-  setRole: (role: UserRole) => void;
+  isActive: boolean;
+}
+
+interface RoleContextType {
+  user: AuthUser | null;
+  role: UserRole;
+  setUser: (user: AuthUser | null) => void;
 }
 
 const RoleContext = createContext<RoleContextType>({
+  user: null,
   role: "OWNER",
-  setRole: () => {},
+  setUser: () => {},
 });
 
-export function RoleProvider({ children }: { children: React.ReactNode }) {
-  const [role, setRoleState] = useState<UserRole>("OWNER");
+export function RoleProvider({
+  children,
+  initialUser,
+}: {
+  children: React.ReactNode;
+  initialUser?: AuthUser | null;
+}) {
+  const [user, setUser] = useState<AuthUser | null>(initialUser || null);
 
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("masaar_preview_role");
-      if (
-        saved &&
-        ["OWNER", "MANAGER", "RECEPTIONIST", "PHYSIOTHERAPIST", "NUTRITIONIST"].includes(saved)
-      ) {
-        setRoleState(saved as UserRole);
-      }
-    } catch {
-      // Ignore localStorage errors in SSR or restricted environments
-    }
-  }, []);
+  // Menus and permissions come strictly from logged-in user's role (R-1-6)
+  const role: UserRole = user?.role || "OWNER";
 
-  const setRole = (newRole: UserRole) => {
-    setRoleState(newRole);
-    try {
-      localStorage.setItem("masaar_preview_role", newRole);
-    } catch {
-      // Ignore
-    }
-  };
-
-  return <RoleContext.Provider value={{ role, setRole }}>{children}</RoleContext.Provider>;
+  return (
+    <RoleContext.Provider value={{ user, role, setUser }}>
+      {children}
+    </RoleContext.Provider>
+  );
 }
 
 export function useRole() {

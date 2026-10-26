@@ -3,6 +3,7 @@ import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing, type Locale } from "@/i18n/routing";
 import { AppShell } from "@/components/layout/AppShell";
+import { getCurrentUser } from "@/server/auth/currentUser";
 import "../globals.css";
 
 export function generateStaticParams() {
@@ -24,6 +25,7 @@ export default async function LocaleLayout({
 
   setRequestLocale(locale);
   const messages = await getMessages();
+  const currentUser = await getCurrentUser();
 
   const themeInitScript = `(function(){try{var t=localStorage.getItem("masaar_theme");if(t==="dark"||t==="light"){document.documentElement.setAttribute("data-theme",t);}else if(window.matchMedia("(prefers-color-scheme: dark)").matches){document.documentElement.setAttribute("data-theme","dark");}}catch(e){}})();`;
 
@@ -39,7 +41,7 @@ export default async function LocaleLayout({
       </head>
       <body>
         <NextIntlClientProvider messages={messages}>
-          <AppShell>{children}</AppShell>
+          <AppShell initialUser={currentUser}>{children}</AppShell>
         </NextIntlClientProvider>
       </body>
     </html>

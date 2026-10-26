@@ -6,6 +6,7 @@ import { PERMISSIONS_MATRIX, type ClinicRole } from "@/domain/permissions";
 export interface ActionUser {
   id: string;
   email: string;
+  fullName?: string;
   role: ClinicRole;
   isActive: boolean;
 }
@@ -53,18 +54,28 @@ export const ACTION_WRAPPED_SYMBOL = Symbol.for("masaar.defineAction");
  * auth -> active user -> RBAC permission -> Zod validation -> transaction -> audit log.
  * In accordance with Rule R-0-2 and Stage 2 architectural requirements.
  */
+import { resolveActionContext } from "./auth/currentUser";
+
 export function defineAction<TInput, TOutput>(
   config: DefineActionConfig<TInput, TOutput>
 ) {
   const wrappedAction = async (
-    rawInput: unknown,
+    rawInput: TInput,
     invocationContext?: ActionContext
   ): Promise<ActionResult<TOutput>> => {
     try {
       // 1. Session & Auth Check
-      const ctx: ActionContext = {
+      let ctx: ActionContext = {
         ...invocationContext,
       };
+
+      if (!ctx.user && !config.isPublic) {
+        const dynamicCtx = await resolveActionContext();
+        ctx = {
+          ...dynamicCtx,
+          ...ctx,
+        };
+      }
 
       if (!config.isPublic) {
         if (!ctx.user) {

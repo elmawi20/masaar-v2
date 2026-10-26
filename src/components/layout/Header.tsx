@@ -4,7 +4,7 @@ import React from "react";
 import { useLocale } from "next-intl";
 import { ThemeToggle } from "./ThemeToggle";
 import { LanguageSwitcher } from "./LanguageSwitcher";
-import { RoleSwitcher } from "./RoleSwitcher";
+import { UserMenu } from "./UserMenu";
 
 interface HeaderProps {
   onOpenMobileNav: () => void;
@@ -46,7 +46,7 @@ export function Header({ onOpenMobileNav }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3">
-        <RoleSwitcher />
+        <UserMenu />
         <div className="h-4 w-[1px] bg-slate-200 dark:bg-slate-700 hidden sm:block" />
         <LanguageSwitcher />
         <ThemeToggle />

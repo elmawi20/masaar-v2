@@ -121,6 +121,12 @@ async function main() {
     seededUsers[u.role] = user;
   }
   console.log("  ✅ Staff users for all 5 roles seeded (owner, manager, receptionist, physio, nutritionist)");
+  console.log("\n=======================================================");
+  console.log("👑 [SEED] Initial Owner Account Credentials (First Login):");
+  console.log("   Email:    owner@masaar.local");
+  console.log("   Password: Password123!");
+  console.log("   (Change password and TOTP enrollment available on login)");
+  console.log("=======================================================\n");
 
   // 4. Rooms and Beds
   const roomsData = [

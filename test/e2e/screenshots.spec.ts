@@ -11,6 +11,12 @@ const viewports = [
 const locales = ["ar", "en"] as const;
 const themes = ["light", "dark"] as const;
 
+const routes = [
+  { name: "home", path: "" },
+  { name: "login", path: "/login" },
+  { name: "admin-staff", path: "/admin/staff" },
+];
+
 test.describe("Visual Regression & Responsive Screenshot Suite", () => {
   const screenshotsDir = path.join(process.cwd(), "artifacts", "screenshots");
 
@@ -20,31 +26,33 @@ test.describe("Visual Regression & Responsive Screenshot Suite", () => {
     }
   });
 
-  for (const vp of viewports) {
-    for (const locale of locales) {
-      for (const theme of themes) {
-        test(`capture ${vp.name} (${vp.width}px) - ${locale} - ${theme} mode`, async ({ page }) => {
-          await page.setViewportSize({ width: vp.width, height: vp.height });
-          await page.goto(`/${locale}`);
-          await page.waitForLoadState("networkidle");
+  for (const route of routes) {
+    for (const vp of viewports) {
+      for (const locale of locales) {
+        for (const theme of themes) {
+          test(`capture ${route.name} - ${vp.name} (${vp.width}px) - ${locale} - ${theme} mode`, async ({ page }) => {
+            await page.setViewportSize({ width: vp.width, height: vp.height });
+            await page.goto(`/${locale}${route.path}`);
+            await page.waitForLoadState("networkidle");
 
-          // Set theme attribute
-          await page.evaluate((t) => {
-            document.documentElement.setAttribute("data-theme", t);
-          }, theme);
+            // Set theme attribute
+            await page.evaluate((t) => {
+              document.documentElement.setAttribute("data-theme", t);
+            }, theme);
 
-          // Verify language direction
-          const expectedDir = locale === "ar" ? "rtl" : "ltr";
-          await expect(page.locator("html")).toHaveAttribute("dir", expectedDir);
+            // Verify language direction
+            const expectedDir = locale === "ar" ? "rtl" : "ltr";
+            await expect(page.locator("html")).toHaveAttribute("dir", expectedDir);
 
-          const screenshotPath = path.join(
-            screenshotsDir,
-            `screen-${vp.width}px-${locale}-${theme}.png`
-          );
+            const screenshotPath = path.join(
+              screenshotsDir,
+              `${route.name}-${vp.width}px-${locale}-${theme}.png`
+            );
 
-          await page.screenshot({ path: screenshotPath, fullPage: true });
-          expect(fs.existsSync(screenshotPath)).toBe(true);
-        });
+            await page.screenshot({ path: screenshotPath, fullPage: true });
+            expect(fs.existsSync(screenshotPath)).toBe(true);
+          });
+        }
       }
     }
   }
