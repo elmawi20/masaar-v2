@@ -261,7 +261,14 @@ export const getPatientProfileAction = defineAction({
         },
         packages: {
           orderBy: { startDate: "desc" },
-          include: { sessionType: true },
+          include: {
+            sessionType: true,
+            appointments: { select: { status: true } },
+            extensions: {
+              include: { extendedByUser: { select: { fullName: true } } },
+              orderBy: { extendedAt: "desc" },
+            },
+          },
         },
         charges: {
           orderBy: { createdAt: "desc" },
@@ -301,8 +308,56 @@ export const getPatientProfileAction = defineAction({
     // Filter medical alerts notes: Non-clinicians get null (R-4.1-16)
     const filteredAlertsNotes = isNonClinician ? null : patient.medicalAlertsNotes;
 
+    // Calculate dynamic package metrics (calculations.md §4.3)
+    const processedPackages = (patient.packages || []).map((pkg) => {
+      const appointments = pkg.appointments || [];
+      const completedSessions = appointments.filter(
+        (a: any) => a.status === "COMPLETED"
+      ).length;
+      const futureBookedSessions = appointments.filter(
+        (a: any) =>
+          a.status === "SCHEDULED" ||
+          a.status === "ARRIVED" ||
+          a.status === "WAITLISTED"
+      ).length;
+      const perSessionValuePiasters = Math.floor(
+        pkg.totalPricePiasters / Math.max(1, pkg.totalSessions)
+      );
+      const isPastExpiry = new Date() > new Date(pkg.expiryDate);
+
+      let status: "ACTIVE" | "COMPLETED" | "EXPIRED" | "CANCELLED" = "ACTIVE";
+      if (pkg.cancelledAt) {
+        status = "CANCELLED";
+      } else if (completedSessions >= pkg.totalSessions) {
+        status = "COMPLETED";
+      } else if (isPastExpiry) {
+        status = "EXPIRED";
+      } else {
+        status = "ACTIVE";
+      }
+
+      let availableSessions = 0;
+      let forfeitedSessions = 0;
+      if (status === "ACTIVE") {
+        availableSessions = Math.max(0, pkg.totalSessions - completedSessions - futureBookedSessions);
+      } else if (status === "EXPIRED") {
+        forfeitedSessions = Math.max(0, pkg.totalSessions - completedSessions);
+      }
+
+      return {
+        ...pkg,
+        status,
+        completedSessions,
+        futureBookedSessions,
+        availableSessions,
+        forfeitedSessions,
+        perSessionValuePiasters,
+      };
+    });
+
     return {
       ...patient,
+      packages: processedPackages,
       medicalAlertsNotes: filteredAlertsNotes,
       diagnoses: filteredDiagnoses,
       documents: filteredDocuments,

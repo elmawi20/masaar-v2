@@ -11,6 +11,12 @@ import {
   uploadPatientDocumentAction,
   dischargePatientAction,
 } from "@/server/actions/patients";
+import {
+  createPackageAction,
+  extendPackageAction,
+  cancelPackageAction,
+  getPackageSessionTypesAction,
+} from "@/server/actions/packages";
 import { DocumentCategory } from "@prisma/client";
 import { calculatePatientAge } from "@/domain/patients/age";
 
@@ -68,6 +74,27 @@ export default function PatientProfilePage({
   const [showDischargeModal, setShowDischargeModal] = useState(false);
   const [dischargeReason, setDischargeReason] = useState("");
   const [savingDischarge, setSavingDischarge] = useState(false);
+
+  // Package Management Modals (Spec §7)
+  const [showCreatePkgModal, setShowCreatePkgModal] = useState(false);
+  const [pkgSessionTypes, setPkgSessionTypes] = useState<any[]>([]);
+  const [pkgSessionTypeId, setPkgSessionTypeId] = useState("");
+  const [pkgTotalSessions, setPkgTotalSessions] = useState(10);
+  const [pkgTotalPriceEgp, setPkgTotalPriceEgp] = useState(3000);
+  const [pkgNotes, setPkgNotes] = useState("");
+  const [savingPkg, setSavingPkg] = useState(false);
+
+  const [showExtendPkgModal, setShowExtendPkgModal] = useState(false);
+  const [selectedPkgForExtend, setSelectedPkgForExtend] = useState<any>(null);
+  const [pkgDaysToAdd, setPkgDaysToAdd] = useState(30);
+  const [pkgExtendReason, setPkgExtendReason] = useState("");
+  const [savingExtend, setSavingExtend] = useState(false);
+
+  const [showCancelPkgModal, setShowCancelPkgModal] = useState(false);
+  const [selectedPkgForCancel, setSelectedPkgForCancel] = useState<any>(null);
+  const [pkgCancelReason, setPkgCancelReason] = useState("PATIENT_REQUEST");
+  const [pkgCancelNotes, setPkgCancelNotes] = useState("");
+  const [savingCancel, setSavingCancel] = useState(false);
 
   const fetchPatientProfile = useCallback(async () => {
     setLoading(true);
@@ -206,6 +233,101 @@ export default function PatientProfilePage({
       setError(isAr ? "حدث خطأ غير متوقع." : "Unexpected error.");
     } finally {
       setSavingDischarge(false);
+    }
+  };
+
+  // Handle Package Operations (Spec §7)
+  const handleOpenCreatePkg = async () => {
+    setShowCreatePkgModal(true);
+    if (pkgSessionTypes.length === 0) {
+      const res = await getPackageSessionTypesAction({});
+      if (res.success && res.data) {
+        setPkgSessionTypes(res.data);
+        if (res.data.length > 0) {
+          setPkgSessionTypeId(res.data[0].id);
+        }
+      }
+    }
+  };
+
+  const handleCreatePackage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingPkg(true);
+    setError(null);
+    try {
+      const res = await createPackageAction({
+        patientId,
+        sessionTypeId: pkgSessionTypeId,
+        totalSessions: Number(pkgTotalSessions),
+        totalPricePiasters: Math.round(Number(pkgTotalPriceEgp) * 100),
+        notes: pkgNotes || undefined,
+      });
+      if (res.success) {
+        setSuccessMessage(isAr ? "تم إنشاء الباقة بنجاح وإصدار المطالبة المالية." : "Package created successfully.");
+        setShowCreatePkgModal(false);
+        setPkgNotes("");
+        fetchPatientProfile();
+      } else {
+        setError(res.error?.message || (isAr ? "فشل إنشاء الباقة" : "Failed to create package"));
+      }
+    } catch {
+      setError(isAr ? "حدث خطأ غير متوقع" : "Unexpected error");
+    } finally {
+      setSavingPkg(false);
+    }
+  };
+
+  const handleExtendPackage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedPkgForExtend) return;
+    setSavingExtend(true);
+    setError(null);
+    try {
+      const res = await extendPackageAction({
+        packageId: selectedPkgForExtend.id,
+        daysToAdd: Number(pkgDaysToAdd),
+        reason: pkgExtendReason,
+      });
+      if (res.success) {
+        setSuccessMessage(isAr ? "تم تمديد صلاحية الباقة بنجاح وتحديث الجلسات المتاحة." : "Package validity extended.");
+        setShowExtendPkgModal(false);
+        setPkgExtendReason("");
+        setSelectedPkgForExtend(null);
+        fetchPatientProfile();
+      } else {
+        setError(res.error?.message || (isAr ? "فشل تمديد الباقة" : "Failed to extend package"));
+      }
+    } catch {
+      setError(isAr ? "حدث خطأ غير متوقع" : "Unexpected error");
+    } finally {
+      setSavingExtend(false);
+    }
+  };
+
+  const handleCancelPackage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedPkgForCancel) return;
+    setSavingCancel(true);
+    setError(null);
+    try {
+      const res = await cancelPackageAction({
+        packageId: selectedPkgForCancel.id,
+        reason: pkgCancelReason,
+        reasonNotes: pkgCancelNotes || undefined,
+      });
+      if (res.success) {
+        setSuccessMessage(isAr ? "تم إلغاء الباقة وتحرير المواعيد المستقبلية." : "Package cancelled.");
+        setShowCancelPkgModal(false);
+        setPkgCancelNotes("");
+        setSelectedPkgForCancel(null);
+        fetchPatientProfile();
+      } else {
+        setError(res.error?.message || (isAr ? "فشل إلغاء الباقة" : "Failed to cancel package"));
+      }
+    } catch {
+      setError(isAr ? "حدث خطأ غير متوقع" : "Unexpected error");
+    } finally {
+      setSavingCancel(false);
     }
   };
 
@@ -612,13 +734,29 @@ export default function PatientProfilePage({
         </div>
       )}
 
-      {/* TAB 3: PACKAGES */}
+      {/* TAB 3: PACKAGES (Spec §7) */}
       {activeTab === "PACKAGES" && (
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-              {isAr ? "باقات الجلسات المشتراة" : "Treatment Packages"}
-            </h3>
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                {isAr ? "باقات الجلسات المشتراة" : "Treatment Packages"}
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                {isAr
+                  ? "صلاحية الباقة 60 يوماً تلقائياً، تحسب الجلسات المتاحة ديناميكياً وتفقد الجلسات غير المستخدمة بانتهاء الصلاحية."
+                  : "60-day auto expiry. Sessions tracked dynamically; unconsumed sessions forfeited upon expiry."}
+              </p>
+            </div>
+            {!isClinician && (
+              <button
+                type="button"
+                onClick={handleOpenCreatePkg}
+                className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#0E6251] text-white hover:bg-[#117A65] transition shadow-sm"
+              >
+                + {isAr ? "شراء باقة جديدة" : "New Package"}
+              </button>
+            )}
           </div>
 
           {!patient.packages || patient.packages.length === 0 ? (
@@ -627,20 +765,128 @@ export default function PatientProfilePage({
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {patient.packages.map((pkg: any) => (
-                <div key={pkg.id} className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2 text-xs">
-                  <div className="flex justify-between items-start">
-                    <span className="font-bold text-slate-900 dark:text-slate-100">{pkg.sessionType?.nameAr}</span>
-                    <span className="px-2 py-0.5 rounded text-[10px] bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 font-semibold">
-                      {pkg.totalSessions} {isAr ? "جلسات" : "sessions"}
-                    </span>
+              {patient.packages.map((pkg: any) => {
+                const statusStyles: Record<string, string> = {
+                  ACTIVE: "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800",
+                  COMPLETED: "bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800",
+                  EXPIRED: "bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800",
+                  CANCELLED: "bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800",
+                };
+                const statusLabels: Record<string, string> = {
+                  ACTIVE: isAr ? "نشطة" : "Active",
+                  COMPLETED: isAr ? "مكتملة" : "Completed",
+                  EXPIRED: isAr ? "منتهية الصلاحية" : "Expired",
+                  CANCELLED: isAr ? "ملغاة" : "Cancelled",
+                };
+
+                return (
+                  <div
+                    key={pkg.id}
+                    className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3 text-xs bg-slate-50/50 dark:bg-slate-800/20"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <span className="font-bold text-slate-900 dark:text-slate-100 text-sm block">
+                          {pkg.sessionType?.nameAr || pkg.sessionType?.nameEn}
+                        </span>
+                        <span className="text-[11px] text-slate-500 font-mono">
+                          {isAr ? "قيمة الجلسة:" : "Per session:"} {((pkg.perSessionValuePiasters || 0) / 100).toFixed(2)} EGP
+                        </span>
+                      </div>
+                      <span
+                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                          statusStyles[pkg.status] || "bg-slate-100 text-slate-700"
+                        }`}
+                      >
+                        {statusLabels[pkg.status] || pkg.status}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-4 gap-2 text-center py-2 bg-white dark:bg-slate-900 rounded-lg border border-slate-200/80 dark:border-slate-800">
+                      <div>
+                        <div className="text-[10px] text-slate-400">{isAr ? "المتاحة" : "Available"}</div>
+                        <div className="font-bold text-emerald-600 dark:text-emerald-400 text-sm font-mono">
+                          {pkg.availableSessions}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] text-slate-400">{isAr ? "المكتملة" : "Done"}</div>
+                        <div className="font-bold text-slate-700 dark:text-slate-300 text-sm font-mono">
+                          {pkg.completedSessions}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] text-slate-400">{isAr ? "المحجوزة" : "Booked"}</div>
+                        <div className="font-bold text-blue-600 dark:text-blue-400 text-sm font-mono">
+                          {pkg.futureBookedSessions}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] text-slate-400">{isAr ? "الإجمالي" : "Total"}</div>
+                        <div className="font-bold text-slate-900 dark:text-slate-100 text-sm font-mono">
+                          {pkg.totalSessions}
+                        </div>
+                      </div>
+                    </div>
+
+                    {pkg.forfeitedSessions > 0 && (
+                      <div className="text-[11px] text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2 py-1 rounded">
+                        ⚠️ {isAr ? `فقدت ${pkg.forfeitedSessions} جلسات لانتهاء الصلاحية [R-7-4]` : `${pkg.forfeitedSessions} sessions forfeited due to expiry`}
+                      </div>
+                    )}
+
+                    <div className="flex justify-between text-slate-500 text-[11px] pt-1 border-t border-slate-200 dark:border-slate-800">
+                      <span>
+                        {isAr ? "البداية:" : "Start:"} {new Date(pkg.startDate).toISOString().slice(0, 10)}
+                      </span>
+                      <span>
+                        {isAr ? "الانتهاء:" : "Expiry:"}{" "}
+                        <span className="font-mono font-semibold text-slate-700 dark:text-slate-300">
+                          {new Date(pkg.expiryDate).toISOString().slice(0, 10)}
+                        </span>
+                      </span>
+                    </div>
+
+                    {pkg.extensions && pkg.extensions.length > 0 && (
+                      <div className="text-[10px] text-slate-500 bg-slate-100 dark:bg-slate-800/80 p-2 rounded">
+                        <span className="font-semibold block text-slate-700 dark:text-slate-300">
+                          {isAr ? "سجل التمديدات المعتمدة:" : "Approved Extensions:"}
+                        </span>
+                        {pkg.extensions.map((ext: any) => (
+                          <div key={ext.id} className="mt-0.5">
+                            +{ext.daysAdded} {isAr ? "يوم" : "days"} ({ext.extendedByUser?.fullName}) — {ext.reason}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {isOwnerOrManager && pkg.status !== "CANCELLED" && (
+                      <div className="flex gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedPkgForExtend(pkg);
+                            setShowExtendPkgModal(true);
+                          }}
+                          className="flex-1 py-1 rounded border border-teal-600/30 text-teal-700 dark:text-teal-300 hover:bg-teal-50 dark:hover:bg-teal-950/40 text-[11px] font-medium"
+                        >
+                          {isAr ? "تمديد الصلاحية (+N يوم)" : "Extend Expiry"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedPkgForCancel(pkg);
+                            setShowCancelPkgModal(true);
+                          }}
+                          className="flex-1 py-1 rounded border border-rose-300 text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-[11px] font-medium"
+                        >
+                          {isAr ? "إلغاء الباقة" : "Cancel Package"}
+                        </button>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex justify-between text-slate-500">
-                    <span>{isAr ? "تاريخ البداية:" : "Start Date:"}</span>
-                    <span className="font-mono">{new Date(pkg.startDate).toISOString().slice(0, 10)}</span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -1050,6 +1296,238 @@ export default function PatientProfilePage({
                   className="px-4 py-1.5 text-xs font-semibold rounded-md bg-slate-800 text-white hover:bg-slate-900"
                 >
                   {savingDischarge ? (isAr ? "جارٍ التخريج..." : "Discharging...") : (isAr ? "تأكيد تخريج المريض" : "Confirm Discharge")}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 5: Create Package (R-7-1, R-7-2) */}
+      {showCreatePkgModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl">
+            <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-2">
+              {isAr ? "شراء باقة علاجية جديدة" : "New Treatment Package"}
+            </h3>
+            <p className="text-xs text-slate-500 mb-3">
+              {isAr
+                ? "يتم تفعيل الصلاحية تلقائياً لمدة 60 يوماً وإصدار مطالبة مالية غير مسددة بالباقة [R-7-1, R-8.1-1]."
+                : "Activates 60-day expiry and generates package charge."}
+            </p>
+
+            <form onSubmit={handleCreatePackage} className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  {isAr ? "نوع الجلسة المشمولة بالباقة" : "Session Type"} *
+                </label>
+                <select
+                  required
+                  value={pkgSessionTypeId}
+                  onChange={(e) => setPkgSessionTypeId(e.target.value)}
+                  className="w-full px-3 py-1.5 text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
+                >
+                  {pkgSessionTypes.map((st) => (
+                    <option key={st.id} value={st.id}>
+                      {st.nameAr} ({st.category === "PHYSIOTHERAPY" ? "علاج طبيعي" : "تغذية"})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    {isAr ? "عدد الجلسات" : "Sessions Count"} *
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={100}
+                    required
+                    value={pkgTotalSessions}
+                    onChange={(e) => setPkgTotalSessions(Number(e.target.value))}
+                    className="w-full px-3 py-1.5 text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    {isAr ? "السعر الإجمالي (ج.م)" : "Total Price (EGP)"} *
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    required
+                    value={pkgTotalPriceEgp}
+                    onChange={(e) => setPkgTotalPriceEgp(Number(e.target.value))}
+                    className="w-full px-3 py-1.5 text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 font-mono"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  {isAr ? "ملاحظات إضافية" : "Notes"}
+                </label>
+                <input
+                  type="text"
+                  value={pkgNotes}
+                  onChange={(e) => setPkgNotes(e.target.value)}
+                  placeholder={isAr ? "مثال: باقة تأهيل مكثف بعد عملية..." : "Optional notes"}
+                  className="w-full px-3 py-1.5 text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setShowCreatePkgModal(false)}
+                  className="px-3 py-1.5 text-xs rounded-md border border-slate-300 dark:border-slate-700"
+                >
+                  {isAr ? "إلغاء" : "Cancel"}
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingPkg}
+                  className="px-4 py-1.5 text-xs font-semibold rounded-md bg-[#0E6251] text-white hover:bg-[#117A65]"
+                >
+                  {savingPkg ? (isAr ? "جارٍ الحفظ..." : "Saving...") : (isAr ? "تأكيد شراء الباقة" : "Confirm Package")}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 6: Extend Package (R-7-6) */}
+      {showExtendPkgModal && selectedPkgForExtend && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl">
+            <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-2">
+              {isAr ? "تمديد فترة صلاحية الباقة" : "Extend Package Validity"}
+            </h3>
+            <p className="text-xs text-slate-500 mb-3">
+              {isAr
+                ? "صلاحية خاصة بالمالك والمدير فقط. تمديد الصلاحية يعيد تفعيل الجلسات المفقودة ويسمح بحجزها مجدداً [R-7-6]."
+                : "Owner/Manager only. Extends expiry and reactivates forfeited sessions."}
+            </p>
+
+            <form onSubmit={handleExtendPackage} className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  {isAr ? "عدد أيام التمديد (1 - 365)" : "Days to Add (1 - 365)"} *
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  max={365}
+                  required
+                  value={pkgDaysToAdd}
+                  onChange={(e) => setPkgDaysToAdd(Number(e.target.value))}
+                  className="w-full px-3 py-1.5 text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  {isAr ? "سبب التمديد الإداري (إلزامي للتدقيق)" : "Audit Reason"} *
+                </label>
+                <textarea
+                  required
+                  rows={2}
+                  value={pkgExtendReason}
+                  onChange={(e) => setPkgExtendReason(e.target.value)}
+                  placeholder={isAr ? "مثال: ظروف سفر للمريض مثبتة بتذكرة طيران، أو إجازة العيادة..." : "Reason for extension"}
+                  className="w-full px-3 py-1.5 text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowExtendPkgModal(false);
+                    setSelectedPkgForExtend(null);
+                  }}
+                  className="px-3 py-1.5 text-xs rounded-md border border-slate-300 dark:border-slate-700"
+                >
+                  {isAr ? "إلغاء" : "Cancel"}
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingExtend}
+                  className="px-4 py-1.5 text-xs font-semibold rounded-md bg-[#0E6251] text-white hover:bg-[#117A65]"
+                >
+                  {savingExtend ? (isAr ? "جارٍ التمديد..." : "Extending...") : (isAr ? "تأكيد تمديد الصلاحية" : "Confirm Extension")}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 7: Cancel Package (R-7-4) */}
+      {showCancelPkgModal && selectedPkgForCancel && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl">
+            <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-2">
+              {isAr ? "إلغاء الباقة العلاجية" : "Cancel Treatment Package"}
+            </h3>
+            <p className="text-xs text-slate-500 mb-3">
+              {isAr
+                ? "يتم إلغاء الباقة وتحرير المواعيد المستقبلية المحجوزة بها، واحتساب الاستحقاق الفعلي على أساس الجلسات المكتملة فقط [R-7-4, R-8.1-3]."
+                : "Cancels package, frees future bookings, and adjusts owed balance to completed sessions."}
+            </p>
+
+            <form onSubmit={handleCancelPackage} className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  {isAr ? "سبب الإلغاء" : "Cancellation Reason"} *
+                </label>
+                <select
+                  required
+                  value={pkgCancelReason}
+                  onChange={(e) => setPkgCancelReason(e.target.value)}
+                  className="w-full px-3 py-1.5 text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
+                >
+                  <option value="PATIENT_REQUEST">{isAr ? "طلب من المريض" : "Patient Request"}</option>
+                  <option value="PATIENT_RELOCATION">{isAr ? "انتقال أو سفر المريض" : "Patient Relocation"}</option>
+                  <option value="MEDICAL_CONTRAINDICATION">{isAr ? "موانع طبية طارئة" : "Medical Contraindication"}</option>
+                  <option value="CLINIC_DECISION">{isAr ? "قرار إداري من العيادة" : "Clinic Decision"}</option>
+                  <option value="OTHER">{isAr ? "أخرى" : "Other"}</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  {isAr ? "تفاصيل إضافية" : "Additional Notes"}
+                </label>
+                <textarea
+                  rows={2}
+                  value={pkgCancelNotes}
+                  onChange={(e) => setPkgCancelNotes(e.target.value)}
+                  placeholder={isAr ? "ملاحظات تفصيلية لتوثيق سبب الإلغاء..." : "Details"}
+                  className="w-full px-3 py-1.5 text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCancelPkgModal(false);
+                    setSelectedPkgForCancel(null);
+                  }}
+                  className="px-3 py-1.5 text-xs rounded-md border border-slate-300 dark:border-slate-700"
+                >
+                  {isAr ? "إلغاء" : "Cancel"}
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingCancel}
+                  className="px-4 py-1.5 text-xs font-semibold rounded-md bg-rose-700 text-white hover:bg-rose-800"
+                >
+                  {savingCancel ? (isAr ? "جارٍ الإلغاء..." : "Cancelling...") : (isAr ? "تأكيد إلغاء الباقة" : "Confirm Cancellation")}
                 </button>
               </div>
             </form>
