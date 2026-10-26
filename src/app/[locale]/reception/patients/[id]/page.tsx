@@ -17,6 +17,7 @@ import {
   cancelPackageAction,
   getPackageSessionTypesAction,
 } from "@/server/actions/packages";
+import { getPatientInBodyHistoryAction } from "@/server/actions/clinical";
 import { DocumentCategory } from "@prisma/client";
 import { calculatePatientAge } from "@/domain/patients/age";
 
@@ -95,6 +96,7 @@ export default function PatientProfilePage({
   const [pkgCancelReason, setPkgCancelReason] = useState("PATIENT_REQUEST");
   const [pkgCancelNotes, setPkgCancelNotes] = useState("");
   const [savingCancel, setSavingCancel] = useState(false);
+  const [inBodyRecords, setInBodyRecords] = useState<any[]>([]);
 
   const fetchPatientProfile = useCallback(async () => {
     setLoading(true);
@@ -105,12 +107,20 @@ export default function PatientProfilePage({
       } else {
         setError(res.error?.message || (isAr ? "فشل تحميل ملف المريض." : "Failed to load patient."));
       }
+
+      // Fetch InBody records if clinician/owner
+      if (currentRole === "NUTRITIONIST" || currentRole === "OWNER") {
+        const inBodyRes = await getPatientInBodyHistoryAction({ patientId });
+        if (inBodyRes.success && inBodyRes.data) {
+          setInBodyRecords(inBodyRes.data.records || []);
+        }
+      }
     } catch {
       setError(isAr ? "حدث خطأ أثناء تحميل الملف." : "Error loading profile.");
     } finally {
       setLoading(false);
     }
-  }, [patientId, isAr]);
+  }, [patientId, isAr, currentRole]);
 
   useEffect(() => {
     fetchPatientProfile();
@@ -1056,8 +1066,79 @@ export default function PatientProfilePage({
 
       {/* TAB 7: NUTRITION & INBODY */}
       {(currentRole === "NUTRITIONIST" || currentRole === "OWNER") && activeTab === "NUTRITION" && (
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm text-center py-12 text-xs text-slate-400">
-          {isAr ? "قسم التغذية وقياسات InBody — جاهز لربط السجلات السريرية" : "Nutrition protocols & InBody charts module."}
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <span>🥗</span>
+                {isAr ? "سجل قياسات InBody ومتابعة الحالة التغذوية" : "InBody Scans & Nutritional Progress"}
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                {isAr ? "مؤشر كتلة الجسم، معدل الحرق اليومي (MSJ)، وتوزيع الماكروز" : "BMI, Mifflin-St Jeor BMR, and macro distributions"}
+              </p>
+            </div>
+
+            <Link
+              href={`/${locale}/nutrition/queue`}
+              className="px-3 py-1.5 text-xs font-semibold rounded-md bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm flex items-center gap-1.5"
+            >
+              <span>+</span>
+              {isAr ? "تسجيل فحص InBody جديد" : "New InBody Scan"}
+            </Link>
+          </div>
+
+          {inBodyRecords.length === 0 ? (
+            <div className="py-12 text-center text-xs text-slate-400 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
+              {isAr ? "لا توجد قياسات InBody مسجلة لهذا المريض بعد." : "No InBody scans recorded yet."}
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs text-right text-slate-700 dark:text-slate-300">
+                <thead>
+                  <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 bg-slate-50 dark:bg-slate-800/40">
+                    <th className="p-2.5">{isAr ? "التاريخ" : "Date"}</th>
+                    <th className="p-2.5">{isAr ? "الوزن" : "Weight"}</th>
+                    <th className="p-2.5">BMI</th>
+                    <th className="p-2.5">{isAr ? "العضل (SMM)" : "Muscle"}</th>
+                    <th className="p-2.5">{isAr ? "الدهون %" : "Fat %"}</th>
+                    <th className="p-2.5">{isAr ? "الدهون الحشوية" : "Visceral"}</th>
+                    <th className="p-2.5">{isAr ? "معدل الحرق (BMR)" : "BMR"}</th>
+                    <th className="p-2.5">{isAr ? "الهدف" : "Target"}</th>
+                    <th className="p-2.5">{isAr ? "النظام" : "Protocol"}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {inBodyRecords.map((rec) => (
+                    <tr key={rec.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                      <td className="p-2.5 font-mono">
+                        {new Date(rec.testDate).toLocaleDateString(isAr ? "ar-EG" : "en-US")}
+                      </td>
+                      <td className="p-2.5 font-bold text-slate-900 dark:text-white">
+                        {rec.weightKg} kg
+                      </td>
+                      <td className="p-2.5 text-emerald-600 dark:text-emerald-400 font-bold">
+                        {rec.bmi}
+                      </td>
+                      <td className="p-2.5">{rec.skeletalMuscleMassKg ?? "—"} kg</td>
+                      <td className="p-2.5 text-amber-600 dark:text-amber-400 font-bold">
+                        {rec.bodyFatPercentage ? `${rec.bodyFatPercentage}%` : "—"}
+                      </td>
+                      <td className="p-2.5">{rec.visceralFatLevel ?? "—"}</td>
+                      <td className="p-2.5 font-mono">{rec.bmr} kcal</td>
+                      <td className="p-2.5 font-mono">
+                        {rec.calorieTargetKcal ? `${rec.calorieTargetKcal} kcal` : "—"}
+                      </td>
+                      <td className="p-2.5">
+                        <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-[11px]">
+                          {rec.protocol}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 
